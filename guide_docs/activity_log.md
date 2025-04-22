@@ -255,6 +255,25 @@ This file tracks all development activities, issues encountered, solutions imple
   4. This is a fundamental requirement for Flutter plugins and should never be overlooked
   5. The error message "Binding has not yet been initialized" is a clear indicator of this issue
 
+## [2023-04-22 | 20:00 PM]
+- ❌ Issue: Password fields lacked visibility toggle, making it difficult for users to verify input
+- ❌ Issue: Sign-up and forgot password screens had commented-out AppBars, causing UI to black out
+- ✅ Added password visibility toggle to all password fields
+- ✅ Fixed sign-up and forgot password screens by uncommenting AppBars
+- 🔄 Solutions implemented:
+  1. Converted NeoTextField to StatefulWidget to manage password visibility state
+  2. Added visibility toggle icon button for password fields
+  3. Uncommented AppBars in sign-up and forgot password screens
+- 📁 Files changed:
+  - lib/shared/widgets/neo_text_field.dart (added password visibility toggle)
+  - lib/features/auth/view/sign_up_page.dart (fixed AppBar)
+  - lib/features/auth/view/forgot_password_page.dart (fixed AppBar)
+- 📝 Lessons learned:
+  1. Always provide password visibility toggle for better user experience
+  2. Be careful when commenting out UI elements during development
+  3. Test all screens thoroughly on actual devices
+  4. Pay attention to basic usability features that users expect
+
 ## Template for Future Entries
 
 ```
