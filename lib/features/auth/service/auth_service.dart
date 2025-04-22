@@ -61,4 +61,11 @@ class AuthService {
     }
     return _authRepository!;
   }
+
+  /// Overrides the repository for testing purposes.
+  /// This should only be used in tests.
+  @visibleForTesting
+  static void overrideRepositoryForTesting(AuthRepository repository) {
+    _authRepository = repository;
+  }
 }
