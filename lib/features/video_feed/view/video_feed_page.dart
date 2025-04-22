@@ -24,17 +24,41 @@ class VideoFeedPage extends StatelessWidget {
 }
 
 /// {@template video_feed_view}
-/// Main view for the video feed page.
+/// Main view for the video feed page with enhanced video playback.
 /// {@endtemplate}
-class VideoFeedView extends StatelessWidget {
+class VideoFeedView extends StatefulWidget {
   /// {@macro video_feed_view}
   const VideoFeedView({super.key});
+
+  @override
+  State<VideoFeedView> createState() => _VideoFeedViewState();
+}
+
+class _VideoFeedViewState extends State<VideoFeedView> {
+  @override
+  void dispose() {
+    // Dispose all video controllers when the view is disposed
+    context.read<VideoFeedCubit>().disposeControllers();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Video Feed'),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          // TODO(dev): Navigate to upload video page
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Upload video feature coming soon!'),
+            ),
+          );
+        },
+        icon: const Icon(Icons.add),
+        label: const Text('Upload Video'),
       ),
       body: BlocBuilder<VideoFeedCubit, VideoFeedState>(
         builder: (context, state) {
