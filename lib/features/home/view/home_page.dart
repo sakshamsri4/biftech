@@ -340,10 +340,16 @@ class _HomePageState extends State<HomePage> {
             'Video Feed',
             style: Theme.of(context).textTheme.headlineMedium,
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Coming soon!',
-            style: Theme.of(context).textTheme.bodyLarge,
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.of(context).pushNamed('/video-feed');
+            },
+            icon: const Icon(Icons.play_circle_outline),
+            label: const Text('Go to Video Feed'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
           ),
         ],
       ),

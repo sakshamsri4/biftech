@@ -1,6 +1,7 @@
 import 'package:biftech/features/auth/auth.dart';
 import 'package:biftech/features/auth/service/auth_service.dart';
 import 'package:biftech/features/home/home.dart';
+import 'package:biftech/features/video_feed/video_feed.dart';
 import 'package:biftech/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 
@@ -45,6 +46,17 @@ class _AppState extends State<App> {
       routes: {
         '/login': (context) => const AuthPage(),
         '/home': (context) => const HomePage(),
+        '/video-feed': (context) => const VideoFeedPage(),
+        '/flowchart/:id': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments
+              as Map<String, dynamic>?;
+          final id = args?['id'] as String? ?? '';
+          // TODO(dev): Replace with actual FlowchartPage when implemented
+          return Scaffold(
+            appBar: AppBar(title: const Text('Flowchart')),
+            body: Center(child: Text('Flowchart ID: $id')),
+          );
+        },
       },
     );
   }

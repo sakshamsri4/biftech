@@ -1,0 +1,57 @@
+[
+  {
+    "id": "v001",
+    "title": "Introduction to Flutter Architecture",
+    "creator": "Flutter Expert",
+    "views": 12500,
+    "thumbnailUrl": "https://via.placeholder.com/300x200/2196F3/FFFFFF?text=Flutter+Architecture",
+    "description": "Learn the basics of Flutter's architecture and how it differs from other frameworks.",
+    "duration": "10:30",
+    "publishedAt": "2023-05-15T14:30:00Z",
+    "tags": ["flutter", "architecture", "beginner"]
+  },
+  {
+    "id": "v002",
+    "title": "State Management with BLoC Pattern",
+    "creator": "Code Wizard",
+    "views": 8750,
+    "thumbnailUrl": "https://via.placeholder.com/300x200/4CAF50/FFFFFF?text=BLoC+Pattern",
+    "description": "Deep dive into BLoC pattern for state management in Flutter applications.",
+    "duration": "15:45",
+    "publishedAt": "2023-06-22T10:15:00Z",
+    "tags": ["flutter", "bloc", "state management", "intermediate"]
+  },
+  {
+    "id": "v003",
+    "title": "Building Responsive UIs",
+    "creator": "UI Master",
+    "views": 9300,
+    "thumbnailUrl": "https://via.placeholder.com/300x200/FFC107/000000?text=Responsive+UI",
+    "description": "Learn how to create responsive UIs that work across different screen sizes.",
+    "duration": "12:20",
+    "publishedAt": "2023-07-10T09:45:00Z",
+    "tags": ["flutter", "ui", "responsive", "intermediate"]
+  },
+  {
+    "id": "v004",
+    "title": "Advanced Animation Techniques",
+    "creator": "Animation Pro",
+    "views": 6200,
+    "thumbnailUrl": "https://via.placeholder.com/300x200/E91E63/FFFFFF?text=Animations",
+    "description": "Master complex animations in Flutter to create delightful user experiences.",
+    "duration": "20:15",
+    "publishedAt": "2023-08-05T16:30:00Z",
+    "tags": ["flutter", "animation", "advanced"]
+  },
+  {
+    "id": "v005",
+    "title": "Testing Flutter Applications",
+    "creator": "Test Guru",
+    "views": 5400,
+    "thumbnailUrl": "https://via.placeholder.com/300x200/9C27B0/FFFFFF?text=Testing",
+    "description": "Comprehensive guide to testing Flutter apps: unit, widget, and integration tests.",
+    "duration": "18:50",
+    "publishedAt": "2023-09-12T11:20:00Z",
+    "tags": ["flutter", "testing", "intermediate"]
+  }
+]
