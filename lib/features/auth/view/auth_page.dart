@@ -15,15 +15,24 @@ class AuthPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: BlocProvider(
-          create: (_) => AuthCubit(),
-          child: const AuthForm(),
+    return GestureDetector(
+      // Dismiss keyboard when tapping outside of text fields
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        // Use resizeToAvoidBottomInset to handle keyboard appearance
+        resizeToAvoidBottomInset: true,
+        appBar: AppBar(
+          title: const Text('Login'),
+          // Make the app bar responsive
+          toolbarHeight: MediaQuery.of(context).size.height > 600 ? 56 : 48,
+        ),
+        body: SafeArea(
+          // Use SafeArea to handle notches and system UI elements
+          minimum: const EdgeInsets.symmetric(horizontal: 16),
+          child: BlocProvider(
+            create: (_) => AuthCubit(),
+            child: const AuthForm(),
+          ),
         ),
       ),
     );

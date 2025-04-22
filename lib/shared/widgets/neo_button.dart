@@ -28,12 +28,22 @@ class NeoButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Make the button responsive based on screen size
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 360;
+
     return NeoPopButton(
       color: isEnabled ? Theme.of(context).primaryColor : Colors.grey,
       onTapUp: isEnabled && !isLoading ? onTap : null,
       onTapDown: () {},
+      // Add depth and shadow configuration for better appearance
+      depth: 5,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        // Adjust padding based on screen size
+        padding: EdgeInsets.symmetric(
+          horizontal: isSmallScreen ? 16 : 20,
+          vertical: isSmallScreen ? 12 : 15,
+        ),
         child: isLoading
             ? const SizedBox(
                 height: 20,
@@ -45,10 +55,14 @@ class NeoButton extends StatelessWidget {
               )
             : Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
+                  // Adjust font size based on screen size
+                  fontSize: isSmallScreen ? 14 : 16,
                 ),
+                // Center text and ensure it doesn't overflow
+                textAlign: TextAlign.center,
               ),
       ),
     );

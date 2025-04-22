@@ -31,6 +31,10 @@ class NeoTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Make the text field responsive based on screen size
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 360;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -42,6 +46,10 @@ class NeoTextField extends StatelessWidget {
           ),
         ],
       ),
+      // Constrain the height to prevent overflow
+      constraints: BoxConstraints(
+        maxHeight: errorText != null ? 80 : 60,
+      ),
       child: TextField(
         controller: controller,
         autofillHints:
@@ -51,14 +59,30 @@ class NeoTextField extends StatelessWidget {
             : TextInputType.emailAddress,
         obscureText: obscureText,
         onChanged: onChanged,
+        // Add text input action to improve keyboard navigation
+        textInputAction:
+            obscureText ? TextInputAction.done : TextInputAction.next,
+        // Adjust style based on screen size
+        style: TextStyle(fontSize: isSmallScreen ? 14 : 16),
         decoration: InputDecoration(
           labelText: labelText,
           errorText: errorText,
+          // Adjust error style to prevent overflow
+          errorStyle: TextStyle(
+            fontSize: isSmallScreen ? 10 : 12,
+            height: 0.8,
+          ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: isSmallScreen ? 12 : 16,
+          ),
+          // Make the label text responsive
+          labelStyle: TextStyle(fontSize: isSmallScreen ? 14 : 16),
+          // Ensure error text is visible but compact
+          isDense: true,
         ),
       ),
     );

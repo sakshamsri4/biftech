@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:formz/formz.dart';
 import 'package:biftech/features/auth/cubit/auth_cubit.dart';
 import 'package:biftech/features/auth/cubit/auth_state.dart';
 import 'package:biftech/features/auth/model/models.dart';
 import 'package:biftech/shared/widgets/widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:formz/formz.dart';
 
 /// {@template auth_form}
 /// A form for user authentication.
@@ -30,6 +30,10 @@ class _AuthFormState extends State<AuthForm> {
 
   @override
   Widget build(BuildContext context) {
+    // Get the screen size to make the UI responsive
+    final screenSize = MediaQuery.of(context).size;
+    final keyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
+
     return BlocListener<AuthCubit, AuthState>(
       listenWhen: (previous, current) => previous.status != current.status,
       listener: (context, state) {
@@ -55,19 +59,36 @@ class _AuthFormState extends State<AuthForm> {
           // Navigator.of(context).pushReplacementNamed('/home');
         }
       },
-      child: Align(
-        alignment: const Alignment(0, -1 / 3),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const _WelcomeHeader(),
-            const SizedBox(height: 32),
-            _EmailInput(controller: _emailController),
-            const SizedBox(height: 16),
-            _PasswordInput(controller: _passwordController),
-            const SizedBox(height: 32),
-            const _LoginButton(),
-          ],
+      child: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: 24,
+            // Add extra bottom padding when keyboard is visible
+            vertical: keyboardVisible ? 20 : 0,
+          ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: screenSize.height -
+                  MediaQuery.of(context).viewInsets.bottom -
+                  100,
+            ),
+            child: Column(
+              mainAxisAlignment: keyboardVisible
+                  ? MainAxisAlignment.start
+                  : MainAxisAlignment.center,
+              children: [
+                if (!keyboardVisible) const _WelcomeHeader(),
+                if (!keyboardVisible) const SizedBox(height: 32),
+                _EmailInput(controller: _emailController),
+                const SizedBox(height: 16),
+                _PasswordInput(controller: _passwordController),
+                const SizedBox(height: 32),
+                const _LoginButton(),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -79,22 +100,37 @@ class _WelcomeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Make the header responsive based on screen size
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 360;
+
     return Column(
       children: [
-        const Icon(
+        Icon(
           Icons.account_circle_outlined,
-          size: 80,
+          // Adjust icon size based on screen size
+          size: isSmallScreen ? 60 : 80,
           color: Colors.blue,
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: isSmallScreen ? 12 : 16),
         Text(
           'Welcome to Biftech',
-          style: Theme.of(context).textTheme.headlineMedium,
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                // Adjust font size based on screen size
+                fontSize: isSmallScreen ? 20 : null,
+              ),
+          // Center text and ensure it doesn't overflow
+          textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: isSmallScreen ? 6 : 8),
         Text(
           'Please sign in to continue',
-          style: Theme.of(context).textTheme.bodyLarge,
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                // Adjust font size based on screen size
+                fontSize: isSmallScreen ? 14 : null,
+              ),
+          // Center text and ensure it doesn't overflow
+          textAlign: TextAlign.center,
         ),
       ],
     );
@@ -163,7 +199,8 @@ class _LoginButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AuthCubit, AuthState>(
       buildWhen: (previous, current) =>
-          previous.status != current.status || previous.isValid != current.isValid,
+          previous.status != current.status ||
+          previous.isValid != current.isValid,
       builder: (context, state) {
         return NeoButton(
           onTap: () {
