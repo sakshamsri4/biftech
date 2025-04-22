@@ -314,6 +314,27 @@ This file tracks all development activities, issues encountered, solutions imple
   3. Created responsive layout that works on different screen sizes
   4. Added placeholder content for features to be implemented later
 
+## [2023-04-22 | 21:30 PM]
+- ❌ Issue: Sign-up process wasn't navigating to home page after successful registration
+- ❌ Issue: No persistent login - users had to log in again after app restart
+- ✅ Fixed sign-up navigation to go directly to home page
+- ✅ Implemented persistent login using Hive storage
+- 🔄 Solutions implemented:
+  1. Updated sign-up page to navigate to home page after successful registration
+  2. Added isLoggedIn() method to AuthRepository to check for existing session
+  3. Modified App to check for logged-in user on startup
+  4. Updated forgot password page to use proper navigation
+- 📁 Files changed:
+  - lib/features/auth/view/sign_up_page.dart (fixed navigation after sign-up)
+  - lib/features/auth/view/forgot_password_page.dart (improved navigation)
+  - lib/features/auth/repository/auth_repository.dart (added isLoggedIn method)
+  - lib/app/view/app.dart (implemented persistent login check)
+- 📝 Implementation notes:
+  1. Used Hive's currentUserKey to check for existing logged-in user
+  2. Converted App to StatefulWidget to handle initial route based on login state
+  3. Ensured consistent navigation between all authentication screens
+  4. Improved user experience by maintaining login state between app sessions
+
 ## Template for Future Entries
 
 ```
