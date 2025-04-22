@@ -76,7 +76,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     ),
                   );
                 // Navigate back to login page
-                Navigator.of(context).pushReplacementNamed('/login');
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  '/login',
+                  (_) => false,
+                );
               }
             },
             child: SingleChildScrollView(

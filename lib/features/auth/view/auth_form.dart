@@ -75,7 +75,10 @@ class _AuthFormState extends State<AuthForm> {
               ),
             );
           // Navigate to home page
-          Navigator.of(context).pushReplacementNamed('/home');
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            '/home',
+            (_) => false,
+          );
         }
       },
       child: SingleChildScrollView(

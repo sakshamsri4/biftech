@@ -42,7 +42,10 @@ class _HomePageState extends State<HomePage> {
     await authRepository.logoutUser();
 
     if (mounted) {
-      await Navigator.of(context).pushReplacementNamed('/login');
+      await Navigator.of(context).pushNamedAndRemoveUntil(
+        '/login',
+        (_) => false,
+      );
     }
   }
 
