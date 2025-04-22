@@ -209,4 +209,34 @@ class VideoFeedCubit extends Cubit<VideoFeedState> {
       );
     }
   }
+
+  /// Adds a new video to the feed
+  Future<void> addNewVideo(VideoModel newVideo) async {
+    try {
+      // Get the current videos
+      final currentVideos = List<VideoModel>.from(state.videos);
+
+      // Add the new video at the beginning of the list
+      currentVideos.insert(0, newVideo);
+
+      // Emit success state with updated videos
+      emit(
+        state.copyWith(
+          status: VideoFeedStatus.success,
+          videos: currentVideos,
+        ),
+      );
+
+      // Initialize the video controller for the new video
+      await initializeVideoController(newVideo);
+    } catch (e) {
+      // Emit failure state with error message
+      emit(
+        state.copyWith(
+          status: VideoFeedStatus.failure,
+          errorMessage: 'Failed to add new video: $e',
+        ),
+      );
+    }
+  }
 }

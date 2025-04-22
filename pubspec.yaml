@@ -21,6 +21,7 @@ dependencies:
   go_router: ^13.2.0
   hive: ^2.2.3
   hive_flutter: ^1.1.0
+  image_picker: ^1.0.7
   intl: ^0.19.0
   neopop: ^1.0.2
   path_provider: ^2.1.2

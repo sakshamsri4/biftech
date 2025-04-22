@@ -1,5 +1,6 @@
 import 'package:biftech/features/video_feed/cubit/cubit.dart';
 import 'package:biftech/features/video_feed/model/models.dart';
+import 'package:biftech/features/video_feed/view/upload_video_page.dart';
 import 'package:biftech/features/video_feed/view/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -50,10 +51,9 @@ class _VideoFeedViewState extends State<VideoFeedView> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // TODO(dev): Navigate to upload video page
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Upload video feature coming soon!'),
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (context) => const UploadVideoPage(),
             ),
           );
         },
