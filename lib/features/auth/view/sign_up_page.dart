@@ -11,7 +11,13 @@ import 'package:formz/formz.dart';
 /// {@endtemplate}
 class SignUpPage extends StatefulWidget {
   /// {@macro sign_up_page}
-  const SignUpPage({super.key});
+  const SignUpPage({
+    required this.onBackToLoginTap,
+    super.key,
+  });
+
+  /// Called when the user taps the back to login button.
+  final VoidCallback onBackToLoginTap;
 
   @override
   State<SignUpPage> createState() => _SignUpPageState();
@@ -26,8 +32,7 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   void initState() {
     super.initState();
-    // Set the auth mode to sign up
-    context.read<AuthCubit>().changeMode(AuthMode.signUp);
+    // The auth mode is set by the parent widget
   }
 
   @override
@@ -103,7 +108,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     const _SignUpButton(),
                     const SizedBox(height: 16),
                     _BackToLoginButton(
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: widget.onBackToLoginTap,
                     ),
                     const SizedBox(height: 24),
                   ],

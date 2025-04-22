@@ -11,7 +11,13 @@ import 'package:formz/formz.dart';
 /// {@endtemplate}
 class ForgotPasswordPage extends StatefulWidget {
   /// {@macro forgot_password_page}
-  const ForgotPasswordPage({super.key});
+  const ForgotPasswordPage({
+    required this.onBackToLoginTap,
+    super.key,
+  });
+
+  /// Called when the user taps the back to login button.
+  final VoidCallback onBackToLoginTap;
 
   @override
   State<ForgotPasswordPage> createState() => _ForgotPasswordPageState();
@@ -23,8 +29,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   @override
   void initState() {
     super.initState();
-    // Set the auth mode to forgot password
-    context.read<AuthCubit>().changeMode(AuthMode.forgotPassword);
+    // The auth mode is set by the parent widget
   }
 
   @override
@@ -91,7 +96,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     const _SubmitButton(),
                     const SizedBox(height: 16),
                     _BackToLoginButton(
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: widget.onBackToLoginTap,
                     ),
                     const SizedBox(height: 24),
                   ],

@@ -1,8 +1,6 @@
 import 'package:biftech/features/auth/cubit/auth_cubit.dart';
 import 'package:biftech/features/auth/cubit/auth_state.dart';
 import 'package:biftech/features/auth/model/models.dart';
-import 'package:biftech/features/auth/view/forgot_password_page.dart';
-import 'package:biftech/features/auth/view/sign_up_page.dart';
 import 'package:biftech/shared/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,7 +11,17 @@ import 'package:formz/formz.dart';
 /// {@endtemplate}
 class AuthForm extends StatefulWidget {
   /// {@macro auth_form}
-  const AuthForm({super.key});
+  const AuthForm({
+    required this.onSignUpTap,
+    required this.onForgotPasswordTap,
+    super.key,
+  });
+
+  /// Called when the user taps the sign up button.
+  final VoidCallback onSignUpTap;
+
+  /// Called when the user taps the forgot password button.
+  final VoidCallback onForgotPasswordTap;
 
   @override
   State<AuthForm> createState() => _AuthFormState();
@@ -27,7 +35,9 @@ class _AuthFormState extends State<AuthForm> {
   void initState() {
     super.initState();
     // Set the auth mode to login
-    context.read<AuthCubit>().changeMode(AuthMode.login);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AuthCubit>().changeMode(AuthMode.login);
+    });
   }
 
   @override
@@ -99,24 +109,10 @@ class _AuthFormState extends State<AuthForm> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     _ForgotPasswordButton(
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (context) => BlocProvider.value(
-                            value: context.read<AuthCubit>(),
-                            child: const ForgotPasswordPage(),
-                          ),
-                        ),
-                      ),
+                      onPressed: widget.onForgotPasswordTap,
                     ),
                     _SignUpButton(
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (context) => BlocProvider.value(
-                            value: context.read<AuthCubit>(),
-                            child: const SignUpPage(),
-                          ),
-                        ),
-                      ),
+                      onPressed: widget.onSignUpTap,
                     ),
                   ],
                 ),
