@@ -1,0 +1,21 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "Biftech",
+    "biftech",
+    "dartdoc",
+    "mgmt",
+    "neopop",
+    "neowidget",
+    "signup",
+    "treeview"
+  ],
+  "ignorePaths": [
+    "node_modules",
+    "build",
+    ".dart_tool",
+    ".pub",
+    ".git"
+  ]
+}
