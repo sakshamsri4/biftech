@@ -15,6 +15,7 @@ class VideoCard extends StatefulWidget {
   const VideoCard({
     required this.video,
     required this.onTap,
+    this.onDelete,
     super.key,
   });
 
@@ -23,6 +24,10 @@ class VideoCard extends StatefulWidget {
 
   /// Callback when the card is tapped
   final VoidCallback onTap;
+
+  /// Callback when the delete button is tapped
+  /// If null, the delete option will not be shown
+  final Future<bool> Function(String videoId)? onDelete;
 
   @override
   State<VideoCard> createState() => _VideoCardState();
