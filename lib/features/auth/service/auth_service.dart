@@ -1,5 +1,6 @@
 import 'package:biftech/features/auth/model/user_model.dart';
 import 'package:biftech/features/auth/repository/auth_repository.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -65,6 +66,7 @@ class AuthService {
   /// Overrides the repository for testing purposes.
   /// This should only be used in tests.
   @visibleForTesting
+  // ignore: use_setters_to_change_properties
   static void overrideRepositoryForTesting(AuthRepository repository) {
     _authRepository = repository;
   }
