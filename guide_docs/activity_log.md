@@ -442,6 +442,106 @@ This file tracks all development activities, issues encountered, solutions imple
   5. Test with different data scenarios (empty, partial, complete)
   6. Add pull-to-refresh for better user experience with list views
 
+## [2023-04-23 | 16:00 PM]
+- ❌ CRITICAL ERROR: Tests for video feed were not properly verified before committing
+- ❌ Issue: Navigation in VideoFeedPage used go_router but app was using Flutter's built-in Navigator
+- ❌ Issue: Tests passed but actual functionality failed with "No GoRouter found in context" error
+- ✅ Fixed navigation in VideoFeedPage to use Navigator instead of go_router
+- ✅ Updated tests to properly test navigation
+- 🔄 Solutions implemented:
+  1. Replaced context.go('/flowchart/${video.id}') with Navigator.pushNamed()
+  2. Added proper navigation tests that verify the correct route and arguments
+  3. Made tests more robust by handling potential image loading errors
+- 📁 Files changed:
+  - lib/features/video_feed/view/video_feed_page.dart (fixed navigation)
+  - test/features/video_feed/view/video_feed_page_test.dart (improved tests)
+- 📝 Lessons learned:
+  1. Always test the actual functionality, not just mock it
+  2. Ensure tests verify the real behavior, not just pass
+  3. Be consistent with navigation approach throughout the app
+  4. Run tests on actual devices to catch integration issues
+  5. Don't mix different navigation libraries in the same app
+
+## [2023-04-23 | 17:30 PM]
+- ✅ Enhanced Video Feed UI with inline video playback
+- ✅ Added video player with play button overlay
+- ✅ Implemented auto-pause functionality when another video plays
+- ✅ Added "Participate" button for flowchart navigation
+- ✅ Added floating action button for uploading videos
+- ❌ Issue: Video player required careful controller management to avoid memory leaks
+- 🔄 Solutions implemented:
+  1. Added controller pool in VideoFeedCubit to manage video controllers
+  2. Implemented proper lifecycle management for video controllers
+  3. Used cached_network_image for efficient thumbnail loading
+  4. Added proper error handling for video playback
+  5. Ensured only one video plays at a time
+- 📁 Files created/changed:
+  - pubspec.yaml (added video_player, chewie, cached_network_image)
+  - lib/features/video_feed/model/video_model.dart (added videoUrl and isPlaying fields)
+  - lib/features/video_feed/cubit/video_feed_cubit.dart (added controller management)
+  - lib/features/video_feed/view/widgets/video_card.dart (enhanced with video player)
+  - lib/features/video_feed/view/video_feed_page.dart (added upload button)
+  - assets/json/videos.json (added video URLs)
+- 📝 Lessons learned:
+  1. Video players require careful resource management
+  2. Always dispose controllers to prevent memory leaks
+  3. Use a controller pool pattern for multiple videos
+  4. Handle network resources efficiently with caching
+  5. Implement proper error handling for media playback
+
+## [2023-04-23 | 19:00 PM]
+- ✅ Implemented Upload Video feature with form validation
+- ✅ Added image_picker for selecting thumbnails and videos
+- ✅ Created form with all required fields (title, creator, duration, description)
+- ✅ Implemented validation and mock upload process
+- ✅ Added new video to the feed after upload
+- ❌ Issue: image_picker required specific permissions on iOS and Android
+- ❌ Issue: BuildContext was used across async gaps causing potential issues
+- 🔄 Solutions implemented:
+  1. Added required permissions to iOS Info.plist and Android AndroidManifest.xml
+  2. Created source selection dialog for choosing between camera and gallery
+  3. Implemented proper error handling for permission issues
+  4. Fixed BuildContext usage across async gaps
+  5. Added user-friendly error messages for permission denials
+- 📁 Files created/changed:
+  - pubspec.yaml (added image_picker)
+  - lib/features/video_feed/view/upload_video_page.dart (new upload form)
+  - lib/features/video_feed/cubit/video_feed_cubit.dart (added addNewVideo method)
+  - lib/features/video_feed/view/video_feed_page.dart (connected upload button)
+  - ios/Runner/Info.plist (added camera and photo library permissions)
+  - android/app/src/main/AndroidManifest.xml (added storage and camera permissions)
+  - test/features/video_feed/view/upload_video_page_test.dart (added tests)
+- 📝 Lessons learned:
+  1. Always add required permissions for platform-specific features
+  2. Handle permission denials gracefully with user-friendly messages
+  3. Be careful with BuildContext usage across async operations
+  4. Provide clear feedback during upload process
+  5. Test on all target platforms (iOS, Android, web)
+  6. Consider platform differences in file picking behavior
+
+## [2023-04-23 | 20:30 PM]
+- ✅ Enhanced cross-platform compatibility for image_picker
+- ❌ Issue: Web platform requires special handling for image_picker
+- ❌ Issue: File paths are different between platforms (web uses URLs, mobile uses file paths)
+- ❌ Issue: Video playback on web requires different initialization
+- 🔄 Solutions implemented:
+  1. Added web-specific error handling for image_picker
+  2. Used conditional imports for platform-specific code
+  3. Implemented platform detection to adjust behavior accordingly
+  4. Added fallback mechanisms when features aren't available on certain platforms
+  5. Updated tests to handle platform differences
+- 📁 Files changed:
+  - lib/features/video_feed/view/upload_video_page.dart (added web support)
+  - lib/features/video_feed/view/widgets/video_card.dart (improved cross-platform video playback)
+  - web/index.html (updated for image_picker web support)
+- 📝 Lessons learned:
+  1. Always test on all target platforms (iOS, Android, web) before committing
+  2. Use platform detection to provide appropriate behavior on each platform
+  3. Consider using conditional imports for platform-specific code
+  4. Provide fallbacks for features that aren't available on all platforms
+  5. Document platform-specific limitations and workarounds
+  6. Keep the activity log updated with all platform-specific issues and solutions
+
 ## Template for Future Entries
 
 ```

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:biftech/features/video_feed/cubit/cubit.dart';
 import 'package:biftech/features/video_feed/model/models.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -41,8 +42,9 @@ class _UploadVideoViewState extends State<UploadVideoView> {
   final _durationController = TextEditingController();
   final _descriptionController = TextEditingController();
 
-  File? _thumbnailFile;
-  File? _videoFile;
+  // Use dynamic type to handle both File and XFile (for web)
+  dynamic _thumbnailFile;
+  dynamic _videoFile;
   bool _isUploading = false;
   String? _thumbnailError;
   String? _videoError;
@@ -71,7 +73,14 @@ class _UploadVideoViewState extends State<UploadVideoView> {
 
       if (pickedFile != null) {
         setState(() {
-          _thumbnailFile = File(pickedFile.path);
+          // Handle platform differences
+          if (kIsWeb) {
+            // On web, we keep the XFile directly
+            _thumbnailFile = pickedFile;
+          } else {
+            // On mobile, convert to File
+            _thumbnailFile = File(pickedFile.path);
+          }
           _thumbnailError = null;
         });
       }
@@ -121,7 +130,14 @@ class _UploadVideoViewState extends State<UploadVideoView> {
 
       if (pickedFile != null) {
         setState(() {
-          _videoFile = File(pickedFile.path);
+          // Handle platform differences
+          if (kIsWeb) {
+            // On web, we keep the XFile directly
+            _videoFile = pickedFile;
+          } else {
+            // On mobile, convert to File
+            _videoFile = File(pickedFile.path);
+          }
           _videoError = null;
         });
       }
@@ -183,15 +199,32 @@ class _UploadVideoViewState extends State<UploadVideoView> {
       // Generate a unique ID for the video
       final id = 'v${DateTime.now().millisecondsSinceEpoch}';
 
+      // Get file paths based on platform
+      final String thumbnailPath;
+      final String videoPath;
+
+      if (kIsWeb) {
+        // On web, use the XFile path directly
+        thumbnailPath = _thumbnailFile != null
+            ? (_thumbnailFile as XFile).path
+            : 'https://via.placeholder.com/300x200/9C27B0/FFFFFF?text=New+Video';
+        videoPath = (_videoFile as XFile).path;
+      } else {
+        // On mobile, use the File path
+        thumbnailPath = _thumbnailFile != null
+            ? (_thumbnailFile as File).path
+            : 'https://via.placeholder.com/300x200/9C27B0/FFFFFF?text=New+Video';
+        videoPath = (_videoFile as File).path;
+      }
+
       // Create a new video model
       final newVideo = VideoModel(
         id: id,
         title: _titleController.text,
         creator: _creatorController.text,
         views: 0, // New videos start with 0 views
-        thumbnailUrl: _thumbnailFile?.path ??
-            'https://via.placeholder.com/300x200/9C27B0/FFFFFF?text=New+Video',
-        videoUrl: _videoFile!.path,
+        thumbnailUrl: thumbnailPath,
+        videoUrl: videoPath,
         description: _descriptionController.text,
         duration: _durationController.text,
         publishedAt: DateTime.now().toIso8601String(),
@@ -262,10 +295,28 @@ class _UploadVideoViewState extends State<UploadVideoView> {
                   child: _thumbnailFile != null
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: Image.file(
-                            _thumbnailFile!,
-                            fit: BoxFit.cover,
-                          ),
+                          child: kIsWeb
+                              // For web, use network image from XFile
+                              ? Image.network(
+                                  (_thumbnailFile as XFile).path,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      color: Colors.grey[300],
+                                      child: const Center(
+                                        child: Icon(
+                                          Icons.error,
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                )
+                              // For mobile, use file image
+                              : Image.file(
+                                  _thumbnailFile as File,
+                                  fit: BoxFit.cover,
+                                ),
                         )
                       : Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -395,7 +446,9 @@ class _UploadVideoViewState extends State<UploadVideoView> {
                               style: theme.textTheme.bodyMedium,
                             ),
                             Text(
-                              _videoFile!.path.split('/').last,
+                              kIsWeb
+                                  ? 'Video selected from web'
+                                  : (_videoFile as File).path.split('/').last,
                               style: theme.textTheme.bodySmall,
                               overflow: TextOverflow.ellipsis,
                             ),
