@@ -62,3 +62,33 @@ This document outlines the engineering rules, coding standards, and development 
 - Use repositories for data access
 - Handle errors gracefully with proper user feedback
 - Implement proper logging for debugging
+
+## 7. 🧪 Pre-Commit Checklist
+- Run `flutter analyze` to catch linting issues
+- Run tests with `flutter test` to ensure all tests pass
+- Manually test the app on at least one device/emulator
+- Verify that the app builds and runs without errors
+- Check that all TODOs are properly documented
+- Ensure all imports are sorted alphabetically
+- Verify that barrel files only export existing files
+
+## 8. 🔧 Platform-Specific Setup
+- iOS:
+  - Ensure Xcode project has proper build configurations
+  - Check that all required permissions are added to Info.plist
+  - Verify minimum iOS version is set correctly
+- Android:
+  - Ensure proper permissions are set in AndroidManifest.xml
+  - Check that minSdkVersion is set correctly
+  - Verify that gradle dependencies are up to date
+- Web:
+  - Test on multiple browsers (Chrome, Firefox, Safari)
+  - Ensure responsive design works on different screen sizes
+
+## 9. 📝 Documentation Standards
+- All public APIs must have dartdoc comments
+- Update activity_log.md for every significant change
+- Document all issues encountered and their solutions
+- Keep README.md up to date with setup instructions
+- Document any non-obvious code with inline comments
+- Create diagrams for complex workflows when necessary

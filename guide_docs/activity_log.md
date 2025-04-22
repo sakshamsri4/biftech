@@ -61,6 +61,28 @@ This file tracks all development activities, issues encountered, solutions imple
   2. Use Formz for form validation to simplify state management
   3. Break down UI components into smaller, reusable widgets
 
+## [2023-04-22 | 16:00 PM]
+- ❌ CRITICAL ERROR: Committed code without testing it first
+- ❌ Issue 1: NeoPopTextField and NeoPopButton components don't exist in the neopop package
+- ❌ Issue 2: Barrel files for unimplemented features caused compilation errors
+- ❌ Issue 3: Import directives were not sorted alphabetically
+- ❌ Issue 4: Xcode project configuration issues prevented running on iOS simulator
+- 🔄 Fixed NeoTextField by creating a custom implementation with standard Flutter widgets
+- 🔄 Fixed NeoButton by using the correct NeoPopButton from the neopop package
+- 🔄 Updated barrel files for unimplemented features with TODO comments
+- 🔄 Sorted import directives alphabetically in all files
+- 📁 Files changed:
+  - lib/shared/widgets/neo_text_field.dart (reimplemented without neopop dependency)
+  - lib/shared/widgets/neo_button.dart (fixed to use correct neopop components)
+  - lib/features/{donation,flowchart,video_feed,winner}/*.dart (added TODOs)
+  - Multiple files (fixed import ordering)
+- 📝 Lessons learned:
+  1. ALWAYS test code before committing, even if it seems correct
+  2. Check package documentation thoroughly before using components
+  3. Use placeholder files with proper TODOs for features to be implemented later
+  4. Run flutter analyze regularly to catch issues early
+  5. Document platform-specific setup requirements in dev_rules.md
+
 ## Template for Future Entries
 
 ```
