@@ -1,5 +1,6 @@
 import 'package:biftech/features/auth/cubit/auth_cubit.dart';
 import 'package:biftech/features/auth/cubit/auth_state.dart';
+import 'package:biftech/features/auth/model/models.dart';
 import 'package:biftech/shared/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -51,7 +52,8 @@ class _SignUpPageState extends State<SignUpPage> {
         body: SafeArea(
           minimum: const EdgeInsets.symmetric(horizontal: 16),
           child: BlocListener<AuthCubit, AuthState>(
-            listenWhen: (previous, current) => previous.status != current.status,
+            listenWhen: (previous, current) =>
+                previous.status != current.status,
             listener: (context, state) {
               if (state.status.isFailure) {
                 ScaffoldMessenger.of(context)
@@ -67,7 +69,8 @@ class _SignUpPageState extends State<SignUpPage> {
                   ..hideCurrentSnackBar()
                   ..showSnackBar(
                     SnackBar(
-                      content: Text(state.successMessage ?? 'Sign Up Successful'),
+                      content:
+                          Text(state.successMessage ?? 'Sign Up Successful'),
                       backgroundColor: Colors.green,
                     ),
                   );
@@ -93,11 +96,15 @@ class _SignUpPageState extends State<SignUpPage> {
                     const SizedBox(height: 16),
                     _PasswordInput(controller: _passwordController),
                     const SizedBox(height: 16),
-                    _ConfirmedPasswordInput(controller: _confirmedPasswordController),
+                    _ConfirmedPasswordInput(
+                      controller: _confirmedPasswordController,
+                    ),
                     const SizedBox(height: 32),
                     const _SignUpButton(),
                     const SizedBox(height: 16),
-                    _BackToLoginButton(onPressed: () => Navigator.of(context).pop()),
+                    _BackToLoginButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
                     const SizedBox(height: 24),
                   ],
                 ),
@@ -244,12 +251,15 @@ class _ConfirmedPasswordInput extends StatelessWidget {
           labelText: 'Confirm Password',
           obscureText: true,
           errorText: state.confirmedPassword.displayError != null
-              ? state.confirmedPassword.error == ConfirmedPasswordValidationError.empty
+              ? state.confirmedPassword.error ==
+                      ConfirmedPasswordValidationError.empty
                   ? 'Please confirm your password'
                   : 'Passwords do not match'
               : null,
           onChanged: (confirmedPassword) {
-            context.read<AuthCubit>().confirmedPasswordChanged(confirmedPassword);
+            context
+                .read<AuthCubit>()
+                .confirmedPasswordChanged(confirmedPassword);
           },
         );
       },
@@ -264,7 +274,8 @@ class _SignUpButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AuthCubit, AuthState>(
       buildWhen: (previous, current) =>
-          previous.status != current.status || previous.isValid != current.isValid,
+          previous.status != current.status ||
+          previous.isValid != current.isValid,
       builder: (context, state) {
         return NeoButton(
           onTap: () {

@@ -1,5 +1,6 @@
 import 'package:biftech/features/auth/cubit/auth_cubit.dart';
 import 'package:biftech/features/auth/cubit/auth_state.dart';
+import 'package:biftech/features/auth/model/models.dart';
 import 'package:biftech/shared/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -45,14 +46,16 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         body: SafeArea(
           minimum: const EdgeInsets.symmetric(horizontal: 16),
           child: BlocListener<AuthCubit, AuthState>(
-            listenWhen: (previous, current) => previous.status != current.status,
+            listenWhen: (previous, current) =>
+                previous.status != current.status,
             listener: (context, state) {
               if (state.status.isFailure) {
                 ScaffoldMessenger.of(context)
                   ..hideCurrentSnackBar()
                   ..showSnackBar(
                     SnackBar(
-                      content: Text(state.errorMessage ?? 'Password Reset Failed'),
+                      content:
+                          Text(state.errorMessage ?? 'Password Reset Failed'),
                       backgroundColor: Colors.red,
                     ),
                   );
@@ -61,7 +64,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   ..hideCurrentSnackBar()
                   ..showSnackBar(
                     SnackBar(
-                      content: Text(state.successMessage ?? 'Password Reset Email Sent'),
+                      content: Text(
+                        state.successMessage ?? 'Password Reset Email Sent',
+                      ),
                       backgroundColor: Colors.green,
                     ),
                   );
@@ -85,7 +90,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     const SizedBox(height: 32),
                     const _SubmitButton(),
                     const SizedBox(height: 16),
-                    _BackToLoginButton(onPressed: () => Navigator.of(context).pop()),
+                    _BackToLoginButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
                     const SizedBox(height: 24),
                   ],
                 ),
@@ -168,7 +175,8 @@ class _SubmitButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AuthCubit, AuthState>(
       buildWhen: (previous, current) =>
-          previous.status != current.status || previous.isValid != current.isValid,
+          previous.status != current.status ||
+          previous.isValid != current.isValid,
       builder: (context, state) {
         return NeoButton(
           onTap: () {
