@@ -1,4 +1,4 @@
-import 'package:biftech/counter/counter.dart';
+import 'package:biftech/features/auth/auth.dart';
 import 'package:biftech/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 
@@ -16,7 +16,7 @@ class App extends StatelessWidget {
       ),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: const CounterPage(),
+      home: const AuthPage(),
     );
   }
 }
