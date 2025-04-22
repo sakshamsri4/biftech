@@ -20,8 +20,18 @@ class UploadVideoPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // The VideoFeedCubit is already provided by the parent widget
-    return const UploadVideoView();
+    // Check if the VideoFeedCubit is available in the context
+    try {
+      // This is just to verify the cubit is available
+      context.read<VideoFeedCubit>();
+      return const UploadVideoView();
+    } catch (e) {
+      // If the cubit is not available, create a new one
+      return BlocProvider(
+        create: (_) => VideoFeedCubit()..loadVideos(),
+        child: const UploadVideoView(),
+      );
+    }
   }
 }
 

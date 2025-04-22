@@ -49,21 +49,24 @@ class _VideoFeedViewState extends State<VideoFeedView> {
       appBar: AppBar(
         title: const Text('Video Feed'),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // Use a BlocProvider.value to pass the current VideoFeedCubit
-          // to the UploadVideoPage
-          Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (context) => BlocProvider.value(
-                value: BlocProvider.of<VideoFeedCubit>(context),
-                child: const UploadVideoPage(),
+      floatingActionButton: Builder(
+        builder: (innerContext) => FloatingActionButton.extended(
+          onPressed: () {
+            // Get the cubit from the correct context
+            final cubit = BlocProvider.of<VideoFeedCubit>(innerContext);
+
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (context) => BlocProvider.value(
+                  value: cubit,
+                  child: const UploadVideoPage(),
+                ),
               ),
-            ),
-          );
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('Upload Video'),
+            );
+          },
+          icon: const Icon(Icons.add),
+          label: const Text('Upload Video'),
+        ),
       ),
       body: BlocBuilder<VideoFeedCubit, VideoFeedState>(
         builder: (context, state) {
