@@ -79,8 +79,8 @@ class _SignUpPageState extends State<SignUpPage> {
                       backgroundColor: Colors.green,
                     ),
                   );
-                // Navigate back to login page
-                Navigator.of(context).pop();
+                // Navigate to home page
+                Navigator.of(context).pushReplacementNamed('/home');
               }
             },
             child: SingleChildScrollView(

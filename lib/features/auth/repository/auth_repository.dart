@@ -69,6 +69,11 @@ class AuthRepository {
     return _userBox.get(currentUserKey);
   }
 
+  /// Checks if a user is currently logged in.
+  bool isLoggedIn() {
+    return _userBox.containsKey(currentUserKey);
+  }
+
   /// Checks if a user with the given email exists.
   bool userExists(String email) {
     return _userBox.containsKey(email);
