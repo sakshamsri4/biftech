@@ -60,8 +60,12 @@ class _UploadVideoViewState extends State<UploadVideoView> {
 
   Future<void> _pickThumbnail() async {
     try {
+      // Show a dialog to choose between camera and gallery
+      final source = await _showImageSourceDialog();
+      if (source == null) return;
+
       final pickedFile = await _imagePicker.pickImage(
-        source: ImageSource.gallery,
+        source: source,
         imageQuality: 70,
       );
 
@@ -75,13 +79,43 @@ class _UploadVideoViewState extends State<UploadVideoView> {
       setState(() {
         _thumbnailError = 'Failed to pick image: $e';
       });
+      // Show a more user-friendly error message
+      _showPermissionErrorDialog('image');
     }
+  }
+
+  Future<ImageSource?> _showImageSourceDialog() async {
+    return showDialog<ImageSource>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Select Image Source'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Gallery'),
+              onTap: () => Navigator.of(context).pop(ImageSource.gallery),
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Camera'),
+              onTap: () => Navigator.of(context).pop(ImageSource.camera),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _pickVideo() async {
     try {
+      // Show a dialog to choose between camera and gallery
+      final source = await _showImageSourceDialog();
+      if (source == null) return;
+
       final pickedFile = await _imagePicker.pickVideo(
-        source: ImageSource.gallery,
+        source: source,
         maxDuration: const Duration(minutes: 10),
       );
 
@@ -95,7 +129,31 @@ class _UploadVideoViewState extends State<UploadVideoView> {
       setState(() {
         _videoError = 'Failed to pick video: $e';
       });
+      // Show a more user-friendly error message
+      _showPermissionErrorDialog('video');
     }
+  }
+
+  void _showPermissionErrorDialog(String mediaType) {
+    if (!mounted) return;
+
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Permission Required'),
+        content: Text(
+          'To select a $mediaType, this app needs permission '
+          'to access your media. Please go to your device settings '
+          'and grant permission for camera and storage.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _submitForm() async {
@@ -109,6 +167,9 @@ class _UploadVideoViewState extends State<UploadVideoView> {
       });
       return;
     }
+
+    // Get the cubit before setting state and starting async operations
+    final cubit = context.read<VideoFeedCubit>();
 
     setState(() {
       _isUploading = true;
@@ -135,9 +196,6 @@ class _UploadVideoViewState extends State<UploadVideoView> {
         duration: _durationController.text,
         publishedAt: DateTime.now().toIso8601String(),
       );
-
-      // Get the cubit before the async gap
-      final cubit = context.read<VideoFeedCubit>();
 
       // Add the video to the feed
       await cubit.addNewVideo(newVideo);
