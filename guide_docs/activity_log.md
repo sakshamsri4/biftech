@@ -83,6 +83,22 @@ This file tracks all development activities, issues encountered, solutions imple
   4. Run flutter analyze regularly to catch issues early
   5. Document platform-specific setup requirements in dev_rules.md
 
+## [2023-04-22 | 16:15 PM]
+- ✅ Successfully ran the app on Chrome browser
+- ✅ Created test_app.dart as an alternative entry point for testing
+- ✅ Updated dev_rules.md with new sections:
+  - Pre-Commit Checklist
+  - Platform-Specific Setup
+  - Documentation Standards
+- 📁 Files created/changed:
+  - lib/test_app.dart (new test entry point)
+  - guide_docs/dev_rules.md (added new sections)
+  - guide_docs/activity_log.md (updated with lessons learned)
+- 📝 Lessons learned:
+  1. Use web browser for initial testing to avoid platform-specific issues
+  2. Create alternative entry points for testing specific features
+  3. Document all issues and solutions immediately to avoid repeating mistakes
+
 ## Template for Future Entries
 
 ```
