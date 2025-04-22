@@ -384,6 +384,29 @@ This file tracks all development activities, issues encountered, solutions imple
   5. Log errors with stack traces to aid debugging
   6. Consider edge cases like storage permission issues or corrupted data
 
+## [2023-04-23 | 11:45 AM]
+- ❌ CRITICAL SECURITY ISSUE: Passwords were stored as plain text in Hive storage
+- ❌ Issue: Duplicate dependencies in pubspec.yaml causing build errors
+- ✅ Implemented password hashing using SHA-256 for secure storage
+- ✅ Fixed duplicate dependencies in pubspec.yaml
+- 🔄 Solutions implemented:
+  1. Refactored UserModel to store password hashes instead of plain text
+  2. Added validatePassword method to verify passwords without exposing the hash
+  3. Updated repositories to use the new password validation method
+  4. Added crypto package for secure hashing
+  5. Removed duplicate bloc and bloc_test dependencies
+- 📁 Files changed:
+  - lib/features/auth/model/user_model.dart (implemented password hashing)
+  - lib/features/auth/model/user_model.g.dart (updated adapter to use withHash constructor)
+  - lib/features/auth/repository/auth_repository.dart (updated to use password validation)
+  - pubspec.yaml (fixed duplicate dependencies and added crypto package)
+- 📝 Lessons learned:
+  1. Never store passwords in plain text, even in local storage
+  2. Use secure hashing algorithms for password storage
+  3. Implement proper password validation methods
+  4. Keep dependencies clean and avoid duplicates in pubspec.yaml
+  5. Regularly review code for security vulnerabilities
+
 ## Template for Future Entries
 
 ```
