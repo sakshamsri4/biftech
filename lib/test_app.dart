@@ -1,4 +1,3 @@
-import 'package:biftech/features/auth/view/auth_page.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -11,12 +10,19 @@ class TestApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Biftech Test',
+      title: 'Biftech Web Test',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: const AuthPage(),
+      home: const Scaffold(
+        body: Center(
+          child: Text(
+            'Biftech Web Test - If you can see this, web is working!',
+            style: TextStyle(fontSize: 20),
+          ),
+        ),
+      ),
     );
   }
 }

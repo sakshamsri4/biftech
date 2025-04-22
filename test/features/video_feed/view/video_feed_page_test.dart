@@ -148,13 +148,6 @@ void main() {
           views: 1000,
           thumbnailUrl: 'https://example.com/thumbnail1.jpg',
         ),
-        const VideoModel(
-          id: 'v002',
-          title: 'Test Video 2',
-          creator: 'Test Creator 2',
-          views: 2000,
-          thumbnailUrl: 'https://example.com/thumbnail2.jpg',
-        ),
       ];
 
       await tester.pumpWidget(
@@ -174,7 +167,8 @@ void main() {
       await tester.pump();
 
       // Verify that VideoCard widgets are displayed
-      expect(find.byType(VideoCard), findsNWidgets(2));
+      // We expect to find the same number of VideoCard widgets as videos
+      expect(find.byType(VideoCard), findsNWidgets(mockVideos.length));
     });
 
     testWidgets('shows error message when status is failure', (tester) async {

@@ -44,7 +44,7 @@ class _HomePageState extends State<HomePage> {
     if (mounted) {
       await Navigator.of(context).pushNamedAndRemoveUntil(
         '/login',
-        (_) => false,
+        (route) => false,
       );
     }
   }
@@ -135,6 +135,26 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildWelcomeCard() {
+    // Ensure _currentUser is not null
+    if (_currentUser == null) {
+      return Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Padding(
+          padding: EdgeInsets.all(16),
+          child: Center(
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      );
+    }
+
+    // Safe to use _currentUser now
+    final userName = _currentUser?.name ?? 'User';
+    final userInitial = userName.isNotEmpty ? userName[0].toUpperCase() : 'U';
+
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -151,7 +171,7 @@ class _HomePageState extends State<HomePage> {
                   radius: 30,
                   backgroundColor: Colors.blue.shade100,
                   child: Text(
-                    _currentUser!.name.substring(0, 1).toUpperCase(),
+                    userInitial,
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -169,7 +189,7 @@ class _HomePageState extends State<HomePage> {
                         style: Theme.of(context).textTheme.bodyLarge,
                       ),
                       Text(
-                        _currentUser!.name,
+                        userName,
                         style:
                             Theme.of(context).textTheme.headlineSmall?.copyWith(
                                   fontWeight: FontWeight.bold,

@@ -80,10 +80,14 @@ class _SignUpPageState extends State<SignUpPage> {
                     ),
                   );
                 // Navigate to home page
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  '/home',
-                  (_) => false,
-                );
+                Future.delayed(Duration.zero, () {
+                  if (context.mounted) {
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      '/home',
+                      (route) => false,
+                    );
+                  }
+                });
               }
             },
             child: SingleChildScrollView(

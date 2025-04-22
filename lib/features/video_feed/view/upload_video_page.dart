@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:biftech/core/services/error_logging_service.dart';
 import 'package:biftech/features/video_feed/cubit/cubit.dart';
 import 'package:biftech/features/video_feed/model/models.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -95,9 +96,16 @@ class _UploadVideoViewState extends State<UploadVideoView> {
           _thumbnailError = null;
         });
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // Log the error
+      ErrorLoggingService.instance.logError(
+        e,
+        stackTrace: stackTrace,
+        context: 'UploadVideoPage._pickThumbnail',
+      );
+
       setState(() {
-        _thumbnailError = 'Failed to pick image: $e';
+        _thumbnailError = 'Failed to select image';
       });
       // Show a more user-friendly error message
       _showPermissionErrorDialog('image', errorMessage: e.toString());
@@ -156,9 +164,16 @@ class _UploadVideoViewState extends State<UploadVideoView> {
           _videoError = null;
         });
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // Log the error
+      ErrorLoggingService.instance.logError(
+        e,
+        stackTrace: stackTrace,
+        context: 'UploadVideoPage._pickVideo',
+      );
+
       setState(() {
-        _videoError = 'Failed to pick video: $e';
+        _videoError = 'Failed to select video';
       });
       // Show a more user-friendly error message
       _showPermissionErrorDialog('video', errorMessage: e.toString());
@@ -167,6 +182,14 @@ class _UploadVideoViewState extends State<UploadVideoView> {
 
   void _showPermissionErrorDialog(String mediaType, {String? errorMessage}) {
     if (!mounted) return;
+
+    // Log the detailed error for debugging
+    if (errorMessage != null) {
+      ErrorLoggingService.instance.logWarning(
+        'Permission or availability issue: $errorMessage',
+        context: 'UploadVideoPage._showPermissionErrorDialog',
+      );
+    }
 
     final title = errorMessage != null && errorMessage.contains('camera')
         ? 'Camera Not Available'
@@ -266,11 +289,18 @@ class _UploadVideoViewState extends State<UploadVideoView> {
         );
         Navigator.of(context).pop();
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // Log the detailed error for debugging
+      ErrorLoggingService.instance.logError(
+        e,
+        stackTrace: stackTrace,
+        context: 'UploadVideoPage._submitForm',
+      );
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to upload video: $e'),
+          const SnackBar(
+            content: Text('Failed to upload video. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );

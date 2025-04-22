@@ -33,7 +33,9 @@ Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
 
   // Initialize services
   try {
+    // Initialize AuthService with proper error handling
     await AuthService.initialize();
+    log('AuthService initialized successfully');
   } catch (e) {
     log(
       'Failed to initialize AuthService: $e',
@@ -42,7 +44,15 @@ Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
     // Fallback behavior: Create an in-memory repository
     // that doesn't persist data. This allows the app to run,
     // but user will need to log in again after restart
-    await AuthService.initializeWithFallback();
+    try {
+      await AuthService.initializeWithFallback();
+      log('AuthService initialized with fallback');
+    } catch (fallbackError) {
+      log(
+        'Failed to initialize AuthService fallback: $fallbackError',
+        stackTrace: StackTrace.current,
+      );
+    }
   }
 
   // Add cross-flavor configuration here

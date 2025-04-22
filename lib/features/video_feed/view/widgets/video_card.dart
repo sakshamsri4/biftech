@@ -1,3 +1,4 @@
+import 'package:biftech/core/services/error_logging_service.dart';
 import 'package:biftech/features/video_feed/cubit/cubit.dart';
 import 'package:biftech/features/video_feed/model/models.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -53,7 +54,7 @@ class _VideoCardState extends State<VideoCard> {
   }
 
   Future<void> _initializeController() async {
-    if (widget.video.videoUrl.isEmpty) return;
+    if (widget.video.videoUrl.isEmpty || !mounted) return;
 
     try {
       // Get the controller from the cubit if it exists
@@ -70,24 +71,40 @@ class _VideoCardState extends State<VideoCard> {
         }
       } else {
         // Initialize the controller through the cubit
-        await cubit.initializeVideoController(widget.video);
+        try {
+          await cubit.initializeVideoController(widget.video);
 
-        // Get the initialized controller
-        final controller = cubit.getControllerForVideo(widget.video.id);
+          // Check if widget is still mounted after async operation
+          if (!mounted) return;
 
-        if (mounted && controller != null) {
-          setState(() {
-            _controller = controller;
-          });
+          // Get the initialized controller
+          final controller = cubit.getControllerForVideo(widget.video.id);
+
+          if (controller != null) {
+            setState(() {
+              _controller = controller;
+            });
+          }
+        } catch (e) {
+          // Handle initialization error
+          ErrorLoggingService.instance.logError(
+            e,
+            context: 'VideoCard._initializeController.initialize',
+          );
         }
       }
     } catch (e) {
-      debugPrint('Error initializing video controller: $e');
+      // Handle general error
+      ErrorLoggingService.instance.logError(
+        e,
+        context: 'VideoCard._initializeController',
+      );
     }
   }
 
   void _disposeController() {
-    _controller?.dispose();
+    // Don't dispose the controller here as it's managed by the cubit
+    // Just clear the local reference
     _controller = null;
     _isPlaying = false;
   }
@@ -141,22 +158,36 @@ class _VideoCardState extends State<VideoCard> {
                             child: VideoPlayer(_controller!),
                           )
                         else
-                          CachedNetworkImage(
-                            imageUrl: widget.video.thumbnailUrl,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => Container(
-                              color: Colors.grey[200],
-                              child: const Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                            ),
-                            errorWidget: (context, url, error) => Container(
-                              color: Colors.grey[300],
-                              child: const Center(
-                                child: Icon(Icons.error, color: Colors.red),
-                              ),
-                            ),
-                          ),
+                          widget.video.thumbnailUrl.startsWith('http')
+                              ? CachedNetworkImage(
+                                  imageUrl: widget.video.thumbnailUrl,
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) => Container(
+                                    color: Colors.grey[200],
+                                    child: const Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  ),
+                                  errorWidget: (context, url, error) =>
+                                      Container(
+                                    color: Colors.grey[300],
+                                    child: const Center(
+                                      child: Icon(
+                                        Icons.video_library,
+                                        color: Colors.blue,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : Container(
+                                  color: Colors.grey[300],
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.video_library,
+                                      color: Colors.blue,
+                                    ),
+                                  ),
+                                ),
 
                         // Play button overlay
                         if (!_isPlaying || _controller == null)

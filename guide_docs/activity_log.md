@@ -502,22 +502,288 @@ This file tracks all development activities, issues encountered, solutions imple
   2. Created source selection dialog for choosing between camera and gallery
   3. Implemented proper error handling for permission issues
   4. Fixed BuildContext usage across async gaps
-  5. Added user-friendly error messages for permission denials
-- 📁 Files created/changed:
-  - pubspec.yaml (added image_picker)
-  - lib/features/video_feed/view/upload_video_page.dart (new upload form)
-  - lib/features/video_feed/cubit/video_feed_cubit.dart (added addNewVideo method)
-  - lib/features/video_feed/view/video_feed_page.dart (connected upload button)
-  - ios/Runner/Info.plist (added camera and photo library permissions)
-  - android/app/src/main/AndroidManifest.xml (added storage and camera permissions)
-  - test/features/video_feed/view/upload_video_page_test.dart (added tests)
+  5. Added proper error handling for video player initialization
+
+## [2023-04-24 | 10:15 AM]
+- ❌ CRITICAL ERROR: VideoPlayerController was used after being disposed
+- ❌ Issue: Error occurred when navigating between screens with active video players
+- ❌ Issue: VideoCard was disposing controllers that were managed by the cubit
+- ❌ Issue: No proper lifecycle management for video players during navigation
+- ✅ Fixed controller management to prevent using disposed controllers
+- 🔄 Solutions implemented:
+  1. Updated VideoCard to not dispose controllers that are managed by the cubit
+  2. Added WidgetsBindingObserver to pause videos when app goes to background
+  3. Improved error handling in VideoFeedCubit's disposeControllers method
+  4. Added pauseAllVideos call before navigating away from video feed
+  5. Implemented proper lifecycle management for video controllers
+- 📁 Files changed:
+  - lib/features/video_feed/view/widgets/video_card.dart (fixed controller disposal)
+  - lib/features/video_feed/view/video_feed_page.dart (added lifecycle management)
+  - lib/features/video_feed/cubit/video_feed_cubit.dart (improved error handling)
 - 📝 Lessons learned:
-  1. Always add required permissions for platform-specific features
-  2. Handle permission denials gracefully with user-friendly messages
-  3. Be careful with BuildContext usage across async operations
-  4. Provide clear feedback during upload process
-  5. Test on all target platforms (iOS, Android, web)
-  6. Consider platform differences in file picking behavior
+  1. Video player controllers should be managed centrally to avoid disposal issues
+  2. Always pause videos before navigating away from a screen
+  3. Implement proper lifecycle management with WidgetsBindingObserver
+  4. Use try-catch-finally blocks to ensure resources are always cleaned up
+  5. Be careful with controller references that might be accessed after disposal
+
+## [2023-04-24 | 11:30 AM]
+- ❌ CRITICAL ERROR: White screen when running on web platform
+- ❌ Issue: Web platform requires special handling for Flutter apps
+- ✅ Decided to focus on mobile platforms first and address web issues later
+- 🔄 Actions taken:
+  1. Reverted web-specific changes to focus on core functionality
+  2. Documented web platform issues for future resolution
+  3. Kept the VideoPlayerController fixes which work on mobile platforms
+- 📁 Files reverted:
+  - web/index.html (reverted to original state)
+  - lib/features/auth/service/auth_service.dart (removed web-specific handling)
+  - lib/bootstrap.dart (reverted to original error handling)
+  - Removed temporary web test files
+- 📝 Lessons learned:
+  1. Focus on one platform at a time when fixing critical issues
+  2. Prioritize core functionality over platform-specific optimizations
+  3. Document platform-specific issues for future resolution
+
+## [2023-04-24 | 14:45 PM]
+- ❌ Issue: Uploaded videos not persisting after app restart
+- ✅ Implemented persistent storage for uploaded videos using Hive
+- 🔄 Solutions implemented:
+  1. Created VideoModelAdapter for Hive storage
+  2. Added methods to save and load videos from Hive
+  3. Updated VideoFeedCubit to use Hive for persistence
+  4. Created VideoFeedService to initialize Hive
+  5. Updated App to initialize VideoFeedService on startup
+- 📁 Files changed/created:
+  - lib/features/video_feed/model/video_model_adapter.dart (new file)
+  - lib/features/video_feed/service/video_feed_service.dart (new file)
+  - lib/features/video_feed/cubit/video_feed_cubit.dart (added Hive integration)
+  - lib/app/view/app.dart (added service initialization)
+  - lib/features/video_feed/model/models.dart (exported adapter)
+- 📝 Lessons learned:
+  1. Use Hive for persistent storage of structured data in Flutter
+  2. Initialize storage services early in the app lifecycle
+  3. Implement proper error handling for storage operations
+  4. Provide fallback mechanisms when storage initialization fails
+  5. Use adapters to convert between domain models and storage format
+
+## [2023-04-24 | 16:30 PM]
+- ❌ Issue: Uploaded videos disappear when navigating away and back to video feed
+- ❌ Issue: New VideoFeedCubit created on each navigation, losing state
+- ✅ Implemented singleton pattern for VideoFeedCubit
+- ✅ Created VideoFeedRepository for centralized data management
+- 🔄 Solutions implemented:
+  1. Created VideoFeedRepository with singleton pattern
+  2. Updated VideoFeedCubit to use singleton pattern
+  3. Modified VideoFeedService to initialize the repository
+  4. Updated VideoFeedPage to use the singleton cubit
+  5. Improved error handling and logging
+- 📁 Files changed/created:
+  - lib/features/video_feed/repository/video_feed_repository.dart (new file)
+  - lib/features/video_feed/repository/repository.dart (new file)
+  - lib/features/video_feed/cubit/video_feed_cubit.dart (implemented singleton)
+  - lib/features/video_feed/service/video_feed_service.dart (updated initialization)
+  - lib/features/video_feed/view/video_feed_page.dart (updated to use singleton)
+- 📝 Lessons learned:
+  1. Use singleton pattern for state management that needs to persist across navigation
+  2. Implement repository pattern for data access layer
+  3. Separate concerns between repository (data), cubit (state), and service (initialization)
+  4. Be careful with BlocProvider creation - new instances reset state
+  5. Use factory constructors for implementing singleton pattern in Dart
+
+## [2023-04-24 | 17:45 PM]
+- ❌ Issue: Technical error messages exposed to users
+- ✅ Implemented proper error handling with user-friendly messages
+- ✅ Created centralized error logging service
+- 🔄 Solutions implemented:
+  1. Created ErrorLoggingService for centralized error logging
+  2. Created ErrorMessages class with user-friendly error messages
+  3. Updated VideoFeedCubit to use user-friendly error messages
+  4. Updated VideoFeedRepository to log errors properly
+  5. Updated UploadVideoPage to show user-friendly error messages
+- 📁 Files changed/created:
+  - lib/core/services/error_logging_service.dart (new file)
+  - lib/core/constants/error_messages.dart (new file)
+  - lib/features/video_feed/cubit/video_feed_cubit.dart (updated error handling)
+  - lib/features/video_feed/repository/video_feed_repository.dart (updated error handling)
+  - lib/features/video_feed/view/upload_video_page.dart (updated error handling)
+  - lib/features/video_feed/view/video_feed_page.dart (updated error display)
+- 📝 Lessons learned:
+  1. Never expose technical error details to users
+  2. Implement centralized error logging for debugging
+  3. Use user-friendly error messages in the UI
+  4. Log detailed error information including stack traces
+  5. Provide context with error logs to help with debugging
+  6. Use try-catch blocks with proper error handling in all async operations
+
+## [2023-04-24 | 19:00 PM]
+- ❌ Issue: Video controller errors when navigating between screens
+- ❌ Issue: "Cannot emit new states after calling close" errors
+- ❌ Issue: "Concurrent modification during iteration" errors
+- ✅ Fixed video controller lifecycle management
+- 🔄 Solutions implemented:
+  1. Updated VideoFeedCubit to check if closed before emitting states
+  2. Fixed concurrent modification issues in controller disposal
+  3. Updated VideoFeedView to pause videos instead of disposing controllers
+  4. Improved error handling in VideoCard controller initialization
+  5. Added additional mounted checks to prevent setState after dispose
+- 📁 Files changed:
+  - lib/features/video_feed/cubit/video_feed_cubit.dart (fixed state emission and controller disposal)
+  - lib/features/video_feed/view/video_feed_page.dart (updated lifecycle management)
+  - lib/features/video_feed/view/widgets/video_card.dart (improved error handling)
+- 📝 Lessons learned:
+  1. Always check isClosed before emitting states in a cubit
+  2. Be careful with concurrent modification of collections
+  3. Use a copy of a collection when iterating and modifying
+  4. Check widget.mounted before setState after async operations
+  5. Properly manage controller lifecycles with singletons
+  6. Pause media instead of disposing when temporarily leaving a screen
+
+## [2023-04-24 | 20:15 PM]
+- ❌ Issue: Persistent login not working correctly
+- ❌ Issue: App not checking login state properly on startup
+- ✅ Fixed authentication persistence and initialization
+- 🔄 Solutions implemented:
+  1. Updated App initialization to properly handle loading state
+  2. Improved AuthService initialization with better error handling
+  3. Added proper initialization sequence in bootstrap.dart
+  4. Added loading indicator while services are initializing
+  5. Fixed Hive initialization for web platform
+- 📁 Files changed:
+  - lib/app/view/app.dart (added loading state and proper initialization)
+  - lib/features/auth/service/auth_service.dart (improved initialization and error handling)
+  - lib/bootstrap.dart (enhanced service initialization sequence)
+- 📝 Lessons learned:
+  1. Always show a loading indicator during async initialization
+  2. Initialize services in the correct order (auth before other services)
+  3. Handle platform-specific initialization (web vs mobile)
+  4. Use proper error handling and fallback mechanisms
+  5. Check mounted state before updating UI after async operations
+  6. Provide detailed logging for initialization issues
+
+## [2023-04-24 | 21:30 PM]
+- ❌ Issue: Navigation error - "Could not find a generator for route RouteSettings("/home", null)"
+- ❌ Issue: App crashing when navigating to home page after login
+- ✅ Fixed navigation issues with proper route handling
+- 🔄 Solutions implemented:
+  1. Updated navigation in AuthForm to use Future.delayed for safer navigation
+  2. Updated navigation in SignUpPage to use Future.delayed for safer navigation
+  3. Added proper context.mounted checks before navigation
+  4. Ensured routes are properly registered before navigation occurs
+- 📁 Files changed:
+  - lib/features/auth/view/auth_form.dart (improved navigation handling)
+  - lib/features/auth/view/sign_up_page.dart (improved navigation handling)
+  - lib/app/view/app.dart (cleaned up initialization code)
+- 📝 Lessons learned:
+  1. Use Future.delayed(Duration.zero, ...) for navigation after state changes
+  2. Always check context.mounted before navigating after async operations
+  3. Ensure routes are properly registered before navigation occurs
+  4. Be careful with navigation during build phase or state changes
+  5. Use pushNamedAndRemoveUntil with proper route checking for login flows
+
+## [2023-04-24 | 22:15 PM]
+- ❌ Issue: Null check operator used on a null value error
+- ❌ Issue: App crashing when _currentUser is null in HomePage
+- ❌ Issue: Null safety issues in route handling
+- ✅ Fixed null safety issues throughout the app
+- 🔄 Solutions implemented:
+  1. Updated HomePage to handle null _currentUser values properly
+  2. Added null safety checks in _buildWelcomeCard method
+  3. Fixed null check operator in flowchart route handling
+  4. Added fallback values for user name and initials
+- 📁 Files changed:
+  - lib/features/home/view/home_page.dart (improved null safety)
+  - lib/app/view/app.dart (fixed null check in route handling)
+- 📝 Lessons learned:
+  1. Always use null-aware operators (?.) instead of null assertion (!) when possible
+  2. Provide fallback values with the ?? operator for nullable variables
+  3. Check for null values before accessing properties of potentially null objects
+  4. Add explicit null checks before rendering UI components that depend on data
+  5. Use conditional rendering to handle loading states and null data
+
+## [2023-04-24 | 23:00 PM]
+- ❌ Issue: Persistent routing errors in the app
+- ❌ Issue: Problems with dynamic routes like '/flowchart/:id'
+- ✅ Implemented a robust routing system using onGenerateRoute
+- 🔄 Solutions implemented:
+  1. Replaced static routes map with a dynamic onGenerateRoute handler
+  2. Added support for pattern matching in routes
+  3. Implemented a 404 page for unknown routes
+  4. Added proper error handling for route generation
+  5. Fixed context handling in route builders
+- 📁 Files changed:
+  - lib/app/view/app.dart (implemented onGenerateRoute)
+- 📝 Lessons learned:
+  1. Use onGenerateRoute for more flexible routing in Flutter
+  2. Implement pattern matching for dynamic routes
+  3. Always provide a fallback for unknown routes
+  4. Use named parameters in route builders for clarity
+  5. Handle context properly in navigation callbacks
+  6. Add debug logging for route generation to help with troubleshooting
+
+## [2023-04-24 | 23:45 PM]
+- ❌ Issue: Null check operator used on a null value in route handling
+- ❌ Issue: App crashing with "Null check operator used on a null value" error
+- ✅ Fixed wildcard parameter issues in navigation callbacks
+- 🔄 Solutions implemented:
+  1. Replaced wildcard parameters (_) with named parameters (route) in navigation callbacks
+  2. Fixed Navigator.pushNamedAndRemoveUntil calls in AuthForm
+  3. Fixed Navigator.pushNamedAndRemoveUntil calls in SignUpPage
+  4. Fixed Navigator.pushNamedAndRemoveUntil calls in HomePage
+- 📁 Files changed:
+  - lib/features/auth/view/auth_form.dart (fixed wildcard parameter)
+  - lib/features/auth/view/sign_up_page.dart (fixed wildcard parameter)
+  - lib/features/home/view/home_page.dart (fixed wildcard parameter)
+- 📝 Lessons learned:
+  1. Avoid using wildcard parameters (_) in navigation callbacks
+  2. Use named parameters (route) instead of wildcards for better type safety
+  3. Be careful with null check operators in Flutter framework code
+  4. Always check stack traces to identify the exact location of null check errors
+  5. Test navigation flows thoroughly after making changes to routing
+
+## [2023-04-25 | 01:15 AM]
+- ❌ Issue: Video playback errors in the app
+- ❌ Issue: "Cannot emit new states after calling close" error in VideoFeedCubit
+- ❌ Issue: Network connectivity issues with placeholder images
+- ✅ Fixed video playback and state management issues
+- 🔄 Solutions implemented:
+  1. Improved VideoFeedCubit singleton pattern to handle closed instances
+  2. Added proper isClosed checks before emitting states in all methods
+  3. Enhanced error handling in video controller initialization
+  4. Added timeout for video initialization to prevent hanging
+  5. Improved file existence checking for local video files
+  6. Fixed thumbnail image handling for network connectivity issues
+- 📁 Files changed:
+  - lib/features/video_feed/cubit/video_feed_cubit.dart (improved state management)
+  - lib/features/video_feed/view/video_feed_page.dart (fixed BlocProvider configuration)
+  - lib/features/video_feed/view/widgets/video_card.dart (improved error handling)
+- 📝 Lessons learned:
+  1. Always check if a cubit is closed before emitting states
+  2. Use proper error handling for network resources
+  3. Implement timeouts for network operations
+  4. Be careful with singleton patterns in state management
+  5. Provide fallback UI for network connectivity issues
+  6. Use synchronous file operations when possible to avoid unnecessary async operations
+
+## [2023-04-25 | 00:30 AM]
+- ❌ Issue: Persistent null check operator error in route handling
+- ❌ Issue: App crashing with "Null check operator used on a null value" in _WidgetsAppState._onGenerateRoute
+- ✅ Implemented comprehensive routing solution
+- 🔄 Solutions implemented:
+  1. Made _generateRoute return non-nullable Route to prevent null check issues
+  2. Added fallback value for route names with null coalescing operator
+  3. Removed unnecessary null checks in route name handling
+  4. Added home property to MaterialApp as a fallback
+  5. Implemented onUnknownRoute handler for better error handling
+- 📁 Files changed:
+  - lib/app/view/app.dart (improved route handling)
+- 📝 Lessons learned:
+  1. Return non-nullable types from route generators to prevent null check issues
+  2. Always provide fallback values for potentially null route names
+  3. Use both onGenerateRoute and onUnknownRoute for comprehensive routing
+  4. Add a home property to MaterialApp as a safety net
+  5. Implement proper error pages for unknown routes
+  6. Use multiple layers of protection against routing errors
 
 ## [2023-04-23 | 20:30 PM]
 - ✅ Enhanced cross-platform compatibility for image_picker

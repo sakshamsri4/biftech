@@ -18,7 +18,11 @@ class VideoFeedPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => VideoFeedCubit()..loadVideos(),
+      create: (_) =>
+          VideoFeedCubit(), // Creates or reuses the singleton instance
+      // Don't close the cubit when the provider is disposed
+      // since it's a singleton and will be reused
+      lazy: false,
       child: const VideoFeedView(),
     );
   }
@@ -35,11 +39,32 @@ class VideoFeedView extends StatefulWidget {
   State<VideoFeedView> createState() => _VideoFeedViewState();
 }
 
-class _VideoFeedViewState extends State<VideoFeedView> {
+class _VideoFeedViewState extends State<VideoFeedView>
+    with WidgetsBindingObserver {
+  late VideoFeedCubit _cubit;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _cubit = context.read<VideoFeedCubit>();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Pause videos when app goes to background
+    if (state == AppLifecycleState.paused) {
+      _cubit.pauseAllVideos();
+    }
+  }
+
   @override
   void dispose() {
-    // Dispose all video controllers when the view is disposed
-    context.read<VideoFeedCubit>().disposeControllers();
+    WidgetsBinding.instance.removeObserver(this);
+    // Pause all videos when the view is disposed
+    // Note: We don't dispose controllers here since the cubit is a singleton
+    // and will be reused when navigating back to this page
+    _cubit.pauseAllVideos();
     super.dispose();
   }
 
@@ -99,7 +124,7 @@ class _VideoFeedViewState extends State<VideoFeedView> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Error: ${state.errorMessage}',
+                      state.errorMessage,
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Colors.red),
                     ),
@@ -152,6 +177,9 @@ class _VideoList extends StatelessWidget {
               return VideoCard(
                 video: video,
                 onTap: () {
+                  // Pause all videos before navigating
+                  context.read<VideoFeedCubit>().pauseAllVideos();
+
                   // Navigate to flowchart page with video ID
                   Navigator.pushNamed(
                     context,

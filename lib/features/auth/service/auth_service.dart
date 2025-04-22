@@ -15,18 +15,31 @@ class AuthService {
 
   /// Initializes the authentication service.
   static Future<void> initialize() async {
-    // Initialize Hive
-    final appDocumentDir = await getApplicationDocumentsDirectory();
-    await Hive.initFlutter(appDocumentDir.path);
+    try {
+      // Initialize Hive
+      if (!kIsWeb) {
+        final appDocumentDir = await getApplicationDocumentsDirectory();
+        await Hive.initFlutter(appDocumentDir.path);
+      } else {
+        await Hive.initFlutter();
+      }
 
-    // Register adapters
-    Hive.registerAdapter(UserModelAdapter());
+      // Register adapters if not already registered
+      if (!Hive.isAdapterRegistered(UserModelAdapter().typeId)) {
+        Hive.registerAdapter(UserModelAdapter());
+      }
 
-    // Open boxes
-    final userBox = await Hive.openBox<UserModel>('users');
+      // Open boxes
+      final userBox = await Hive.openBox<UserModel>('users');
 
-    // Create repository
-    _authRepository = AuthRepository.standard(userBox);
+      // Create repository
+      _authRepository = AuthRepository.standard(userBox);
+
+      debugPrint('AuthService initialized successfully');
+    } catch (e) {
+      debugPrint('Error initializing AuthService: $e');
+      rethrow;
+    }
   }
 
   /// Initializes the authentication service with a fallback mechanism
@@ -49,9 +62,12 @@ class AuthService {
 
       // Create repository with the in-memory box
       _authRepository = AuthRepository.standard(userBox);
+      debugPrint('AuthService initialized with in-memory box');
     } catch (e) {
+      debugPrint('Error initializing in-memory box: $e');
       // Last resort fallback - create a minimal working repository
       _authRepository = AuthRepository.fallback();
+      debugPrint('AuthService initialized with fallback repository');
     }
   }
 
