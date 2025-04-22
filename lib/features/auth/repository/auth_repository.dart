@@ -42,8 +42,17 @@ class AuthRepository {
     final user = _userBox.get(email);
 
     if (user != null && user.password == password) {
-      // Store the current user
-      await _userBox.put(currentUserKey, user);
+      // Create a copy of the user to avoid the HiveError:
+      // "The same instance of an HiveObject cannot be stored
+      // with two different keys"
+      final currentUser = UserModel(
+        name: user.name,
+        email: user.email,
+        password: user.password,
+      );
+
+      // Store the current user copy
+      await _userBox.put(currentUserKey, currentUser);
       return user;
     }
 
@@ -66,18 +75,18 @@ class AuthRepository {
   }
 
   /// Resets the password for a user with the given email.
-  /// 
+  ///
   /// In a real app, this would send a password reset email.
   /// For this demo, we'll just simulate the process.
   Future<bool> resetPassword(String email) async {
     final user = _userBox.get(email);
-    
+
     if (user != null) {
       // In a real app, we would send a password reset email
       // For this demo, we'll just return true to indicate success
       return true;
     }
-    
+
     return false;
   }
 }
