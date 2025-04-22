@@ -1,6 +1,6 @@
+import 'package:biftech/features/auth/model/models.dart';
 import 'package:equatable/equatable.dart';
 import 'package:formz/formz.dart';
-import 'package:biftech/features/auth/model/models.dart';
 
 /// {@template auth_state}
 /// Represents the state of the authentication form.

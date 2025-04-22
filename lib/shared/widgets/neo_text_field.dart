@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:neopop/neopop.dart';
 
 /// {@template neo_text_field}
 /// A custom text field with NeoPop styling.
@@ -32,13 +31,22 @@ class NeoTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NeoPopTextField(
-      controller: controller,
-      textFieldConfig: TextFieldConfig(
-        autofillHints: obscureText 
-            ? [AutofillHints.password]
-            : [AutofillHints.email],
-        keyboardType: obscureText 
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(51),
+            offset: const Offset(3, 3),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: controller,
+        autofillHints:
+            obscureText ? [AutofillHints.password] : [AutofillHints.email],
+        keyboardType: obscureText
             ? TextInputType.visiblePassword
             : TextInputType.emailAddress,
         obscureText: obscureText,
@@ -49,11 +57,9 @@ class NeoTextField extends StatelessWidget {
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
           ),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
-      ),
-      plunkConfig: PlunkConfig(
-        depth: 8,
-        borderRadius: BorderRadius.circular(12),
       ),
     );
   }

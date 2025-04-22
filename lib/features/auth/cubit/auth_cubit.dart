@@ -1,7 +1,7 @@
-import 'package:bloc/bloc.dart';
-import 'package:formz/formz.dart';
 import 'package:biftech/features/auth/cubit/auth_state.dart';
 import 'package:biftech/features/auth/model/models.dart';
+import 'package:bloc/bloc.dart';
+import 'package:formz/formz.dart';
 
 /// {@template auth_cubit}
 /// Manages the authentication state of the application.
@@ -35,16 +35,16 @@ class AuthCubit extends Cubit<AuthState> {
   /// Submits the login form.
   Future<void> logInWithCredentials() async {
     if (!state.isValid) return;
-    
+
     emit(state.copyWith(status: FormzSubmissionStatus.inProgress));
-    
+
     try {
       // Simulate network delay
       await Future<void>.delayed(const Duration(seconds: 1));
-      
+
       // For demo purposes, we'll accept any valid form
       // In a real app, this would call an authentication service
-      if (state.email.value == 'test@example.com' && 
+      if (state.email.value == 'test@example.com' &&
           state.password.value == 'password123') {
         emit(state.copyWith(status: FormzSubmissionStatus.success));
       } else {
