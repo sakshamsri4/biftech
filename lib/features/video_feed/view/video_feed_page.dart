@@ -51,9 +51,14 @@ class _VideoFeedViewState extends State<VideoFeedView> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
+          // Use a BlocProvider.value to pass the current VideoFeedCubit
+          // to the UploadVideoPage
           Navigator.of(context).push(
             MaterialPageRoute<void>(
-              builder: (context) => const UploadVideoPage(),
+              builder: (context) => BlocProvider.value(
+                value: BlocProvider.of<VideoFeedCubit>(context),
+                child: const UploadVideoPage(),
+              ),
             ),
           );
         },

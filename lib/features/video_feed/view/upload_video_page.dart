@@ -20,6 +20,7 @@ class UploadVideoPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The VideoFeedCubit is already provided by the parent widget
     return const UploadVideoView();
   }
 }
