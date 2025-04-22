@@ -335,6 +335,25 @@ This file tracks all development activities, issues encountered, solutions imple
   3. Ensured consistent navigation between all authentication screens
   4. Improved user experience by maintaining login state between app sessions
 
+## [2023-04-22 | 22:00 PM]
+- ❌ CRITICAL ERROR: Home page stuck in loading state after sign-up
+- ❌ Issue: User was not set as current user during sign-up process
+- ❌ Issue: Home page couldn't find current user data after sign-up
+- ✅ Fixed by updating registerUser method to set the user as current user
+- 🔄 Solution implemented:
+  1. Modified registerUser method in AuthRepository to also set the user as current user
+  2. Created a copy of the user object to avoid Hive errors with multiple keys
+  3. Updated tests to reflect the new return type of registerUser
+- 📁 Files changed:
+  - lib/features/auth/repository/auth_repository.dart (updated registerUser method)
+  - lib/features/auth/cubit/auth_cubit.dart (updated sign-up process)
+  - test/features/auth/cubit/auth_cubit_test.dart (fixed tests)
+- 📝 Lessons learned:
+  1. Authentication flows should always set the current user consistently
+  2. Sign-up and login should have the same end result (authenticated user)
+  3. Test the complete user journey from sign-up to home page
+  4. Pay attention to loading states and error handling in UI
+
 ## Template for Future Entries
 
 ```
