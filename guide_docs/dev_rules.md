@@ -31,6 +31,20 @@ This document outlines the engineering rules, coding standards, and development 
 - Use semantic colors from the theme
 - Implement smooth animations and transitions
 
+### 3.1 Responsive Design Requirements
+- All UI components must adapt to different screen sizes
+- Use MediaQuery to get screen dimensions and adjust layouts accordingly
+- Handle keyboard appearance explicitly in forms:
+  - Use SingleChildScrollView to allow scrolling when keyboard appears
+  - Consider hiding non-essential UI elements when keyboard is visible
+  - Use GestureDetector to dismiss keyboard when tapping outside inputs
+- Constrain widget sizes to prevent overflow issues
+- Test UI on at least three different screen sizes:
+  - Small phone (320-360px width)
+  - Standard phone (360-420px width)
+  - Tablet/desktop (720px+ width)
+- Use SafeArea to handle system UI elements like notches and status bars
+
 ## 4. ✅ Testing Guidelines
 - Every Bloc/Cubit must have unit tests in `test/bloc/`
 - UI components should have widget tests using `testWidgets`
