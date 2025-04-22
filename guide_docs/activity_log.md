@@ -274,6 +274,22 @@ This file tracks all development activities, issues encountered, solutions imple
   3. Test all screens thoroughly on actual devices
   4. Pay attention to basic usability features that users expect
 
+## [2023-04-22 | 20:30 PM]
+- ❌ CRITICAL ERROR: HiveError during login process
+- ❌ Issue: Error message: "The same instance of an HiveObject cannot be stored with two different keys"
+- ❌ Issue: Attempting to store the same UserModel instance with both email and 'current_user' keys
+- ✅ Fixed by creating a copy of the user object before storing as current user
+- 🔄 Solution implemented:
+  1. Modified loginUser method in AuthRepository to create a new UserModel instance
+  2. Used the copy for the 'current_user' key while keeping the original for the email key
+- 📁 Files changed:
+  - lib/features/auth/repository/auth_repository.dart (fixed Hive storage issue)
+- 📝 Lessons learned:
+  1. Hive objects cannot be stored with multiple keys in the same box
+  2. Always create copies of objects when storing with different keys
+  3. Pay attention to error logs to identify specific Hive constraints
+  4. Test authentication flows with real data to catch these issues
+
 ## Template for Future Entries
 
 ```
