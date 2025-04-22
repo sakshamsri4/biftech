@@ -164,7 +164,7 @@ class AuthCubit extends Cubit<AuthState> {
         return;
       }
 
-      // Register the new user
+      // Register the new user and set as current user
       await _authRepository.registerUser(
         name: state.name.value,
         email: state.email.value,

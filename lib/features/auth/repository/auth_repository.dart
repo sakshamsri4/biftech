@@ -18,8 +18,8 @@ class AuthRepository {
   /// The key for the users collection in the Hive box.
   static const String usersKey = 'users';
 
-  /// Registers a new user.
-  Future<void> registerUser({
+  /// Registers a new user and sets them as the current user.
+  Future<UserModel> registerUser({
     required String name,
     required String email,
     required String password,
@@ -32,6 +32,18 @@ class AuthRepository {
 
     // Store the user with email as key
     await _userBox.put(email, user);
+
+    // Create a copy for the current user to avoid Hive error
+    final currentUser = UserModel(
+      name: name,
+      email: email,
+      password: password,
+    );
+
+    // Set as current user
+    await _userBox.put(currentUserKey, currentUser);
+
+    return user;
   }
 
   /// Logs in a user with the given credentials.

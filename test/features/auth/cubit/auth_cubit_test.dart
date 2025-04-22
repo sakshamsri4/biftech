@@ -46,7 +46,13 @@ void main() {
         email: any(named: 'email'),
         password: any(named: 'password'),
       ),
-    ).thenAnswer((_) async {});
+    ).thenAnswer(
+      (_) async => UserModel(
+        name: 'Test User',
+        email: 'new@example.com',
+        password: 'password123',
+      ),
+    );
 
     when(() => mockAuthRepository.resetPassword('test@example.com'))
         .thenAnswer((_) async => true);
