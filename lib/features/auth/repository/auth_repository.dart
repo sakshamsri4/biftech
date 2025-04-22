@@ -4,21 +4,59 @@ import 'package:hive/hive.dart';
 /// {@template auth_repository}
 /// Repository for authentication-related operations.
 /// {@endtemplate}
-class AuthRepository {
-  /// {@macro auth_repository}
-  AuthRepository({
-    required Box<UserModel> userBox,
-  }) : _userBox = userBox;
+abstract class AuthRepository {
+  /// Creates a standard repository implementation using Hive storage.
+  factory AuthRepository.standard(Box<UserModel> userBox) {
+    return HiveAuthRepository(userBox: userBox);
+  }
 
-  final Box<UserModel> _userBox;
+  /// Creates a fallback repository that works without persistent storage.
+  factory AuthRepository.fallback() {
+    return InMemoryAuthRepository();
+  }
 
   /// The key for the current user in the Hive box.
   static const String currentUserKey = 'current_user';
 
-  /// The key for the users collection in the Hive box.
-  static const String usersKey = 'users';
-
   /// Registers a new user and sets them as the current user.
+  Future<UserModel> registerUser({
+    required String name,
+    required String email,
+    required String password,
+  });
+
+  /// Logs in a user with the given credentials.
+  Future<UserModel?> loginUser({
+    required String email,
+    required String password,
+  });
+
+  /// Logs out the current user.
+  Future<void> logoutUser();
+
+  /// Gets the current logged-in user.
+  UserModel? getCurrentUser();
+
+  /// Checks if a user is currently logged in.
+  bool isLoggedIn();
+
+  /// Checks if a user with the given email exists.
+  bool userExists(String email);
+
+  /// Resets the password for a user with the given email.
+  Future<bool> resetPassword(String email);
+}
+
+/// {@template hive_auth_repository}
+/// Implementation of AuthRepository that uses Hive for storage.
+/// {@endtemplate}
+class HiveAuthRepository implements AuthRepository {
+  /// {@macro hive_auth_repository}
+  HiveAuthRepository({required Box<UserModel> userBox}) : _userBox = userBox;
+
+  final Box<UserModel> _userBox;
+
+  @override
   Future<UserModel> registerUser({
     required String name,
     required String email,
@@ -41,12 +79,12 @@ class AuthRepository {
     );
 
     // Set as current user
-    await _userBox.put(currentUserKey, currentUser);
+    await _userBox.put(AuthRepository.currentUserKey, currentUser);
 
     return user;
   }
 
-  /// Logs in a user with the given credentials.
+  @override
   Future<UserModel?> loginUser({
     required String email,
     required String password,
@@ -64,37 +102,34 @@ class AuthRepository {
       );
 
       // Store the current user copy
-      await _userBox.put(currentUserKey, currentUser);
+      await _userBox.put(AuthRepository.currentUserKey, currentUser);
       return user;
     }
 
     return null;
   }
 
-  /// Logs out the current user.
+  @override
   Future<void> logoutUser() async {
-    await _userBox.delete(currentUserKey);
+    await _userBox.delete(AuthRepository.currentUserKey);
   }
 
-  /// Gets the current logged-in user.
+  @override
   UserModel? getCurrentUser() {
-    return _userBox.get(currentUserKey);
+    return _userBox.get(AuthRepository.currentUserKey);
   }
 
-  /// Checks if a user is currently logged in.
+  @override
   bool isLoggedIn() {
-    return _userBox.containsKey(currentUserKey);
+    return _userBox.containsKey(AuthRepository.currentUserKey);
   }
 
-  /// Checks if a user with the given email exists.
+  @override
   bool userExists(String email) {
     return _userBox.containsKey(email);
   }
 
-  /// Resets the password for a user with the given email.
-  ///
-  /// In a real app, this would send a password reset email.
-  /// For this demo, we'll just simulate the process.
+  @override
   Future<bool> resetPassword(String email) async {
     final user = _userBox.get(email);
 
@@ -105,5 +140,75 @@ class AuthRepository {
     }
 
     return false;
+  }
+}
+
+/// {@template in_memory_auth_repository}
+/// Implementation of AuthRepository that uses in-memory storage.
+/// Used as a fallback when Hive initialization fails.
+/// {@endtemplate}
+class InMemoryAuthRepository implements AuthRepository {
+  /// {@macro in_memory_auth_repository}
+  InMemoryAuthRepository();
+
+  UserModel? _currentUser;
+  final Map<String, UserModel> _users = {};
+
+  @override
+  Future<UserModel> registerUser({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    final user = UserModel(
+      name: name,
+      email: email,
+      password: password,
+    );
+
+    _users[email] = user;
+    _currentUser = user;
+
+    return user;
+  }
+
+  @override
+  Future<UserModel?> loginUser({
+    required String email,
+    required String password,
+  }) async {
+    final user = _users[email];
+
+    if (user != null && user.password == password) {
+      _currentUser = user;
+      return user;
+    }
+
+    return null;
+  }
+
+  @override
+  Future<void> logoutUser() async {
+    _currentUser = null;
+  }
+
+  @override
+  UserModel? getCurrentUser() {
+    return _currentUser;
+  }
+
+  @override
+  bool isLoggedIn() {
+    return _currentUser != null;
+  }
+
+  @override
+  bool userExists(String email) {
+    return _users.containsKey(email);
+  }
+
+  @override
+  Future<bool> resetPassword(String email) async {
+    return _users.containsKey(email);
   }
 }

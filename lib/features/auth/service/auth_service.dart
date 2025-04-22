@@ -25,7 +25,33 @@ class AuthService {
     final userBox = await Hive.openBox<UserModel>('users');
 
     // Create repository
-    _authRepository = AuthRepository(userBox: userBox);
+    _authRepository = AuthRepository.standard(userBox);
+  }
+
+  /// Initializes the authentication service with a fallback mechanism
+  /// when the primary initialization fails.
+  ///
+  /// This creates an in-memory repository that doesn't persist data
+  /// but allows the app to function without crashing.
+  static Future<void> initializeWithFallback() async {
+    try {
+      // Try to register adapter if not already registered
+      if (!Hive.isAdapterRegistered(UserModelAdapter().typeId)) {
+        Hive.registerAdapter(UserModelAdapter());
+      }
+
+      // Create an in-memory box that doesn't persist to disk
+      final userBox = await Hive.openBox<UserModel>(
+        'users_memory',
+        path: ':memory:',
+      );
+
+      // Create repository with the in-memory box
+      _authRepository = AuthRepository.standard(userBox);
+    } catch (e) {
+      // Last resort fallback - create a minimal working repository
+      _authRepository = AuthRepository.fallback();
+    }
   }
 
   /// Gets the authentication repository.

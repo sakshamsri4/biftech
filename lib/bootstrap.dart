@@ -32,7 +32,18 @@ Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
   Bloc.observer = const AppBlocObserver();
 
   // Initialize services
-  await AuthService.initialize();
+  try {
+    await AuthService.initialize();
+  } catch (e) {
+    log(
+      'Failed to initialize AuthService: $e',
+      stackTrace: StackTrace.current,
+    );
+    // Fallback behavior: Create an in-memory repository
+    // that doesn't persist data. This allows the app to run,
+    // but user will need to log in again after restart
+    await AuthService.initializeWithFallback();
+  }
 
   // Add cross-flavor configuration here
 
