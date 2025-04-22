@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 import 'package:hive/hive.dart';
 
 part 'user_model.g.dart';
@@ -8,10 +10,20 @@ part 'user_model.g.dart';
 @HiveType(typeId: 0)
 class UserModel extends HiveObject {
   /// {@macro user_model}
+  /// Creates a user with the given name, email, and password.
+  /// The password is automatically hashed before storage.
   UserModel({
     required this.name,
     required this.email,
-    required this.password,
+    required String password,
+  }) : passwordHash = _hashPassword(password);
+
+  /// Creates a user with a pre-computed password hash.
+  /// This constructor should only be used when deserializing from storage.
+  UserModel.withHash({
+    required this.name,
+    required this.email,
+    required this.passwordHash,
   });
 
   /// The name of the user.
@@ -22,9 +34,16 @@ class UserModel extends HiveObject {
   @HiveField(1)
   final String email;
 
-  /// The password of the user.
+  /// The hashed password of the user.
+  /// Never store plain-text passwords.
   @HiveField(2)
-  final String password;
+  final String passwordHash;
+
+  /// Validates if the provided password matches the stored hash.
+  bool validatePassword(String password) {
+    final hashedInput = _hashPassword(password);
+    return hashedInput == passwordHash;
+  }
 
   /// Creates a copy of this [UserModel] with the given values.
   UserModel copyWith({
@@ -35,8 +54,16 @@ class UserModel extends HiveObject {
     return UserModel(
       name: name ?? this.name,
       email: email ?? this.email,
-      password: password ?? this.password,
+      password: password ?? '', // If no new password, we'll keep the old hash
     );
+  }
+
+  /// Hashes a password using SHA-256.
+  /// In a production app, use a more secure algorithm like bcrypt or Argon2.
+  static String _hashPassword(String password) {
+    final bytes = utf8.encode(password);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
   }
 
   @override

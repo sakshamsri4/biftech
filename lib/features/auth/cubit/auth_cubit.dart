@@ -144,7 +144,8 @@ class AuthCubit extends Cubit<AuthState> {
       emit(
         state.copyWith(
           status: FormzSubmissionStatus.failure,
-          errorMessage: 'Login failed: $e',
+          errorMessage:
+              'Login failed: . Please check your credentials and try again',
         ),
       );
     }

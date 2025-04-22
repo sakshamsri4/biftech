@@ -91,14 +91,14 @@ class HiveAuthRepository implements AuthRepository {
   }) async {
     final user = _userBox.get(email);
 
-    if (user != null && user.password == password) {
+    if (user != null && user.validatePassword(password)) {
       // Create a copy of the user to avoid the HiveError:
       // "The same instance of an HiveObject cannot be stored
       // with two different keys"
-      final currentUser = UserModel(
+      final currentUser = UserModel.withHash(
         name: user.name,
         email: user.email,
-        password: user.password,
+        passwordHash: user.passwordHash,
       );
 
       // Store the current user copy
@@ -179,7 +179,7 @@ class InMemoryAuthRepository implements AuthRepository {
   }) async {
     final user = _users[email];
 
-    if (user != null && user.password == password) {
+    if (user != null && user.validatePassword(password)) {
       _currentUser = user;
       return user;
     }
