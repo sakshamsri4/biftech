@@ -31,18 +31,38 @@ This workflow must be followed for all development tasks.
 **Log in:** `activity_log.md`
 **Rule Ref:** Folder rules from `dev_rules.md`
 
-### 🔹 Step 2: Build the Auth UI (1 hr)
+### 🔹 Step 2: Build the Auth UI (2 hrs)
 **Branch:** `git checkout -b feature/auth`
 **Location:** `features/auth/view/auth_page.dart`
 **Action:**
-- Create a login screen with:
-  - Email, password input (`NeoTextField`)
-  - Login button (`NeoButton`)
-  - Dummy validation
+- Create a complete authentication system with:
+  - Login screen:
+    - Email, password input (`NeoTextField`)
+    - Login button (`NeoButton`)
+    - "Forgot Password" link
+    - "Sign Up" link
+  - Sign Up screen:
+    - Name, email, password, confirm password inputs
+    - Sign Up button
+    - "Back to Login" link
+  - Forgot Password screen:
+    - Email input
+    - Submit button
+    - "Back to Login" link
+  - Comprehensive validation for all fields
+  - Proper navigation between screens
 
-**State mgmt:** `AuthCubit` with states: initial, loading, success, failure
-**Test:** `test/features/auth/cubit/auth_cubit_test.dart` – test dummy login
-**Log in:** What went wrong (validation, state) + how fixed
+**State mgmt:**
+- `AuthCubit` with states: initial, loading, success, failure
+- Handle different auth modes (login, signup, forgot password)
+- Proper error handling and validation for each mode
+
+**Test:**
+- `test/features/auth/cubit/auth_cubit_test.dart` – test all auth modes
+- Test validation logic for all input fields
+- Test navigation between different auth screens
+
+**Log in:** What went wrong (validation, state, navigation) + how fixed
 
 ### 🔹 Step 3: Build Video Feed UI (1.5 hrs)
 **Branch:** `git checkout -b feature/video_feed`
