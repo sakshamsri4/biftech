@@ -89,11 +89,15 @@ class _UploadVideoViewState extends State<UploadVideoView> {
         _thumbnailError = 'Failed to pick image: $e';
       });
       // Show a more user-friendly error message
-      _showPermissionErrorDialog('image');
+      _showPermissionErrorDialog('image', errorMessage: e.toString());
     }
   }
 
   Future<ImageSource?> _showImageSourceDialog() async {
+    // On simulators, camera might not be available, but we'll show the option
+    // and handle errors when they try to use it
+    // This is better UX than hiding the option completely
+
     return showDialog<ImageSource>(
       context: context,
       builder: (context) => AlertDialog(
@@ -146,22 +150,30 @@ class _UploadVideoViewState extends State<UploadVideoView> {
         _videoError = 'Failed to pick video: $e';
       });
       // Show a more user-friendly error message
-      _showPermissionErrorDialog('video');
+      _showPermissionErrorDialog('video', errorMessage: e.toString());
     }
   }
 
-  void _showPermissionErrorDialog(String mediaType) {
+  void _showPermissionErrorDialog(String mediaType, {String? errorMessage}) {
     if (!mounted) return;
+
+    final title = errorMessage != null && errorMessage.contains('camera')
+        ? 'Camera Not Available'
+        : 'Permission Required';
+
+    final message = errorMessage != null && errorMessage.contains('camera')
+        ? 'The camera is not available on this device or simulator. '
+            'Please try using the gallery option instead, '
+            'or test on a physical device.'
+        : 'To select a $mediaType, this app needs permission '
+            'to access your media. Please go to your device settings '
+            'and grant permission for camera and storage.';
 
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Permission Required'),
-        content: Text(
-          'To select a $mediaType, this app needs permission '
-          'to access your media. Please go to your device settings '
-          'and grant permission for camera and storage.',
-        ),
+        title: Text(title),
+        content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
