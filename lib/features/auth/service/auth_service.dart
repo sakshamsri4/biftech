@@ -17,13 +17,13 @@ class AuthService {
     // Initialize Hive
     final appDocumentDir = await getApplicationDocumentsDirectory();
     await Hive.initFlutter(appDocumentDir.path);
-    
+
     // Register adapters
     Hive.registerAdapter(UserModelAdapter());
-    
+
     // Open boxes
     final userBox = await Hive.openBox<UserModel>('users');
-    
+
     // Create repository
     _authRepository = AuthRepository(userBox: userBox);
   }

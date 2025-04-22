@@ -29,7 +29,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadCurrentUser() async {
     final authRepository = AuthService.getAuthRepository();
     final currentUser = authRepository.getCurrentUser();
-    
+
     if (currentUser != null) {
       setState(() {
         _currentUser = currentUser;
@@ -40,9 +40,9 @@ class _HomePageState extends State<HomePage> {
   Future<void> _logout() async {
     final authRepository = AuthService.getAuthRepository();
     await authRepository.logoutUser();
-    
+
     if (mounted) {
-      Navigator.of(context).pushReplacementNamed('/login');
+      await Navigator.of(context).pushReplacementNamed('/login');
     }
   }
 
@@ -167,9 +167,10 @@ class _HomePageState extends State<HomePage> {
                       ),
                       Text(
                         _currentUser!.name,
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style:
+                            Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
@@ -212,8 +213,8 @@ class _HomePageState extends State<HomePage> {
         Text(
           'Featured Content',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 16),
         SizedBox(
@@ -248,7 +249,7 @@ class _HomePageState extends State<HomePage> {
                             bottomLeft: Radius.circular(12),
                             bottomRight: Radius.circular(12),
                           ),
-                          color: Colors.black.withOpacity(0.7),
+                          color: Colors.black.withAlpha(179),
                         ),
                         child: Text(
                           'Featured Item ${index + 1}',
@@ -276,8 +277,8 @@ class _HomePageState extends State<HomePage> {
         Text(
           'Recent Activity',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 16),
         ListView.separated(
