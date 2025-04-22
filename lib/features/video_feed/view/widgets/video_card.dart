@@ -268,16 +268,34 @@ class _VideoCardState extends State<VideoCard> {
                   ],
                 ),
 
-                // Participate button
+                // Action buttons
                 const SizedBox(height: 12),
-                ElevatedButton.icon(
-                  onPressed: widget.onTap,
-                  icon: const Icon(Icons.chat_bubble_outline),
-                  label: const Text('Participate'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary,
-                    foregroundColor: theme.colorScheme.onPrimary,
-                  ),
+                Row(
+                  children: [
+                    // Participate button
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: widget.onTap,
+                        icon: const Icon(Icons.chat_bubble_outline),
+                        label: const Text('Participate'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: theme.colorScheme.primary,
+                          foregroundColor: theme.colorScheme.onPrimary,
+                        ),
+                      ),
+                    ),
+
+                    // Delete button (if onDelete callback is provided)
+                    if (widget.onDelete != null) ...[
+                      const SizedBox(width: 8),
+                      IconButton(
+                        onPressed: () => _showDeleteConfirmation(context),
+                        icon: const Icon(Icons.delete_outline),
+                        color: Colors.red,
+                        tooltip: 'Delete video',
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),
@@ -296,6 +314,87 @@ class _VideoCardState extends State<VideoCard> {
       return '${(views / 1000).toStringAsFixed(1)}K';
     } else {
       return views.toString();
+    }
+  }
+
+  /// Shows a confirmation dialog before deleting a video
+  void _showDeleteConfirmation(BuildContext context) {
+    // Store the current context and scaffold messenger
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete Video'),
+        content: const Text(
+          'Are you sure you want to delete this video? '
+          'This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    ).then((confirmed) {
+      // Use ?? to convert null to false
+      if (confirmed ?? false) {
+        if (mounted && widget.onDelete != null) {
+          // Show loading indicator
+          scaffoldMessenger
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              const SnackBar(
+                content: Text('Deleting video...'),
+                duration: Duration(seconds: 1),
+              ),
+            );
+
+          // Call the delete function and handle the result
+          _performDelete(scaffoldMessenger);
+        }
+      }
+    });
+  }
+
+  /// Performs the actual deletion after confirmation
+  Future<void> _performDelete(ScaffoldMessengerState scaffoldMessenger) async {
+    try {
+      // Call the delete callback
+      final success = await widget.onDelete!(widget.video.id);
+
+      // Check if widget is still mounted after async operation
+      if (!mounted) return;
+
+      // Show success or error message
+      scaffoldMessenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              success ? 'Video deleted successfully' : 'Failed to delete video',
+            ),
+            backgroundColor: success ? Colors.green : Colors.red,
+          ),
+        );
+    } catch (e) {
+      // Handle any errors
+      if (!mounted) return;
+
+      scaffoldMessenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('An error occurred while deleting the video'),
+            backgroundColor: Colors.red,
+          ),
+        );
     }
   }
 }

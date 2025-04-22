@@ -187,6 +187,10 @@ class _VideoList extends StatelessWidget {
                     arguments: {'id': video.id},
                   );
                 },
+                onDelete: (videoId) async {
+                  // Call the delete method in the cubit
+                  return context.read<VideoFeedCubit>().deleteVideo(videoId);
+                },
               );
             },
           ),
