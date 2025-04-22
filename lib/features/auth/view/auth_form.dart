@@ -74,8 +74,8 @@ class _AuthFormState extends State<AuthForm> {
                 backgroundColor: Colors.green,
               ),
             );
-          // Navigate to home page or next screen
-          // Navigator.of(context).pushReplacementNamed('/home');
+          // Navigate to home page
+          Navigator.of(context).pushReplacementNamed('/home');
         }
       },
       child: SingleChildScrollView(
