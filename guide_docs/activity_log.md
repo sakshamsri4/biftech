@@ -237,6 +237,24 @@ This file tracks all development activities, issues encountered, solutions imple
   4. Use dependency injection to provide repositories to cubits
   5. Mock repositories in tests to isolate components
 
+## [2023-04-22 | 19:30 PM]
+- ❌ CRITICAL ERROR: Flutter binding not initialized before accessing platform services
+- ❌ Issue: Attempted to initialize Hive without calling WidgetsFlutterBinding.ensureInitialized()
+- ❌ Issue: Received error: "Binding has not yet been initialized" when running the app
+- ❌ Issue: Platform services (file system, etc.) were not available for Hive to use
+- ✅ Fixed by adding WidgetsFlutterBinding.ensureInitialized() call in bootstrap.dart
+- 🔄 Solution implemented:
+  1. Added WidgetsFlutterBinding.ensureInitialized() call before any platform service access
+  2. Ensured this call happens before Hive initialization
+- 📁 Files changed:
+  - lib/bootstrap.dart (added binding initialization)
+- 📝 Lessons learned:
+  1. ALWAYS call WidgetsFlutterBinding.ensureInitialized() in main() before accessing any platform services
+  2. This is especially important for plugins that access file system, camera, etc.
+  3. The binding connects Dart code to the underlying platform services
+  4. This is a fundamental requirement for Flutter plugins and should never be overlooked
+  5. The error message "Binding has not yet been initialized" is a clear indicator of this issue
+
 ## Template for Future Entries
 
 ```
