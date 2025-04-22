@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// {@template neo_text_field}
 /// A custom text field with NeoPop styling.
 /// {@endtemplate}
-class NeoTextField extends StatelessWidget {
+class NeoTextField extends StatefulWidget {
   /// {@macro neo_text_field}
   const NeoTextField({
     required this.controller,
@@ -30,6 +30,19 @@ class NeoTextField extends StatelessWidget {
   final ValueChanged<String>? onChanged;
 
   @override
+  State<NeoTextField> createState() => _NeoTextFieldState();
+}
+
+class _NeoTextFieldState extends State<NeoTextField> {
+  bool _obscureText = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _obscureText = widget.obscureText;
+  }
+
+  @override
   Widget build(BuildContext context) {
     // Make the text field responsive based on screen size
     final screenWidth = MediaQuery.of(context).size.width;
@@ -48,25 +61,40 @@ class NeoTextField extends StatelessWidget {
       ),
       // Constrain the height to prevent overflow
       constraints: BoxConstraints(
-        maxHeight: errorText != null ? 80 : 60,
+        maxHeight: widget.errorText != null ? 80 : 60,
       ),
       child: TextField(
-        controller: controller,
-        autofillHints:
-            obscureText ? [AutofillHints.password] : [AutofillHints.email],
-        keyboardType: obscureText
+        controller: widget.controller,
+        autofillHints: widget.obscureText
+            ? [AutofillHints.password]
+            : [AutofillHints.email],
+        keyboardType: widget.obscureText
             ? TextInputType.visiblePassword
             : TextInputType.emailAddress,
-        obscureText: obscureText,
-        onChanged: onChanged,
+        obscureText: _obscureText,
+        onChanged: widget.onChanged,
         // Add text input action to improve keyboard navigation
         textInputAction:
-            obscureText ? TextInputAction.done : TextInputAction.next,
+            widget.obscureText ? TextInputAction.done : TextInputAction.next,
         // Adjust style based on screen size
         style: TextStyle(fontSize: isSmallScreen ? 14 : 16),
         decoration: InputDecoration(
-          labelText: labelText,
-          errorText: errorText,
+          labelText: widget.labelText,
+          errorText: widget.errorText,
+          // Add password visibility toggle if this is a password field
+          suffixIcon: widget.obscureText
+              ? IconButton(
+                  icon: Icon(
+                    _obscureText ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.grey,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscureText = !_obscureText;
+                    });
+                  },
+                )
+              : null,
           // Adjust error style to prevent overflow
           errorStyle: TextStyle(
             fontSize: isSmallScreen ? 10 : 12,
