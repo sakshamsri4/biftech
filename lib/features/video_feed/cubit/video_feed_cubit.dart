@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:biftech/features/video_feed/cubit/video_feed_state.dart';
 import 'package:biftech/features/video_feed/model/models.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:video_player/video_player.dart';
@@ -29,16 +31,37 @@ class VideoFeedCubit extends Cubit<VideoFeedState> {
     }
 
     try {
-      // Create a new controller
-      final controller = VideoPlayerController.networkUrl(
-        Uri.parse(video.videoUrl),
-      );
+      // Create a new controller based on the video URL type
+      final VideoPlayerController controller;
+
+      if (video.videoUrl.startsWith('http')) {
+        // Network video
+        controller = VideoPlayerController.networkUrl(
+          Uri.parse(video.videoUrl),
+        );
+      } else if (video.videoUrl.startsWith('assets/')) {
+        // Asset video
+        controller = VideoPlayerController.asset(video.videoUrl);
+      } else if (kIsWeb) {
+        // On web, we can only use network URLs
+        controller = VideoPlayerController.networkUrl(
+          Uri.parse(video.videoUrl),
+        );
+      } else {
+        // File video (from device storage)
+        controller = VideoPlayerController.file(
+          File(video.videoUrl),
+        );
+      }
 
       // Initialize the controller
       await controller.initialize();
 
       // Add to the controllers map
       _controllers[video.id] = controller;
+
+      // Emit a state update to trigger a rebuild
+      emit(state.copyWith());
     } catch (e) {
       // Handle initialization error
       emit(
@@ -214,10 +237,10 @@ class VideoFeedCubit extends Cubit<VideoFeedState> {
   Future<void> addNewVideo(VideoModel newVideo) async {
     try {
       // Get the current videos
-      final currentVideos = List<VideoModel>.from(state.videos);
+      final currentVideos = List<VideoModel>.from(state.videos)
 
-      // Add the new video at the beginning of the list
-      currentVideos.insert(0, newVideo);
+        // Add the new video at the beginning of the list
+        ..insert(0, newVideo);
 
       // Emit success state with updated videos
       emit(
@@ -229,6 +252,14 @@ class VideoFeedCubit extends Cubit<VideoFeedState> {
 
       // Initialize the video controller for the new video
       await initializeVideoController(newVideo);
+
+      // Save the updated videos to the JSON file (in a real app)
+      // For now, we'll just log that we would save it
+      debugPrint('Added new video: ${newVideo.id}');
+      debugPrint('Would save ${currentVideos.length} videos to storage');
+
+      // In a real app, we would do something like:
+      // await _saveVideosToStorage(currentVideos);
     } catch (e) {
       // Emit failure state with error message
       emit(

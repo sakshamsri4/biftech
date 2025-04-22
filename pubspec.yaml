@@ -41,3 +41,4 @@ flutter:
   generate: true
   assets:
     - assets/json/
+    - assets/videos/

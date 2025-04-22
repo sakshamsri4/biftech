@@ -29,7 +29,6 @@ class VideoCard extends StatefulWidget {
 
 class _VideoCardState extends State<VideoCard> {
   VideoPlayerController? _controller;
-  bool _isInitialized = false;
   bool _isPlaying = false;
 
   @override
@@ -57,16 +56,30 @@ class _VideoCardState extends State<VideoCard> {
     if (widget.video.videoUrl.isEmpty) return;
 
     try {
-      final controller = VideoPlayerController.networkUrl(
-        Uri.parse(widget.video.videoUrl),
-      );
+      // Get the controller from the cubit if it exists
+      final cubit = context.read<VideoFeedCubit>();
+      final existingController = cubit.getControllerForVideo(widget.video.id);
 
-      await controller.initialize();
-      if (mounted) {
-        setState(() {
-          _controller = controller;
-          _isInitialized = true;
-        });
+      if (existingController != null) {
+        // Use the existing controller
+        if (mounted) {
+          setState(() {
+            _controller = existingController;
+            _isPlaying = widget.video.isPlaying;
+          });
+        }
+      } else {
+        // Initialize the controller through the cubit
+        await cubit.initializeVideoController(widget.video);
+
+        // Get the initialized controller
+        final controller = cubit.getControllerForVideo(widget.video.id);
+
+        if (mounted && controller != null) {
+          setState(() {
+            _controller = controller;
+          });
+        }
       }
     } catch (e) {
       debugPrint('Error initializing video controller: $e');
@@ -76,21 +89,23 @@ class _VideoCardState extends State<VideoCard> {
   void _disposeController() {
     _controller?.dispose();
     _controller = null;
-    _isInitialized = false;
     _isPlaying = false;
   }
 
   void _togglePlayPause() {
     if (_controller == null) return;
 
+    final cubit = context.read<VideoFeedCubit>();
+
+    if (_isPlaying) {
+      // Pause this video
+      cubit.pauseVideo(widget.video.id);
+    } else {
+      // Play this video (will pause others)
+      cubit.playVideo(widget.video.id);
+    }
+
     setState(() {
-      if (_isPlaying) {
-        _controller!.pause();
-      } else {
-        // Pause all other videos first
-        context.read<VideoFeedCubit>().pauseAllVideos();
-        _controller!.play();
-      }
       _isPlaying = !_isPlaying;
     });
   }
