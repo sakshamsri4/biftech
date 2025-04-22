@@ -10,30 +10,81 @@ class AuthCubit extends Cubit<AuthState> {
   /// {@macro auth_cubit}
   AuthCubit() : super(const AuthState());
 
+  /// Changes the authentication mode.
+  void changeMode(AuthMode mode) {
+    emit(
+      state.copyWith(
+        mode: mode,
+        status: FormzSubmissionStatus.initial,
+      ),
+    );
+    _validateForm();
+  }
+
+  /// Updates the name field (for sign up).
+  void nameChanged(String value) {
+    final name = Name.dirty(value);
+    emit(state.copyWith(name: name));
+    _validateForm();
+  }
+
   /// Updates the email field.
   void emailChanged(String value) {
     final email = Email.dirty(value);
-    emit(
-      state.copyWith(
-        email: email,
-        isValid: Formz.validate([email, state.password]),
-      ),
-    );
+    emit(state.copyWith(email: email));
+    _validateForm();
   }
 
   /// Updates the password field.
   void passwordChanged(String value) {
     final password = Password.dirty(value);
-    emit(
-      state.copyWith(
-        password: password,
-        isValid: Formz.validate([state.email, password]),
-      ),
-    );
+    emit(state.copyWith(password: password));
+
+    // If we're in sign up mode, also validate the confirmed password
+    if (state.mode == AuthMode.signUp) {
+      final confirmedPassword = ConfirmedPassword.dirty(
+        password: value,
+        value: state.confirmedPassword.value,
+      );
+      emit(state.copyWith(confirmedPassword: confirmedPassword));
+    }
+
+    _validateForm();
   }
 
-  /// Submits the login form.
-  Future<void> logInWithCredentials() async {
+  /// Updates the confirmed password field (for sign up).
+  void confirmedPasswordChanged(String value) {
+    final confirmedPassword = ConfirmedPassword.dirty(
+      password: state.password.value,
+      value: value,
+    );
+    emit(state.copyWith(confirmedPassword: confirmedPassword));
+    _validateForm();
+  }
+
+  /// Validates the form based on the current mode.
+  void _validateForm() {
+    bool isValid;
+
+    switch (state.mode) {
+      case AuthMode.login:
+        isValid = Formz.validate([state.email, state.password]);
+      case AuthMode.signUp:
+        isValid = Formz.validate([
+          state.name,
+          state.email,
+          state.password,
+          state.confirmedPassword,
+        ]);
+      case AuthMode.forgotPassword:
+        isValid = Formz.validate([state.email]);
+    }
+
+    emit(state.copyWith(isValid: isValid));
+  }
+
+  /// Submits the authentication form based on the current mode.
+  Future<void> submitForm() async {
     if (!state.isValid) return;
 
     emit(state.copyWith(status: FormzSubmissionStatus.inProgress));
@@ -42,18 +93,13 @@ class AuthCubit extends Cubit<AuthState> {
       // Simulate network delay
       await Future<void>.delayed(const Duration(seconds: 1));
 
-      // For demo purposes, we'll accept any valid form
-      // In a real app, this would call an authentication service
-      if (state.email.value == 'test@example.com' &&
-          state.password.value == 'password123') {
-        emit(state.copyWith(status: FormzSubmissionStatus.success));
-      } else {
-        emit(
-          state.copyWith(
-            status: FormzSubmissionStatus.failure,
-            errorMessage: 'Invalid credentials',
-          ),
-        );
+      switch (state.mode) {
+        case AuthMode.login:
+          await _logIn();
+        case AuthMode.signUp:
+          await _signUp();
+        case AuthMode.forgotPassword:
+          await _forgotPassword();
       }
     } catch (e) {
       emit(
@@ -63,5 +109,52 @@ class AuthCubit extends Cubit<AuthState> {
         ),
       );
     }
+  }
+
+  /// Handles the login process.
+  Future<void> _logIn() async {
+    // For demo purposes, we'll accept any valid form
+    // In a real app, this would call an authentication service
+    if (state.email.value == 'test@example.com' &&
+        state.password.value == 'password123') {
+      emit(
+        state.copyWith(
+          status: FormzSubmissionStatus.success,
+          successMessage: 'Login successful',
+        ),
+      );
+    } else {
+      emit(
+        state.copyWith(
+          status: FormzSubmissionStatus.failure,
+          errorMessage: 'Invalid credentials',
+        ),
+      );
+    }
+  }
+
+  /// Handles the sign up process.
+  Future<void> _signUp() async {
+    // For demo purposes, we'll accept any valid form
+    // In a real app, this would call an authentication service
+    emit(
+      state.copyWith(
+        status: FormzSubmissionStatus.success,
+        successMessage: 'Account created successfully',
+      ),
+    );
+  }
+
+  /// Handles the forgot password process.
+  Future<void> _forgotPassword() async {
+    // For demo purposes, we'll accept any valid form
+    // In a real app, this would call an authentication service
+    emit(
+      state.copyWith(
+        status: FormzSubmissionStatus.success,
+        successMessage:
+            'Password reset instructions sent to ${state.email.value}',
+      ),
+    );
   }
 }

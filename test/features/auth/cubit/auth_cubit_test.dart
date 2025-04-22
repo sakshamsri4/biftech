@@ -1,9 +1,9 @@
-import 'package:bloc_test/bloc_test.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:formz/formz.dart';
 import 'package:biftech/features/auth/cubit/auth_cubit.dart';
 import 'package:biftech/features/auth/cubit/auth_state.dart';
 import 'package:biftech/features/auth/model/models.dart';
+import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:formz/formz.dart';
 
 void main() {
   group('AuthCubit', () {
@@ -15,7 +15,7 @@ void main() {
     group('emailChanged', () {
       blocTest<AuthCubit, AuthState>(
         'emits updated email and validity when email changes',
-        build: () => AuthCubit(),
+        build: AuthCubit.new,
         act: (cubit) => cubit.emailChanged('test@example.com'),
         expect: () => [
           isA<AuthState>()
@@ -26,22 +26,30 @@ void main() {
 
       blocTest<AuthCubit, AuthState>(
         'emits invalid state when email is empty',
-        build: () => AuthCubit(),
+        build: AuthCubit.new,
         act: (cubit) => cubit.emailChanged(''),
         expect: () => [
           isA<AuthState>()
-              .having((s) => s.email.error, 'email error', EmailValidationError.empty)
+              .having(
+                (s) => s.email.error,
+                'email error',
+                EmailValidationError.empty,
+              )
               .having((s) => s.isValid, 'isValid', false),
         ],
       );
 
       blocTest<AuthCubit, AuthState>(
         'emits invalid state when email format is invalid',
-        build: () => AuthCubit(),
+        build: AuthCubit.new,
         act: (cubit) => cubit.emailChanged('invalid-email'),
         expect: () => [
           isA<AuthState>()
-              .having((s) => s.email.error, 'email error', EmailValidationError.invalid)
+              .having(
+                (s) => s.email.error,
+                'email error',
+                EmailValidationError.invalid,
+              )
               .having((s) => s.isValid, 'isValid', false),
         ],
       );
@@ -50,7 +58,7 @@ void main() {
     group('passwordChanged', () {
       blocTest<AuthCubit, AuthState>(
         'emits updated password and validity when password changes',
-        build: () => AuthCubit(),
+        build: AuthCubit.new,
         act: (cubit) => cubit.passwordChanged('password123'),
         expect: () => [
           isA<AuthState>()
@@ -61,71 +69,174 @@ void main() {
 
       blocTest<AuthCubit, AuthState>(
         'emits invalid state when password is empty',
-        build: () => AuthCubit(),
+        build: AuthCubit.new,
         act: (cubit) => cubit.passwordChanged(''),
         expect: () => [
           isA<AuthState>()
-              .having((s) => s.password.error, 'password error', PasswordValidationError.empty)
+              .having(
+                (s) => s.password.error,
+                'password error',
+                PasswordValidationError.empty,
+              )
               .having((s) => s.isValid, 'isValid', false),
         ],
       );
 
       blocTest<AuthCubit, AuthState>(
         'emits invalid state when password is too short',
-        build: () => AuthCubit(),
+        build: AuthCubit.new,
         act: (cubit) => cubit.passwordChanged('12345'),
         expect: () => [
           isA<AuthState>()
-              .having((s) => s.password.error, 'password error', PasswordValidationError.tooShort)
+              .having(
+                (s) => s.password.error,
+                'password error',
+                PasswordValidationError.tooShort,
+              )
               .having((s) => s.isValid, 'isValid', false),
         ],
       );
     });
 
-    group('logInWithCredentials', () {
+    group('submitForm', () {
       blocTest<AuthCubit, AuthState>(
         'does nothing when form is invalid',
-        build: () => AuthCubit(),
-        act: (cubit) => cubit.logInWithCredentials(),
-        expect: () => [],
+        build: AuthCubit.new,
+        act: (cubit) => cubit.submitForm(),
+        expect: () => <AuthState>[],
       );
 
-      blocTest<AuthCubit, AuthState>(
-        'emits loading and success when credentials are valid',
-        build: () => AuthCubit(),
-        seed: () => AuthState(
-          email: const Email.dirty('test@example.com'),
-          password: const Password.dirty('password123'),
-          isValid: true,
-        ),
-        act: (cubit) => cubit.logInWithCredentials(),
-        wait: const Duration(seconds: 2),
-        expect: () => [
-          isA<AuthState>()
-              .having((s) => s.status, 'status', FormzSubmissionStatus.inProgress),
-          isA<AuthState>()
-              .having((s) => s.status, 'status', FormzSubmissionStatus.success),
-        ],
-      );
+      group('login mode', () {
+        blocTest<AuthCubit, AuthState>(
+          'emits loading and success when credentials are valid',
+          build: AuthCubit.new,
+          seed: () => const AuthState(
+            email: Email.dirty('test@example.com'),
+            password: Password.dirty('password123'),
+            isValid: true,
+          ),
+          act: (cubit) => cubit.submitForm(),
+          wait: const Duration(seconds: 2),
+          expect: () => [
+            isA<AuthState>().having(
+              (s) => s.status,
+              'status',
+              FormzSubmissionStatus.inProgress,
+            ),
+            isA<AuthState>()
+                .having(
+                  (s) => s.status,
+                  'status',
+                  FormzSubmissionStatus.success,
+                )
+                .having(
+                  (s) => s.successMessage,
+                  'successMessage',
+                  'Login successful',
+                ),
+          ],
+        );
 
-      blocTest<AuthCubit, AuthState>(
-        'emits loading and failure when credentials are invalid',
-        build: () => AuthCubit(),
-        seed: () => AuthState(
-          email: const Email.dirty('wrong@example.com'),
-          password: const Password.dirty('wrongpassword'),
-          isValid: true,
-        ),
-        act: (cubit) => cubit.logInWithCredentials(),
-        wait: const Duration(seconds: 2),
-        expect: () => [
-          isA<AuthState>()
-              .having((s) => s.status, 'status', FormzSubmissionStatus.inProgress),
-          isA<AuthState>()
-              .having((s) => s.status, 'status', FormzSubmissionStatus.failure)
-              .having((s) => s.errorMessage, 'errorMessage', 'Invalid credentials'),
-        ],
-      );
+        blocTest<AuthCubit, AuthState>(
+          'emits loading and failure when credentials are invalid',
+          build: AuthCubit.new,
+          seed: () => const AuthState(
+            email: Email.dirty('wrong@example.com'),
+            password: Password.dirty('wrongpassword'),
+            isValid: true,
+          ),
+          act: (cubit) => cubit.submitForm(),
+          wait: const Duration(seconds: 2),
+          expect: () => [
+            isA<AuthState>().having(
+              (s) => s.status,
+              'status',
+              FormzSubmissionStatus.inProgress,
+            ),
+            isA<AuthState>()
+                .having(
+                  (s) => s.status,
+                  'status',
+                  FormzSubmissionStatus.failure,
+                )
+                .having(
+                  (s) => s.errorMessage,
+                  'errorMessage',
+                  'Invalid credentials',
+                ),
+          ],
+        );
+      });
+
+      group('sign up mode', () {
+        blocTest<AuthCubit, AuthState>(
+          'emits loading and success when form is valid',
+          build: AuthCubit.new,
+          seed: () => const AuthState(
+            mode: AuthMode.signUp,
+            name: Name.dirty('Test User'),
+            email: Email.dirty('new@example.com'),
+            password: Password.dirty('password123'),
+            confirmedPassword: ConfirmedPassword.dirty(
+              password: 'password123',
+              value: 'password123',
+            ),
+            isValid: true,
+          ),
+          act: (cubit) => cubit.submitForm(),
+          wait: const Duration(seconds: 2),
+          expect: () => [
+            isA<AuthState>().having(
+              (s) => s.status,
+              'status',
+              FormzSubmissionStatus.inProgress,
+            ),
+            isA<AuthState>()
+                .having(
+                  (s) => s.status,
+                  'status',
+                  FormzSubmissionStatus.success,
+                )
+                .having(
+                  (s) => s.successMessage,
+                  'successMessage',
+                  'Account created successfully',
+                ),
+          ],
+        );
+      });
+
+      group('forgot password mode', () {
+        blocTest<AuthCubit, AuthState>(
+          'emits loading and success when email is valid',
+          build: AuthCubit.new,
+          seed: () => const AuthState(
+            mode: AuthMode.forgotPassword,
+            email: Email.dirty('test@example.com'),
+            isValid: true,
+          ),
+          act: (cubit) => cubit.submitForm(),
+          wait: const Duration(seconds: 2),
+          expect: () => [
+            isA<AuthState>().having(
+              (s) => s.status,
+              'status',
+              FormzSubmissionStatus.inProgress,
+            ),
+            isA<AuthState>()
+                .having(
+                  (s) => s.status,
+                  'status',
+                  FormzSubmissionStatus.success,
+                )
+                .having(
+                  (s) => s.successMessage,
+                  'successMessage',
+                  'Password reset instructions sent to test@example.com',
+                ),
+          ],
+        );
+      });
     });
   });
 }

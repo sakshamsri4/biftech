@@ -1,6 +1,8 @@
 import 'package:biftech/features/auth/cubit/auth_cubit.dart';
 import 'package:biftech/features/auth/cubit/auth_state.dart';
 import 'package:biftech/features/auth/model/models.dart';
+import 'package:biftech/features/auth/view/forgot_password_page.dart';
+import 'package:biftech/features/auth/view/sign_up_page.dart';
 import 'package:biftech/shared/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -20,6 +22,13 @@ class AuthForm extends StatefulWidget {
 class _AuthFormState extends State<AuthForm> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Set the auth mode to login
+    context.read<AuthCubit>().changeMode(AuthMode.login);
+  }
 
   @override
   void dispose() {
@@ -85,6 +94,32 @@ class _AuthFormState extends State<AuthForm> {
                 _PasswordInput(controller: _passwordController),
                 const SizedBox(height: 32),
                 const _LoginButton(),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _ForgotPasswordButton(
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (context) => BlocProvider.value(
+                            value: context.read<AuthCubit>(),
+                            child: const ForgotPasswordPage(),
+                          ),
+                        ),
+                      ),
+                    ),
+                    _SignUpButton(
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (context) => BlocProvider.value(
+                            value: context.read<AuthCubit>(),
+                            child: const SignUpPage(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 16),
               ],
             ),
@@ -204,13 +239,41 @@ class _LoginButton extends StatelessWidget {
       builder: (context, state) {
         return NeoButton(
           onTap: () {
-            context.read<AuthCubit>().logInWithCredentials();
+            context.read<AuthCubit>().submitForm();
           },
           label: 'Login',
           isLoading: state.status.isInProgress,
           isEnabled: state.isValid,
         );
       },
+    );
+  }
+}
+
+class _ForgotPasswordButton extends StatelessWidget {
+  const _ForgotPasswordButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      onPressed: onPressed,
+      child: const Text('Forgot Password?'),
+    );
+  }
+}
+
+class _SignUpButton extends StatelessWidget {
+  const _SignUpButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      onPressed: onPressed,
+      child: const Text('Sign Up'),
     );
   }
 }
