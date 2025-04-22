@@ -180,6 +180,32 @@ This file tracks all development activities, issues encountered, solutions imple
   4. Added success messages for each authentication scenario
   5. Ensured responsive design for all auth screens
 
+## [2023-04-22 | 18:00 PM]
+- ❌ CRITICAL ERROR: Provider-related error when navigating between auth screens
+- ❌ Issue: ProviderNotFoundException when trying to access AuthCubit in sign-up and forgot password pages
+- ❌ Issue: Attempted to use context.read<AuthCubit>() in initState which is not allowed
+- ❌ Issue: Navigation implementation didn't properly share the AuthCubit instance
+- ✅ Implemented proper navigation system with shared AuthCubit
+- ✅ Refactored AuthPage to manage all auth screens with a single AuthCubit instance
+- ✅ Removed direct navigation between screens and used callbacks instead
+- 🔄 Solutions implemented:
+  1. Converted AuthPage to StatefulWidget to maintain a single AuthCubit instance
+  2. Used BlocProvider.value to properly share the AuthCubit
+  3. Implemented a tab-like navigation system with state management
+  4. Removed initState calls to changeMode in child widgets
+  5. Added callback functions for navigation between screens
+- 📁 Files changed:
+  - lib/features/auth/view/auth_page.dart (refactored to manage all auth screens)
+  - lib/features/auth/view/auth_form.dart (updated to use callbacks for navigation)
+  - lib/features/auth/view/sign_up_page.dart (removed direct navigation and initState call)
+  - lib/features/auth/view/forgot_password_page.dart (removed direct navigation and initState call)
+- 📝 Lessons learned:
+  1. Never use context.read<T>() in initState as the provider may not be available yet
+  2. When sharing state between screens, use a parent widget to manage the state
+  3. Use BlocProvider.value to share existing instances of Blocs/Cubits
+  4. Prefer callbacks for navigation between screens that share state
+  5. Always test navigation flows thoroughly, especially with state management
+
 ## Template for Future Entries
 
 ```
