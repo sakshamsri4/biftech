@@ -38,12 +38,23 @@ This document outlines the engineering rules, coding standards, and development 
   - Use SingleChildScrollView to allow scrolling when keyboard appears
   - Consider hiding non-essential UI elements when keyboard is visible
   - Use GestureDetector to dismiss keyboard when tapping outside inputs
+  - ALWAYS test with iOS simulator as it has unique keyboard behavior
+  - Use MediaQuery.viewInsets.bottom to detect keyboard height
 - Constrain widget sizes to prevent overflow issues
 - Test UI on at least three different screen sizes:
   - Small phone (320-360px width)
   - Standard phone (360-420px width)
   - Tablet/desktop (720px+ width)
+- Test on all target platforms (Android, iOS, web) before committing
 - Use SafeArea to handle system UI elements like notches and status bars
+
+### 3.2 iOS-Specific Requirements
+- iOS keyboard behavior differs from Android and requires special handling
+- Forms must always implement scrolling to handle keyboard appearance
+- Test with the smallest supported iOS device (iPhone SE) with keyboard open
+- Ensure all interactive elements remain accessible when keyboard is visible
+- Consider using a bottom sheet for complex forms on smaller screens
+- Implement keyboard dismissal when tapping outside of text fields
 
 ## 4. ✅ Testing Guidelines
 - Every Bloc/Cubit must have unit tests in `test/bloc/`
