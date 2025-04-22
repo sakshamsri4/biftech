@@ -3,7 +3,6 @@ import 'package:biftech/features/video_feed/model/models.dart';
 import 'package:biftech/features/video_feed/view/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
 /// {@template video_feed_page}
 /// Page that displays a feed of videos.
@@ -47,7 +46,8 @@ class VideoFeedView extends StatelessWidget {
                   child: CircularProgressIndicator(),
                 );
               }
-              // If we have videos but are refreshing, show the list with a loading indicator
+              // If we have videos but are refreshing,
+              // show the list with a loading indicator
               return _VideoList(
                 videos: state.videos,
                 isRefreshing: true,
@@ -121,7 +121,11 @@ class _VideoList extends StatelessWidget {
                 video: video,
                 onTap: () {
                   // Navigate to flowchart page with video ID
-                  context.go('/flowchart/${video.id}');
+                  Navigator.pushNamed(
+                    context,
+                    '/flowchart/:id',
+                    arguments: {'id': video.id},
+                  );
                 },
               );
             },
