@@ -7,11 +7,8 @@ environment:
   sdk: ^3.5.0
 
 dependencies:
-  bloc: ^8.1.4
-  equatable: ^2.0.5
-
   bloc: ^9.0.0
-
+  equatable: ^2.0.5
   flutter:
     sdk: flutter
   flutter_bloc: ^9.1.0
@@ -26,9 +23,8 @@ dependencies:
   path_provider: ^2.1.2
 
 dev_dependencies:
-  bloc_test: ^9.1.7
-  build_runner: ^2.4.8
   bloc_test: ^10.0.0
+  build_runner: ^2.4.8
   flutter_test:
     sdk: flutter
   hive_generator: ^2.0.1
