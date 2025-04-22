@@ -1,21 +1,67 @@
 import 'package:biftech/features/auth/cubit/auth_cubit.dart';
 import 'package:biftech/features/auth/cubit/auth_state.dart';
 import 'package:biftech/features/auth/model/models.dart';
+import 'package:biftech/features/auth/model/user_model.dart';
+import 'package:biftech/features/auth/repository/auth_repository.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:formz/formz.dart';
+import 'package:mocktail/mocktail.dart';
+
+class MockAuthRepository extends Mock implements AuthRepository {}
 
 void main() {
+  late MockAuthRepository mockAuthRepository;
+
+  setUp(() {
+    mockAuthRepository = MockAuthRepository();
+
+    // Set up mock responses
+    when(
+      () => mockAuthRepository.loginUser(
+        email: 'test@example.com',
+        password: 'password123',
+      ),
+    ).thenAnswer(
+      (_) async => UserModel(
+        name: 'Test User',
+        email: 'test@example.com',
+        password: 'password123',
+      ),
+    );
+
+    when(
+      () => mockAuthRepository.loginUser(
+        email: 'wrong@example.com',
+        password: 'wrongpassword',
+      ),
+    ).thenAnswer((_) async => null);
+
+    when(() => mockAuthRepository.userExists('new@example.com'))
+        .thenReturn(false);
+
+    when(
+      () => mockAuthRepository.registerUser(
+        name: any(named: 'name'),
+        email: any(named: 'email'),
+        password: any(named: 'password'),
+      ),
+    ).thenAnswer((_) async {});
+
+    when(() => mockAuthRepository.resetPassword('test@example.com'))
+        .thenAnswer((_) async => true);
+  });
+
   group('AuthCubit', () {
     test('initial state is correct', () {
-      final authCubit = AuthCubit();
+      final authCubit = AuthCubit(authRepository: mockAuthRepository);
       expect(authCubit.state, const AuthState());
     });
 
     group('emailChanged', () {
       blocTest<AuthCubit, AuthState>(
         'emits updated email and validity when email changes',
-        build: AuthCubit.new,
+        build: () => AuthCubit(authRepository: mockAuthRepository),
         act: (cubit) => cubit.emailChanged('test@example.com'),
         expect: () => [
           isA<AuthState>()
@@ -26,7 +72,7 @@ void main() {
 
       blocTest<AuthCubit, AuthState>(
         'emits invalid state when email is empty',
-        build: AuthCubit.new,
+        build: () => AuthCubit(authRepository: mockAuthRepository),
         act: (cubit) => cubit.emailChanged(''),
         expect: () => [
           isA<AuthState>()
@@ -41,7 +87,7 @@ void main() {
 
       blocTest<AuthCubit, AuthState>(
         'emits invalid state when email format is invalid',
-        build: AuthCubit.new,
+        build: () => AuthCubit(authRepository: mockAuthRepository),
         act: (cubit) => cubit.emailChanged('invalid-email'),
         expect: () => [
           isA<AuthState>()
@@ -58,7 +104,7 @@ void main() {
     group('passwordChanged', () {
       blocTest<AuthCubit, AuthState>(
         'emits updated password and validity when password changes',
-        build: AuthCubit.new,
+        build: () => AuthCubit(authRepository: mockAuthRepository),
         act: (cubit) => cubit.passwordChanged('password123'),
         expect: () => [
           isA<AuthState>()
@@ -69,7 +115,7 @@ void main() {
 
       blocTest<AuthCubit, AuthState>(
         'emits invalid state when password is empty',
-        build: AuthCubit.new,
+        build: () => AuthCubit(authRepository: mockAuthRepository),
         act: (cubit) => cubit.passwordChanged(''),
         expect: () => [
           isA<AuthState>()
@@ -84,7 +130,7 @@ void main() {
 
       blocTest<AuthCubit, AuthState>(
         'emits invalid state when password is too short',
-        build: AuthCubit.new,
+        build: () => AuthCubit(authRepository: mockAuthRepository),
         act: (cubit) => cubit.passwordChanged('12345'),
         expect: () => [
           isA<AuthState>()
@@ -101,7 +147,7 @@ void main() {
     group('submitForm', () {
       blocTest<AuthCubit, AuthState>(
         'does nothing when form is invalid',
-        build: AuthCubit.new,
+        build: () => AuthCubit(authRepository: mockAuthRepository),
         act: (cubit) => cubit.submitForm(),
         expect: () => <AuthState>[],
       );
@@ -109,7 +155,7 @@ void main() {
       group('login mode', () {
         blocTest<AuthCubit, AuthState>(
           'emits loading and success when credentials are valid',
-          build: AuthCubit.new,
+          build: () => AuthCubit(authRepository: mockAuthRepository),
           seed: () => const AuthState(
             email: Email.dirty('test@example.com'),
             password: Password.dirty('password123'),
@@ -139,7 +185,7 @@ void main() {
 
         blocTest<AuthCubit, AuthState>(
           'emits loading and failure when credentials are invalid',
-          build: AuthCubit.new,
+          build: () => AuthCubit(authRepository: mockAuthRepository),
           seed: () => const AuthState(
             email: Email.dirty('wrong@example.com'),
             password: Password.dirty('wrongpassword'),
@@ -171,7 +217,7 @@ void main() {
       group('sign up mode', () {
         blocTest<AuthCubit, AuthState>(
           'emits loading and success when form is valid',
-          build: AuthCubit.new,
+          build: () => AuthCubit(authRepository: mockAuthRepository),
           seed: () => const AuthState(
             mode: AuthMode.signUp,
             name: Name.dirty('Test User'),
@@ -209,7 +255,7 @@ void main() {
       group('forgot password mode', () {
         blocTest<AuthCubit, AuthState>(
           'emits loading and success when email is valid',
-          build: AuthCubit.new,
+          build: () => AuthCubit(authRepository: mockAuthRepository),
           seed: () => const AuthState(
             mode: AuthMode.forgotPassword,
             email: Email.dirty('test@example.com'),

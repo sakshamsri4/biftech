@@ -1,5 +1,6 @@
 import 'package:biftech/features/auth/cubit/auth_state.dart';
 import 'package:biftech/features/auth/model/models.dart';
+import 'package:biftech/features/auth/repository/auth_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:formz/formz.dart';
 
@@ -8,7 +9,12 @@ import 'package:formz/formz.dart';
 /// {@endtemplate}
 class AuthCubit extends Cubit<AuthState> {
   /// {@macro auth_cubit}
-  AuthCubit() : super(const AuthState());
+  AuthCubit({
+    required AuthRepository authRepository,
+  })  : _authRepository = authRepository,
+        super(const AuthState());
+
+  final AuthRepository _authRepository;
 
   /// Changes the authentication mode.
   void changeMode(AuthMode mode) {
@@ -113,21 +119,32 @@ class AuthCubit extends Cubit<AuthState> {
 
   /// Handles the login process.
   Future<void> _logIn() async {
-    // For demo purposes, we'll accept any valid form
-    // In a real app, this would call an authentication service
-    if (state.email.value == 'test@example.com' &&
-        state.password.value == 'password123') {
-      emit(
-        state.copyWith(
-          status: FormzSubmissionStatus.success,
-          successMessage: 'Login successful',
-        ),
+    try {
+      final user = await _authRepository.loginUser(
+        email: state.email.value,
+        password: state.password.value,
       );
-    } else {
+
+      if (user != null) {
+        emit(
+          state.copyWith(
+            status: FormzSubmissionStatus.success,
+            successMessage: 'Login successful',
+          ),
+        );
+      } else {
+        emit(
+          state.copyWith(
+            status: FormzSubmissionStatus.failure,
+            errorMessage: 'Invalid credentials',
+          ),
+        );
+      }
+    } catch (e) {
       emit(
         state.copyWith(
           status: FormzSubmissionStatus.failure,
-          errorMessage: 'Invalid credentials',
+          errorMessage: 'Login failed: $e',
         ),
       );
     }
@@ -135,26 +152,69 @@ class AuthCubit extends Cubit<AuthState> {
 
   /// Handles the sign up process.
   Future<void> _signUp() async {
-    // For demo purposes, we'll accept any valid form
-    // In a real app, this would call an authentication service
-    emit(
-      state.copyWith(
-        status: FormzSubmissionStatus.success,
-        successMessage: 'Account created successfully',
-      ),
-    );
+    try {
+      // Check if user already exists
+      if (_authRepository.userExists(state.email.value)) {
+        emit(
+          state.copyWith(
+            status: FormzSubmissionStatus.failure,
+            errorMessage: 'Email already registered',
+          ),
+        );
+        return;
+      }
+
+      // Register the new user
+      await _authRepository.registerUser(
+        name: state.name.value,
+        email: state.email.value,
+        password: state.password.value,
+      );
+
+      emit(
+        state.copyWith(
+          status: FormzSubmissionStatus.success,
+          successMessage: 'Account created successfully',
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: FormzSubmissionStatus.failure,
+          errorMessage: 'Registration failed: $e',
+        ),
+      );
+    }
   }
 
   /// Handles the forgot password process.
   Future<void> _forgotPassword() async {
-    // For demo purposes, we'll accept any valid form
-    // In a real app, this would call an authentication service
-    emit(
-      state.copyWith(
-        status: FormzSubmissionStatus.success,
-        successMessage:
-            'Password reset instructions sent to ${state.email.value}',
-      ),
-    );
+    try {
+      final success = await _authRepository.resetPassword(state.email.value);
+
+      if (success) {
+        emit(
+          state.copyWith(
+            status: FormzSubmissionStatus.success,
+            successMessage:
+                'Password reset instructions sent to ${state.email.value}',
+          ),
+        );
+      } else {
+        emit(
+          state.copyWith(
+            status: FormzSubmissionStatus.failure,
+            errorMessage: 'Email not found',
+          ),
+        );
+      }
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: FormzSubmissionStatus.failure,
+          errorMessage: 'Password reset failed: $e',
+        ),
+      );
+    }
   }
 }

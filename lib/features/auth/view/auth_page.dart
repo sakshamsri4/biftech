@@ -1,5 +1,6 @@
 import 'package:biftech/features/auth/cubit/auth_cubit.dart';
 import 'package:biftech/features/auth/cubit/auth_state.dart';
+import 'package:biftech/features/auth/service/auth_service.dart';
 import 'package:biftech/features/auth/view/auth_form.dart';
 import 'package:biftech/features/auth/view/forgot_password_page.dart';
 import 'package:biftech/features/auth/view/sign_up_page.dart';
@@ -27,7 +28,9 @@ class _AuthPageState extends State<AuthPage> {
   @override
   void initState() {
     super.initState();
-    _authCubit = AuthCubit();
+    // Initialize the auth repository
+    final authRepository = AuthService.getAuthRepository();
+    _authCubit = AuthCubit(authRepository: authRepository);
   }
 
   @override
