@@ -42,6 +42,25 @@ This file tracks all development activities, issues encountered, solutions imple
   3. Double-check branch status before making any changes
   4. Add branch creation step explicitly in roadmap documentation
 
+## [2023-04-22 | 15:30 PM]
+- ✅ Implemented Step 2: Built Auth UI with NeoPop styling
+- ✅ Created AuthCubit with proper state management (initial, loading, success, failure)
+- ✅ Implemented form validation using Formz
+- ✅ Created custom NeoTextField and NeoButton widgets
+- ❌ Issue: Email regex pattern caused compilation errors due to single quote in the pattern
+- 🔄 Fixed by removing the problematic character from the regex
+- 📁 Files created/changed:
+  - lib/features/auth/model/*.dart (auth_model, email, password, models)
+  - lib/features/auth/cubit/*.dart (auth_cubit, auth_state)
+  - lib/features/auth/view/*.dart (auth_page, auth_form)
+  - lib/shared/widgets/*.dart (neo_text_field, neo_button)
+  - lib/app/view/app.dart (updated to use AuthPage)
+- 🧪 Tests added: test/features/auth/cubit/auth_cubit_test.dart with 10 test cases
+- 📝 Lessons learned:
+  1. Be careful with regex patterns, especially with special characters
+  2. Use Formz for form validation to simplify state management
+  3. Break down UI components into smaller, reusable widgets
+
 ## Template for Future Entries
 
 ```
