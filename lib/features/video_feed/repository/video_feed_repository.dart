@@ -34,6 +34,13 @@ class VideoFeedRepository {
       // Open the videos box
       _videosBox = await Hive.openBox<VideoModel>('videos');
 
+      // Clear any existing videos to start fresh
+      await _videosBox!.clear();
+
+      // Load videos from assets to ensure we start with
+      // exactly the videos in the JSON file
+      await loadVideosFromAssets();
+
       debugPrint('VideoFeedRepository initialized successfully');
     } catch (e, stackTrace) {
       // Log the error
@@ -182,5 +189,27 @@ class VideoFeedRepository {
       );
       return false;
     }
+  }
+
+  /// Generates a new video ID
+  String generateVideoId() {
+    return 'v${DateTime.now().millisecondsSinceEpoch}';
+  }
+
+  /// Gets a default thumbnail URL for new videos
+  String getDefaultThumbnailUrl() {
+    // Use a placeholder image from assets
+    return 'assets/images/default_thumbnail.jpg';
+  }
+
+  /// Gets a default video URL from assets
+  String getDefaultVideoUrl() {
+    // Use one of the videos from assets
+    final videos = [
+      'assets/videos/UTsR5nzN.mp4',
+      'assets/videos/3638-172489056_small.mp4',
+    ];
+    // Return a random video
+    return videos[DateTime.now().millisecond % videos.length];
   }
 }

@@ -3,7 +3,9 @@ import 'package:biftech/features/video_feed/model/models.dart';
 import 'package:biftech/features/video_feed/view/upload_video_page.dart';
 import 'package:biftech/features/video_feed/view/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:neopop/neopop.dart';
 
 /// {@template video_feed_page}
 /// Page that displays a feed of videos.
@@ -71,12 +73,24 @@ class _VideoFeedViewState extends State<VideoFeedView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF0A0A0A),
       appBar: AppBar(
-        title: const Text('Video Feed'),
+        backgroundColor: const Color(0xFF121212),
+        title: const Text(
+          'VIDEO FEED',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.5,
+          ),
+        ),
+        elevation: 0,
       ),
       floatingActionButton: Builder(
-        builder: (innerContext) => FloatingActionButton.extended(
-          onPressed: () {
+        builder: (innerContext) => NeoPopButton(
+          color: const Color(0xFF6C63FF),
+          onTapUp: () {
+            HapticFeedback.mediumImpact();
             // Get the cubit from the correct context
             final cubit = BlocProvider.of<VideoFeedCubit>(innerContext);
 
@@ -89,8 +103,27 @@ class _VideoFeedViewState extends State<VideoFeedView>
               ),
             );
           },
-          icon: const Icon(Icons.add),
-          label: const Text('Upload Video'),
+          onTapDown: HapticFeedback.lightImpact,
+          parentColor: const Color(0xFF0A0A0A),
+          depth: 10,
+          child: const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.add, color: Colors.white),
+                SizedBox(width: 8),
+                Text(
+                  'UPLOAD VIDEO',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
       body: BlocBuilder<VideoFeedCubit, VideoFeedState>(
@@ -100,7 +133,11 @@ class _VideoFeedViewState extends State<VideoFeedView>
             case VideoFeedStatus.loading:
               if (state.videos.isEmpty) {
                 return const Center(
-                  child: CircularProgressIndicator(),
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Color(0xFF6C63FF),
+                    ),
+                  ),
                 );
               }
               // If we have videos but are refreshing,
@@ -112,8 +149,42 @@ class _VideoFeedViewState extends State<VideoFeedView>
 
             case VideoFeedStatus.success:
               if (state.videos.isEmpty) {
-                return const Center(
-                  child: Text('No videos available'),
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1E1E1E),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Icon(
+                          Icons.videocam_off_rounded,
+                          size: 60,
+                          color: Color(0xFF6C63FF),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'No Videos Available',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Upload your first video to get started',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               }
               return _VideoList(videos: state.videos);
@@ -123,17 +194,53 @@ class _VideoFeedViewState extends State<VideoFeedView>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E1E1E),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Icon(
+                        Icons.error_outline_rounded,
+                        size: 60,
+                        color: Colors.red,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
                     Text(
                       state.errorMessage,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.red),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
+                    const SizedBox(height: 24),
+                    NeoPopButton(
+                      color: const Color(0xFF6C63FF),
+                      onTapUp: () {
+                        HapticFeedback.mediumImpact();
                         context.read<VideoFeedCubit>().loadVideos();
                       },
-                      child: const Text('Try Again'),
+                      onTapDown: HapticFeedback.lightImpact,
+                      parentColor: const Color(0xFF0A0A0A),
+                      depth: 8,
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        child: Text(
+                          'TRY AGAIN',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1,
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -148,7 +255,7 @@ class _VideoFeedViewState extends State<VideoFeedView>
 /// {@template video_list}
 /// Widget that displays a list of videos with pull-to-refresh functionality.
 /// {@endtemplate}
-class _VideoList extends StatelessWidget {
+class _VideoList extends StatefulWidget {
   /// {@macro video_list}
   const _VideoList({
     required this.videos,
@@ -162,6 +269,30 @@ class _VideoList extends StatelessWidget {
   final bool isRefreshing;
 
   @override
+  State<_VideoList> createState() => _VideoListState();
+}
+
+class _VideoListState extends State<_VideoList>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
@@ -171,36 +302,75 @@ class _VideoList extends StatelessWidget {
           },
           child: ListView.builder(
             padding: const EdgeInsets.only(bottom: 16),
-            itemCount: videos.length,
+            itemCount: widget.videos.length,
             itemBuilder: (context, index) {
-              final video = videos[index] as VideoModel;
-              return VideoCard(
-                video: video,
-                onTap: () {
-                  // Pause all videos before navigating
-                  context.read<VideoFeedCubit>().pauseAllVideos();
+              final video = widget.videos[index] as VideoModel;
 
-                  // Navigate to flowchart page with video ID
-                  Navigator.pushNamed(
-                    context,
-                    '/flowchart/:id',
-                    arguments: {'id': video.id},
-                  );
-                },
-                onDelete: (videoId) async {
-                  // Call the delete method in the cubit
-                  return context.read<VideoFeedCubit>().deleteVideo(videoId);
-                },
+              // Create a staggered animation for each item
+              final itemAnimation = Tween<double>(
+                begin: 0,
+                end: 1,
+              ).animate(
+                CurvedAnimation(
+                  parent: _controller,
+                  curve: Interval(
+                    index * 0.05, // Stagger based on index
+                    1,
+                    curve: Curves.easeOut,
+                  ),
+                ),
+              );
+              return FadeTransition(
+                opacity: itemAnimation,
+                child: VideoCard(
+                  video: video,
+                  onTap: () {
+                    // Pause all videos before navigating
+                    context.read<VideoFeedCubit>().pauseAllVideos();
+
+                    // Add haptic feedback
+                    HapticFeedback.mediumImpact();
+
+                    // Navigate to flowchart page with video ID
+                    Navigator.pushNamed(
+                      context,
+                      '/flowchart/:id',
+                      arguments: {'id': video.id},
+                    );
+                  },
+                  onDelete: (videoId) async {
+                    // Call the delete method in the cubit
+                    return context.read<VideoFeedCubit>().deleteVideo(videoId);
+                  },
+                ),
               );
             },
           ),
         ),
-        if (isRefreshing)
-          const Positioned(
+        if (widget.isRefreshing)
+          Positioned(
             top: 0,
             left: 0,
             right: 0,
-            child: LinearProgressIndicator(),
+            child: Container(
+              height: 3,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [
+                    Color(0xFF6C63FF),
+                    Color(0xFFFF6584),
+                    Color(0xFF6C63FF),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(1),
+              ),
+              child: const LinearProgressIndicator(
+                backgroundColor: Colors.transparent,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Colors.transparent,
+                ),
+              ),
+            ),
           ),
       ],
     );

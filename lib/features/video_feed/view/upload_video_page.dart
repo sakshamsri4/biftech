@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:biftech/core/services/error_logging_service.dart';
 import 'package:biftech/features/video_feed/cubit/cubit.dart';
 import 'package:biftech/features/video_feed/model/models.dart';
+import 'package:biftech/features/video_feed/repository/video_feed_repository.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:neopop/neopop.dart';
@@ -120,19 +122,46 @@ class _UploadVideoViewState extends State<UploadVideoView> {
     return showDialog<ImageSource>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Select Image Source'),
+        backgroundColor: const Color(0xFF1E1E1E),
+        title: const Text(
+          'SELECT SOURCE',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1,
+          ),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Gallery'),
-              onTap: () => Navigator.of(context).pop(ImageSource.gallery),
+              leading:
+                  const Icon(Icons.photo_library, color: Color(0xFF6C63FF)),
+              title: const Text(
+                'GALLERY',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              onTap: () {
+                HapticFeedback.mediumImpact();
+                Navigator.of(context).pop(ImageSource.gallery);
+              },
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Camera'),
-              onTap: () => Navigator.of(context).pop(ImageSource.camera),
+              leading: const Icon(Icons.camera_alt, color: Color(0xFF6C63FF)),
+              title: const Text(
+                'CAMERA',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              onTap: () {
+                HapticFeedback.mediumImpact();
+                Navigator.of(context).pop(ImageSource.camera);
+              },
             ),
           ],
         ),
@@ -206,12 +235,37 @@ class _UploadVideoViewState extends State<UploadVideoView> {
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
+        backgroundColor: const Color(0xFF1E1E1E),
+        title: Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Text(
+          message,
+          style: const TextStyle(color: Colors.white70),
+        ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
+          NeoPopButton(
+            color: const Color(0xFF6C63FF),
+            onTapUp: () {
+              HapticFeedback.mediumImpact();
+              Navigator.of(context).pop();
+            },
+            onTapDown: HapticFeedback.lightImpact,
+            parentColor: const Color(0xFF1E1E1E),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                'OK',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -223,6 +277,7 @@ class _UploadVideoViewState extends State<UploadVideoView> {
       return;
     }
 
+    // Video is required
     if (_videoFile == null) {
       setState(() {
         _videoError = 'Please select a video';
@@ -240,27 +295,29 @@ class _UploadVideoViewState extends State<UploadVideoView> {
     try {
       // In a real app, we would upload the files to a server
       // For now, we'll just simulate a delay and add the video to the feed
-      await Future<void>.delayed(const Duration(seconds: 2));
+      await Future<void>.delayed(const Duration(seconds: 1));
+
+      // Log the operation for debugging
+      debugPrint('Creating new video with repository helper methods');
+
+      // Get the repository
+      final repository = VideoFeedRepository.instance;
 
       // Generate a unique ID for the video
-      final id = 'v${DateTime.now().millisecondsSinceEpoch}';
+      final id = repository.generateVideoId();
 
       // Get file paths based on platform
       final String thumbnailPath;
       final String videoPath;
 
-      if (kIsWeb) {
-        // On web, use the XFile path directly
-        thumbnailPath = _thumbnailFile != null
-            ? (_thumbnailFile as XFile).path
-            : 'https://via.placeholder.com/300x200/9C27B0/FFFFFF?text=New+Video';
-        videoPath = (_videoFile as XFile).path;
+      // Use the File path for the selected video
+      videoPath = (_videoFile as File).path;
+
+      // For thumbnail
+      if (_thumbnailFile == null) {
+        thumbnailPath = repository.getDefaultThumbnailUrl();
       } else {
-        // On mobile, use the File path
-        thumbnailPath = _thumbnailFile != null
-            ? (_thumbnailFile as File).path
-            : 'https://via.placeholder.com/300x200/9C27B0/FFFFFF?text=New+Video';
-        videoPath = (_videoFile as File).path;
+        thumbnailPath = (_thumbnailFile as File).path;
       }
 
       // Create a new video model
@@ -316,11 +373,19 @@ class _UploadVideoViewState extends State<UploadVideoView> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
+      backgroundColor: const Color(0xFF0A0A0A),
       appBar: AppBar(
-        title: const Text('Upload Your Idea'),
+        backgroundColor: const Color(0xFF121212),
+        title: const Text(
+          'UPLOAD YOUR IDEA',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.5,
+          ),
+        ),
+        elevation: 0,
       ),
       body: Form(
         key: _formKey,
@@ -330,20 +395,35 @@ class _UploadVideoViewState extends State<UploadVideoView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Thumbnail picker
-              Text(
-                'Thumbnail (Optional)',
-                style: theme.textTheme.titleMedium,
+              const Text(
+                'THUMBNAIL (OPTIONAL)',
+                style: TextStyle(
+                  color: Color(0xFF6C63FF),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  letterSpacing: 1,
+                ),
               ),
               const SizedBox(height: 8),
               GestureDetector(
-                onTap: _pickThumbnail,
+                onTap: () {
+                  HapticFeedback.mediumImpact();
+                  _pickThumbnail();
+                },
                 child: Container(
                   height: 200,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey),
+                    color: const Color(0xFF1E1E1E),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade800),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(100),
+                        blurRadius: 10,
+                        offset: const Offset(5, 5),
+                      ),
+                    ],
                   ),
                   child: _thumbnailFile != null
                       ? ClipRRect(
@@ -371,18 +451,22 @@ class _UploadVideoViewState extends State<UploadVideoView> {
                                   fit: BoxFit.cover,
                                 ),
                         )
-                      : Column(
+                      : const Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.add_photo_alternate,
                               size: 48,
-                              color: Colors.grey,
+                              color: Color(0xFF6C63FF),
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             Text(
-                              'Tap to select thumbnail',
-                              style: theme.textTheme.bodyMedium,
+                              'TAP TO SELECT THUMBNAIL',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
                             ),
                           ],
                         ),
@@ -393,7 +477,10 @@ class _UploadVideoViewState extends State<UploadVideoView> {
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
                     _thumbnailError!,
-                    style: TextStyle(color: theme.colorScheme.error),
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               const SizedBox(height: 16),
@@ -401,10 +488,27 @@ class _UploadVideoViewState extends State<UploadVideoView> {
               // Title input
               TextFormField(
                 controller: _titleController,
+                style: const TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
-                  labelText: 'Title',
+                  labelText: 'TITLE',
+                  labelStyle: TextStyle(
+                    color: Color(0xFF6C63FF),
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                  ),
                   hintText: 'Enter the title of your idea',
-                  border: OutlineInputBorder(),
+                  hintStyle: TextStyle(color: Colors.white54),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6C63FF)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6C63FF), width: 2),
+                  ),
+                  filled: true,
+                  fillColor: Color(0xFF1E1E1E),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -418,10 +522,27 @@ class _UploadVideoViewState extends State<UploadVideoView> {
               // Creator input
               TextFormField(
                 controller: _creatorController,
+                style: const TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
-                  labelText: 'Creator Name',
+                  labelText: 'CREATOR NAME',
+                  labelStyle: TextStyle(
+                    color: Color(0xFF6C63FF),
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                  ),
                   hintText: 'Enter your name',
-                  border: OutlineInputBorder(),
+                  hintStyle: TextStyle(color: Colors.white54),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6C63FF)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6C63FF), width: 2),
+                  ),
+                  filled: true,
+                  fillColor: Color(0xFF1E1E1E),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -435,10 +556,27 @@ class _UploadVideoViewState extends State<UploadVideoView> {
               // Duration input
               TextFormField(
                 controller: _durationController,
+                style: const TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
-                  labelText: 'Duration',
+                  labelText: 'DURATION',
+                  labelStyle: TextStyle(
+                    color: Color(0xFF6C63FF),
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                  ),
                   hintText: 'e.g., 2:30',
-                  border: OutlineInputBorder(),
+                  hintStyle: TextStyle(color: Colors.white54),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6C63FF)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6C63FF), width: 2),
+                  ),
+                  filled: true,
+                  fillColor: Color(0xFF1E1E1E),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -453,10 +591,27 @@ class _UploadVideoViewState extends State<UploadVideoView> {
               // Description input
               TextFormField(
                 controller: _descriptionController,
+                style: const TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
-                  labelText: 'Description',
+                  labelText: 'DESCRIPTION',
+                  labelStyle: TextStyle(
+                    color: Color(0xFF6C63FF),
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                  ),
                   hintText: 'Describe your idea',
-                  border: OutlineInputBorder(),
+                  hintStyle: TextStyle(color: Colors.white54),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6C63FF)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6C63FF), width: 2),
+                  ),
+                  filled: true,
+                  fillColor: Color(0xFF1E1E1E),
                 ),
                 maxLines: 3,
                 validator: (value) {
@@ -469,20 +624,35 @@ class _UploadVideoViewState extends State<UploadVideoView> {
               const SizedBox(height: 24),
 
               // Video picker
-              Text(
-                'Video',
-                style: theme.textTheme.titleMedium,
+              const Text(
+                'VIDEO',
+                style: TextStyle(
+                  color: Color(0xFF6C63FF),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  letterSpacing: 1,
+                ),
               ),
               const SizedBox(height: 8),
               GestureDetector(
-                onTap: _pickVideo,
+                onTap: () {
+                  HapticFeedback.mediumImpact();
+                  _pickVideo();
+                },
                 child: Container(
                   height: 120,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey),
+                    color: const Color(0xFF1E1E1E),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade800),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(100),
+                        blurRadius: 10,
+                        offset: const Offset(5, 5),
+                      ),
+                    ],
                   ),
                   child: _videoFile != null
                       ? Column(
@@ -491,34 +661,47 @@ class _UploadVideoViewState extends State<UploadVideoView> {
                             const Icon(
                               Icons.check_circle,
                               size: 48,
-                              color: Colors.green,
+                              color:
+                                  Color(0xFF00BFA6), // Teal color for success
                             ),
                             const SizedBox(height: 8),
-                            Text(
-                              'Video selected',
-                              style: theme.textTheme.bodyMedium,
+                            const Text(
+                              'VIDEO SELECTED',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
                             ),
+                            const SizedBox(height: 4),
                             Text(
                               kIsWeb
                                   ? 'Video selected from web'
                                   : (_videoFile as File).path.split('/').last,
-                              style: theme.textTheme.bodySmall,
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                              ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         )
-                      : Column(
+                      : const Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.video_library,
                               size: 48,
-                              color: Colors.grey,
+                              color: Color(0xFF6C63FF),
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             Text(
-                              'Tap to select video',
-                              style: theme.textTheme.bodyMedium,
+                              'TAP TO SELECT VIDEO',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
                             ),
                           ],
                         ),
@@ -529,7 +712,10 @@ class _UploadVideoViewState extends State<UploadVideoView> {
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
                     _videoError!,
-                    style: TextStyle(color: theme.colorScheme.error),
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               const SizedBox(height: 32),
@@ -538,36 +724,53 @@ class _UploadVideoViewState extends State<UploadVideoView> {
               SizedBox(
                 width: double.infinity,
                 child: NeoPopButton(
-                  color: theme.colorScheme.primary,
-                  onTapUp: _isUploading ? null : _submitForm,
+                  color: const Color(0xFF6C63FF),
+                  onTapUp: _isUploading
+                      ? null
+                      : () {
+                          HapticFeedback.mediumImpact();
+                          _submitForm();
+                        },
+                  onTapDown: _isUploading ? null : HapticFeedback.lightImpact,
+                  parentColor: const Color(0xFF0A0A0A),
+                  depth: 10,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 15),
                     child: _isUploading
-                        ? Row(
+                        ? const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const SizedBox(
+                              SizedBox(
                                 width: 20,
                                 height: 20,
                                 child: CircularProgressIndicator(
                                   color: Colors.white,
                                   strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              SizedBox(width: 12),
                               Text(
-                                'Uploading...',
-                                style: theme.textTheme.labelLarge?.copyWith(
+                                'UPLOADING...',
+                                style: TextStyle(
                                   color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  letterSpacing: 1.5,
                                 ),
                               ),
                             ],
                           )
-                        : Text(
-                            'Upload Video',
+                        : const Text(
+                            'UPLOAD VIDEO',
                             textAlign: TextAlign.center,
-                            style: theme.textTheme.labelLarge?.copyWith(
+                            style: TextStyle(
                               color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              letterSpacing: 1.5,
                             ),
                           ),
                   ),

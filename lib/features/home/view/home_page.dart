@@ -1,5 +1,6 @@
 import 'package:biftech/features/auth/model/user_model.dart';
 import 'package:biftech/features/auth/service/auth_service.dart';
+import 'package:biftech/features/video_feed/video_feed.dart';
 import 'package:flutter/material.dart';
 
 /// {@template home_page}
@@ -346,34 +347,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildVideosTab() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.video_collection,
-            size: 100,
-            color: Colors.blue.shade200,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Video Feed',
-            style: Theme.of(context).textTheme.headlineMedium,
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.of(context).pushNamed('/video-feed');
-            },
-            icon: const Icon(Icons.play_circle_outline),
-            label: const Text('Go to Video Feed'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            ),
-          ),
-        ],
-      ),
-    );
+    // Directly embed the VideoFeedPage content
+    return const VideoFeedPage();
   }
 
   Widget _buildFlowchartTab() {

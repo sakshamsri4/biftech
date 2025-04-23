@@ -54,70 +54,102 @@ class VideoFeedCubit extends Cubit<VideoFeedState> {
 
     try {
       // Create a new controller based on the video URL type
-      final VideoPlayerController controller;
+      late VideoPlayerController controller;
 
-      // Check if the file exists for local files
-      if (!video.videoUrl.startsWith('http') &&
-          !video.videoUrl.startsWith('assets/') &&
-          !kIsWeb) {
+      if (video.videoUrl.startsWith('assets/')) {
+        // Asset video - use directly
+        controller = VideoPlayerController.asset(video.videoUrl);
+      } else if (!kIsWeb) {
+        // Local file video - check if it exists
         final file = File(video.videoUrl);
         try {
           final exists = file.existsSync();
           if (!exists) {
             debugPrint('Video file does not exist: ${video.videoUrl}');
+            // Use a default asset video instead
+            final defaultVideo = _repository.getDefaultVideoUrl();
+            debugPrint('Using default asset video: $defaultVideo');
+
+            // Update the video model with the default video URL
             if (!isClosed) {
-              emit(state.copyWith(errorMessage: 'Video file not found'));
+              final updatedVideo = video.copyWith(videoUrl: defaultVideo);
+              await _repository.addVideo(updatedVideo);
+              // Use the asset video
+              controller = VideoPlayerController.asset(defaultVideo);
+            } else {
+              throw Exception('Cubit is closed');
             }
-            return;
+          } else {
+            // File exists, use it
+            controller = VideoPlayerController.file(file);
           }
         } catch (e) {
           debugPrint('Error checking if file exists: $e');
+          // Use a default asset video instead
+          final defaultVideo = _repository.getDefaultVideoUrl();
+          debugPrint('Using default asset video due to error: $defaultVideo');
+
           if (!isClosed) {
-            emit(state.copyWith(errorMessage: 'Error accessing video file'));
+            // Update the video model with the default video URL
+            final updatedVideo = video.copyWith(videoUrl: defaultVideo);
+            await _repository.addVideo(updatedVideo);
+            // Use the asset video
+            controller = VideoPlayerController.asset(defaultVideo);
+          } else {
+            throw Exception('Cubit is closed');
           }
-          return;
         }
-      }
-
-      if (video.videoUrl.startsWith('http')) {
-        // Network video
-        controller = VideoPlayerController.networkUrl(
-          Uri.parse(video.videoUrl),
-        );
-      } else if (video.videoUrl.startsWith('assets/')) {
-        // Asset video
-        controller = VideoPlayerController.asset(video.videoUrl);
-      } else if (kIsWeb) {
-        // On web, we can only use network URLs
-        controller = VideoPlayerController.networkUrl(
-          Uri.parse(video.videoUrl),
-        );
       } else {
-        // File video (from device storage)
-        controller = VideoPlayerController.file(
-          File(video.videoUrl),
-        );
+        // On web, use asset videos
+        final defaultVideo = _repository.getDefaultVideoUrl();
+        debugPrint('Using asset video for web: $defaultVideo');
+        controller = VideoPlayerController.asset(defaultVideo);
       }
 
-      // Initialize the controller with timeout
+      // Initialize the controller with timeout and retry
       var initialized = false;
-      try {
-        await controller.initialize().timeout(
-          const Duration(seconds: 10),
-          onTimeout: () {
-            throw TimeoutException('Video initialization timed out');
-          },
-        );
-        initialized = true;
-      } catch (e) {
-        // Handle initialization error
-        ErrorLoggingService.instance.logError(
-          e,
-          context: 'VideoFeedCubit.initializeVideoController.initialize',
-        );
-        // Dispose the controller if initialization failed
-        await controller.dispose();
-        rethrow; // Re-throw to be caught by the outer try-catch
+      var retryCount = 0;
+      const maxRetries = 3;
+
+      while (!initialized && retryCount < maxRetries) {
+        try {
+          // Exponential backoff for retries
+          if (retryCount > 0) {
+            final backoffDuration =
+                Duration(milliseconds: 500 * (1 << retryCount));
+            debugPrint(
+              'Retrying video initialization after '
+              '${backoffDuration.inMilliseconds}ms',
+            );
+            await Future<void>.delayed(backoffDuration);
+          }
+
+          await controller.initialize().timeout(
+            const Duration(seconds: 15),
+            onTimeout: () {
+              throw TimeoutException('Video initialization timed out');
+            },
+          );
+          initialized = true;
+          debugPrint(
+            'Successfully initialized video ${video.id} on '
+            'attempt ${retryCount + 1}',
+          );
+        } catch (e) {
+          retryCount++;
+          // Log the error but continue with retries
+          ErrorLoggingService.instance.logError(
+            e,
+            context: 'VideoFeedCubit.initializeVideoController.initialize '
+                '(attempt $retryCount)',
+          );
+
+          if (retryCount >= maxRetries) {
+            // Dispose the controller if all retries failed
+            await controller.dispose();
+            rethrow; // Re-throw to be caught by the outer try-catch
+          }
+        }
       }
 
       if (initialized) {
@@ -140,12 +172,18 @@ class VideoFeedCubit extends Cubit<VideoFeedState> {
 
       // Check if the cubit is closed before emitting
       if (!isClosed) {
+        // Determine appropriate error message based on error type
+        String errorMessage;
+        if (e is TimeoutException) {
+          errorMessage = 'Video loading timed out. Please try again.';
+        } else if (e.toString().contains('file not found')) {
+          errorMessage = 'Video file not found.';
+        } else {
+          errorMessage = ErrorMessages.videoPlayback;
+        }
+
         // Emit a user-friendly error message
-        emit(
-          state.copyWith(
-            errorMessage: ErrorMessages.videoPlayback,
-          ),
-        );
+        emit(state.copyWith(errorMessage: errorMessage));
       }
     }
   }
@@ -284,6 +322,9 @@ class VideoFeedCubit extends Cubit<VideoFeedState> {
       final controllersCopy =
           Map<String, VideoPlayerController>.from(_controllers);
 
+      // Clear the original map first to prevent reuse of disposed controllers
+      _controllers.clear();
+
       // Pause all controllers first to ensure they're in a safe state
       for (final controller in controllersCopy.values) {
         try {
@@ -300,11 +341,9 @@ class VideoFeedCubit extends Cubit<VideoFeedState> {
       }
 
       // Dispose all controllers with error handling
-      for (final entry in controllersCopy.entries) {
+      for (final controller in controllersCopy.values) {
         try {
-          await entry.value.dispose();
-          // Remove from the original map after successful disposal
-          _controllers.remove(entry.key);
+          await controller.dispose();
         } catch (e) {
           // Log error but continue with other controllers
           ErrorLoggingService.instance.logError(
@@ -313,6 +352,8 @@ class VideoFeedCubit extends Cubit<VideoFeedState> {
           );
         }
       }
+
+      debugPrint('Disposed all video controllers');
     } catch (e) {
       ErrorLoggingService.instance.logError(
         e,
@@ -345,6 +386,20 @@ class VideoFeedCubit extends Cubit<VideoFeedState> {
       );
 
       debugPrint('Loaded ${videos.length} videos from repository');
+
+      // Initialize controllers for all videos
+      for (final video in videos) {
+        try {
+          await initializeVideoController(video);
+          debugPrint('Initialized controller for video ${video.id}');
+        } catch (e) {
+          // Log error but continue with other videos
+          ErrorLoggingService.instance.logError(
+            e,
+            context: 'VideoFeedCubit.loadVideos.initializeController',
+          );
+        }
+      }
     } catch (e, stackTrace) {
       // Log the error
       ErrorLoggingService.instance.logError(
@@ -376,6 +431,9 @@ class VideoFeedCubit extends Cubit<VideoFeedState> {
     );
 
     try {
+      // Safely dispose existing controllers first
+      await disposeControllers();
+
       // Load videos from assets (this will also save to storage)
       final videos = await _repository.loadVideosFromAssets();
 
@@ -388,6 +446,20 @@ class VideoFeedCubit extends Cubit<VideoFeedState> {
       );
 
       debugPrint('Refreshed ${videos.length} videos from assets');
+
+      // Initialize controllers for all videos
+      for (final video in videos) {
+        try {
+          await initializeVideoController(video);
+          debugPrint('Initialized controller for video ${video.id}');
+        } catch (e) {
+          // Log error but continue with other videos
+          ErrorLoggingService.instance.logError(
+            e,
+            context: 'VideoFeedCubit.refreshVideos.initializeController',
+          );
+        }
+      }
     } catch (e, stackTrace) {
       // Log the error
       ErrorLoggingService.instance.logError(

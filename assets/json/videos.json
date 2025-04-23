@@ -1,100 +1,34 @@
 [
   {
     "id": "v000",
-    "title": "Big Buck Bunny",
-    "creator": "Blender Foundation",
-    "views": 15000000,
-    "thumbnailUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg",
-    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-    "description": "Big Buck Bunny tells the story of a giant rabbit with a heart bigger than himself.",
-    "duration": "9:56",
+    "title": "Sample Video 1",
+    "creator": "BifTech",
+    "views": 15000,
+    "thumbnailUrl": "assets/images/thumbnail1.jpg",
+    "videoUrl": "assets/videos/UTsR5nzN.mp4",
+    "description": "This is a sample video from our assets folder.",
+    "duration": "0:30",
     "publishedAt": "2023-01-01T12:00:00Z",
     "tags": [
-      "animation",
-      "comedy",
-      "3D"
+      "sample",
+      "demo",
+      "asset"
     ]
   },
   {
     "id": "v001",
-    "title": "Introduction to Flutter Architecture",
-    "creator": "Flutter Expert",
+    "title": "Sample Video 2",
+    "creator": "BifTech",
     "views": 12500,
-    "thumbnailUrl": "https://via.placeholder.com/300x200/2196F3/FFFFFF?text=Flutter+Architecture",
-    "videoUrl": "https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4",
-    "description": "Learn the basics of Flutter's architecture and how it differs from other frameworks.",
-    "duration": "10:30",
+    "thumbnailUrl": "assets/images/thumbnail2.jpg",
+    "videoUrl": "assets/videos/3638-172489056_small.mp4",
+    "description": "Another sample video from our assets folder.",
+    "duration": "0:45",
     "publishedAt": "2023-05-15T14:30:00Z",
     "tags": [
-      "flutter",
-      "architecture",
-      "beginner"
-    ]
-  },
-  {
-    "id": "v002",
-    "title": "State Management with BLoC Pattern",
-    "creator": "Code Wizard",
-    "views": 8750,
-    "thumbnailUrl": "https://via.placeholder.com/300x200/4CAF50/FFFFFF?text=BLoC+Pattern",
-    "videoUrl": "https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4",
-    "description": "Deep dive into BLoC pattern for state management in Flutter applications.",
-    "duration": "15:45",
-    "publishedAt": "2023-06-22T10:15:00Z",
-    "tags": [
-      "flutter",
-      "bloc",
-      "state management",
-      "intermediate"
-    ]
-  },
-  {
-    "id": "v003",
-    "title": "Building Responsive UIs",
-    "creator": "UI Master",
-    "views": 9300,
-    "thumbnailUrl": "https://via.placeholder.com/300x200/FFC107/000000?text=Responsive+UI",
-    "videoUrl": "https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4",
-    "description": "Learn how to create responsive UIs that work across different screen sizes.",
-    "duration": "12:20",
-    "publishedAt": "2023-07-10T09:45:00Z",
-    "tags": [
-      "flutter",
-      "ui",
-      "responsive",
-      "intermediate"
-    ]
-  },
-  {
-    "id": "v004",
-    "title": "Advanced Animation Techniques",
-    "creator": "Animation Pro",
-    "views": 6200,
-    "thumbnailUrl": "https://via.placeholder.com/300x200/E91E63/FFFFFF?text=Animations",
-    "videoUrl": "https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4",
-    "description": "Master complex animations in Flutter to create delightful user experiences.",
-    "duration": "20:15",
-    "publishedAt": "2023-08-05T16:30:00Z",
-    "tags": [
-      "flutter",
-      "animation",
-      "advanced"
-    ]
-  },
-  {
-    "id": "v005",
-    "title": "Testing Flutter Applications",
-    "creator": "Test Guru",
-    "views": 5400,
-    "thumbnailUrl": "https://via.placeholder.com/300x200/9C27B0/FFFFFF?text=Testing",
-    "videoUrl": "https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4",
-    "description": "Comprehensive guide to testing Flutter apps: unit, widget, and integration tests.",
-    "duration": "18:50",
-    "publishedAt": "2023-09-12T11:20:00Z",
-    "tags": [
-      "flutter",
-      "testing",
-      "intermediate"
+      "sample",
+      "demo",
+      "asset"
     ]
   }
 ]
