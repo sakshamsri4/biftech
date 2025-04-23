@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:biftech/core/services/error_logging_service.dart';
 import 'package:biftech/features/flowchart/cubit/flowchart_state.dart';
 import 'package:biftech/features/flowchart/model/models.dart';
@@ -10,7 +12,23 @@ class FlowchartCubit extends Cubit<FlowchartState> {
   FlowchartCubit({
     required this.repository,
     required this.videoId,
-  }) : super(FlowchartState.initial);
+  }) : super(FlowchartState.initial) {
+    // Initialize the comment stream controller
+    _commentStreamController = StreamController<void>.broadcast();
+    commentStream = _commentStreamController.stream;
+  }
+
+  /// Stream controller for comment events
+  late final StreamController<void> _commentStreamController;
+
+  /// Stream of comment events that can be listened to
+  late final Stream<void> commentStream;
+
+  @override
+  Future<void> close() {
+    _commentStreamController.close();
+    return super.close();
+  }
 
   /// Repository for flowchart data
   final FlowchartRepository repository;
@@ -120,6 +138,9 @@ class FlowchartCubit extends Cubit<FlowchartState> {
 
         // Update the state
         emit(state.copyWith(rootNode: updatedRootNode));
+
+        // Notify listeners that a comment was added
+        notifyCommentAdded();
       }
     } catch (e, stackTrace) {
       ErrorLoggingService.instance.logError(
@@ -320,5 +341,12 @@ class FlowchartCubit extends Cubit<FlowchartState> {
     }
 
     return total;
+  }
+
+  /// Notify listeners that a comment was added
+  void notifyCommentAdded() {
+    if (!_commentStreamController.isClosed) {
+      _commentStreamController.add(null);
+    }
   }
 }

@@ -29,6 +29,9 @@ class _DonationPageState extends State<DonationPage> {
   late Stream<Map<String, NodeModel?>> _flowchartsStream;
   Timer? _refreshTimer;
 
+  // Map to store FlowchartCubit instances for each video
+  final Map<String, FlowchartCubit> _flowchartCubits = {};
+
   @override
   void initState() {
     super.initState();
@@ -39,6 +42,13 @@ class _DonationPageState extends State<DonationPage> {
   void dispose() {
     _flowchartsController.close();
     _refreshTimer?.cancel();
+
+    // Close all FlowchartCubit instances
+    for (final cubit in _flowchartCubits.values) {
+      cubit.close();
+    }
+    _flowchartCubits.clear();
+
     super.dispose();
   }
 
@@ -77,6 +87,27 @@ class _DonationPageState extends State<DonationPage> {
 
       for (final video in videos) {
         try {
+          // Create or get a FlowchartCubit for this video
+          if (!_flowchartCubits.containsKey(video.id)) {
+            final cubit = FlowchartCubit(
+              repository: FlowchartRepository.instance,
+              videoId: video.id,
+            );
+
+            // Listen for comment changes
+            cubit.commentStream.listen((_) {
+              // Refresh data when comments change
+              loadFlowcharts();
+            });
+
+            // Store the cubit
+            _flowchartCubits[video.id] = cubit;
+
+            // Load the flowchart
+            await cubit.loadFlowchart();
+          }
+
+          // Get the flowchart from the repository
           final flowchart =
               await FlowchartRepository.instance.getFlowchartForVideo(video.id);
           flowcharts[video.id] = flowchart;
@@ -755,14 +786,26 @@ class _DonationPageState extends State<DonationPage> {
       // Get the current donation amount for the node
       final currentDonation = winningNode.donation;
 
-      // Create a FlowchartCubit instance that will be used to update the node
-      final flowchartCubit = FlowchartCubit(
-        repository: FlowchartRepository.instance,
-        videoId: videoId,
-      );
+      // Get or create a FlowchartCubit instance
+      final flowchartCubit = _flowchartCubits[videoId] ??
+          FlowchartCubit(
+            repository: FlowchartRepository.instance,
+            videoId: videoId,
+          );
 
-      // Wait for the flowchart to load
-      await flowchartCubit.loadFlowchart();
+      // If this is a new cubit, store it and load the flowchart
+      if (!_flowchartCubits.containsKey(videoId)) {
+        _flowchartCubits[videoId] = flowchartCubit;
+
+        // Listen for comment changes
+        flowchartCubit.commentStream.listen((_) {
+          // Refresh data when comments change
+          _refreshData();
+        });
+
+        // Wait for the flowchart to load
+        await flowchartCubit.loadFlowchart();
+      }
 
       // Hide the loading indicator
       loadingOverlay.remove();
