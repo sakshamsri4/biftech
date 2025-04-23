@@ -52,7 +52,8 @@ class _DonationModalState extends State<DonationModal> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                  'Successfully donated ₹${state.amount.toStringAsFixed(2)}'),
+                'Successfully donated ₹${state.amount.toStringAsFixed(2)}',
+              ),
               backgroundColor: Colors.green,
             ),
           );

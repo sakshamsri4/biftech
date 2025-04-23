@@ -23,7 +23,7 @@ void main() {
       build: () => donationCubit,
       act: (cubit) => cubit.processDonation(
         nodeId: 'test_node_id',
-        amount: 10.0,
+        amount: 10,
       ),
       wait: const Duration(milliseconds: 1000),
       expect: () => [
