@@ -462,11 +462,19 @@ class _DonationPageState extends State<DonationPage> {
       context: context,
       isScrollControlled: true,
       builder: (context) {
-        return BlocProvider(
-          create: (context) => FlowchartCubit(
-            repository: FlowchartRepository.instance,
-            videoId: rootNode.id.replaceFirst('root_', ''),
-          ),
+        // Provide both FlowchartCubit and DonationCubit
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider<FlowchartCubit>(
+              create: (context) => FlowchartCubit(
+                repository: FlowchartRepository.instance,
+                videoId: rootNode.id.replaceFirst('root_', ''),
+              ),
+            ),
+            BlocProvider<DonationCubit>(
+              create: (context) => DonationCubit(),
+            ),
+          ],
           child: DonationModal(
             nodeId: nodeId,
             onDonationComplete: (amount) {

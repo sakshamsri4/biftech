@@ -2,6 +2,7 @@ import 'package:biftech/core/services/error_logging_service.dart';
 import 'package:biftech/features/donation/donation.dart';
 import 'package:biftech/features/flowchart/cubit/cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:neopop/widgets/buttons/neopop_button/neopop_button.dart';
 
 /// Modal for adding a challenge to a node
@@ -193,12 +194,15 @@ class _ChallengeModalState extends State<ChallengeModal> {
       context: context,
       isScrollControlled: true,
       builder: (context) {
-        return DonationModal(
-          nodeId: nodeId,
-          onDonationComplete: (amount) {
-            // Update the node with the donation amount
-            widget.cubit.updateNodeDonation(nodeId, amount);
-          },
+        return BlocProvider(
+          create: (context) => DonationCubit(),
+          child: DonationModal(
+            nodeId: nodeId,
+            onDonationComplete: (amount) {
+              // Update the node with the donation amount
+              widget.cubit.updateNodeDonation(nodeId, amount);
+            },
+          ),
         );
       },
     );

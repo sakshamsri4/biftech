@@ -213,10 +213,10 @@ class _DonationModalState extends State<DonationModal> {
       }
 
       // Process the donation through the cubit
-      context.read<DonationCubit>().processDonation(
-            nodeId: widget.nodeId,
-            amount: donation,
-          );
+      BlocProvider.of<DonationCubit>(context).processDonation(
+        nodeId: widget.nodeId,
+        amount: donation,
+      );
     } catch (e, stackTrace) {
       // Log the error
       ErrorLoggingService.instance.logError(
