@@ -1,6 +1,7 @@
 import 'package:biftech/features/flowchart/cubit/flowchart_cubit.dart';
 import 'package:biftech/features/winner/cubit/winner_cubit.dart';
 import 'package:biftech/features/winner/cubit/winner_state.dart';
+import 'package:biftech/features/winner/model/winner_model.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,20 +12,21 @@ class WinnerPage extends StatelessWidget {
   /// Constructor
   const WinnerPage({
     required this.videoId,
+    required this.flowchartCubit,
     super.key,
   });
 
   /// ID of the video this flowchart is for
   final String videoId;
 
+  /// The FlowchartCubit instance
+  final FlowchartCubit flowchartCubit;
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) {
-        // Get the FlowchartCubit from the parent
-        final flowchartCubit = context.read<FlowchartCubit>();
-
-        // Create a WinnerCubit with the FlowchartCubit
+        // Create a WinnerCubit with the provided FlowchartCubit
         return WinnerCubit(
           flowchartCubit: flowchartCubit,
         );
@@ -105,7 +107,8 @@ class WinnerView extends StatelessWidget {
             padding: EdgeInsets.symmetric(horizontal: 32),
             child: Text(
               'Declare a winner for the current discussion. '
-              'The node with the highest score (donations + comments) will win.',
+              'The node with the highest score '
+              '(donations + comments) will win.',
               textAlign: TextAlign.center,
             ),
           ),
@@ -142,8 +145,10 @@ class WinnerView extends StatelessWidget {
     }
 
     // Format the remaining time
-    final minutes = remainingTime.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final seconds = remainingTime.inSeconds.remainder(60).toString().padLeft(2, '0');
+    final minutes =
+        remainingTime.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds =
+        remainingTime.inSeconds.remainder(60).toString().padLeft(2, '0');
     final formattedTime = '$minutes:$seconds';
 
     return SingleChildScrollView(
@@ -171,10 +176,13 @@ class WinnerView extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 LinearProgressIndicator(
-                  value: 1 - (remainingTime.inSeconds / 10), // Assuming 10 seconds total
+                  value: 1 -
+                      (remainingTime.inSeconds /
+                          10), // Assuming 10 seconds total
                   minHeight: 8,
                   backgroundColor: Colors.grey.shade200,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade300),
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(Colors.blue.shade300),
                 ),
                 const SizedBox(height: 32),
               ],

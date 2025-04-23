@@ -100,9 +100,20 @@ class _AppState extends State<App> {
         } else if (routeName.startsWith('/winner/')) {
           // Extract the ID from the route
           final id = routeName.replaceFirst('/winner/', '');
+
+          // Create a FlowchartCubit for the WinnerPage
+          // and load the flowchart data
+          final flowchartCubit = FlowchartCubit(
+            repository: FlowchartRepository.instance,
+            videoId: id,
+          )..loadFlowchart();
+
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => WinnerPage(videoId: id),
+            builder: (context) => WinnerPage(
+              videoId: id,
+              flowchartCubit: flowchartCubit,
+            ),
           );
         }
 
