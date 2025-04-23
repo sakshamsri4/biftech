@@ -1103,6 +1103,19 @@ This file tracks all development activities, issues encountered, solutions imple
   5. Added new dependencies for optional pie chart visualization
   6. Updated test requirements to include tree structure and distribution tests
 
+## [2023-04-25 | 15:15 PM]
+- ❌ Issue: Spell check action found unknown word "syncfusion" in roadmap.md
+- ✅ Fixed spelling issues in roadmap.md
+- 🔄 Solutions implemented:
+  1. Replaced "syncfusion_flutter_charts" with "pie_chart" as an alternative chart package
+  2. Updated both the implementation details and dependencies sections
+- 📁 Files changed:
+  - guide_docs/roadmap.md (fixed spelling issues)
+- 📝 Lessons learned:
+  1. Run spell check before committing to catch spelling issues
+  2. Use well-known package names or add custom words to the dictionary
+  3. Consider package popularity and maintenance when selecting dependencies
+
 ## Template for Future Entries
 
 ```

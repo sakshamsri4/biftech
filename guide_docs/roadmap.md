@@ -256,7 +256,7 @@ DateTime createdAt;
 
 **Use:**
 - Recursive tree traversal for evaluation
-- `fl_chart` or `syncfusion_flutter_charts` for pie chart (optional)
+- `fl_chart` or `pie_chart` for pie chart visualization (optional)
 
 **Test:**
 - Test winner selection logic with various sample data
@@ -310,7 +310,7 @@ DateTime createdAt;
 | image_picker | Media selection |
 | flutter_treeview | Flowchart visualization |
 | fl_chart | Pie chart for donation distribution (optional) |
-| syncfusion_flutter_charts | Alternative for charts (optional) |
+| pie_chart | Alternative for simple charts (optional) |
 
 ## 📦 Final File Layout Reference
 
