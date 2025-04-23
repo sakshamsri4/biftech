@@ -177,6 +177,9 @@ class _DonationPageState extends State<DonationPage> {
       }
     }
 
+    // Format the donation amount to ensure it fits
+    final formattedDonation = _formatCurrency(totalDonations);
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -192,31 +195,75 @@ class _DonationPageState extends State<DonationPage> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatCard(
-                    'Total Donations',
-                    '₹${totalDonations.toStringAsFixed(2)}',
-                    Icons.monetization_on,
-                    Colors.amber,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildStatCard(
-                    'Active Discussions',
-                    totalFlowcharts.toString(),
-                    Icons.account_tree,
-                    Colors.blue,
-                  ),
-                ),
-              ],
+            // Use a more responsive layout for the stats
+            LayoutBuilder(
+              builder: (context, constraints) {
+                // If we have enough width, use a row layout
+                if (constraints.maxWidth > 400) {
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          'Total',
+                          formattedDonation,
+                          Icons.monetization_on,
+                          Colors.amber,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildStatCard(
+                          'Discussions',
+                          totalFlowcharts.toString(),
+                          Icons.account_tree,
+                          Colors.blue,
+                        ),
+                      ),
+                    ],
+                  );
+                } else {
+                  // For smaller screens, use a column layout
+                  return Column(
+                    children: [
+                      _buildStatCard(
+                        'Total Donations',
+                        formattedDonation,
+                        Icons.monetization_on,
+                        Colors.amber,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildStatCard(
+                        'Active Discussions',
+                        totalFlowcharts.toString(),
+                        Icons.account_tree,
+                        Colors.blue,
+                      ),
+                    ],
+                  );
+                }
+              },
             ),
           ],
         ),
       ),
     );
+  }
+
+  /// Format currency value to ensure it fits in the UI
+  String _formatCurrency(dynamic value) {
+    // If value is already a string, return it as is
+    if (value is String) return value;
+
+    // Convert to double
+    final doubleValue = value is double ? value : 0.0;
+
+    if (doubleValue >= 100000) {
+      return '${(doubleValue / 100000).toStringAsFixed(1)}L';
+    } else if (doubleValue >= 1000) {
+      return '${(doubleValue / 1000).toStringAsFixed(1)}K';
+    } else {
+      return doubleValue.toStringAsFixed(0);
+    }
   }
 
   Widget _buildStatCard(
@@ -236,25 +283,34 @@ class _DonationPageState extends State<DonationPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: color),
+              Icon(icon, color: color, size: 18),
               const SizedBox(width: 8),
-              Text(
-                title,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: color.withAlpha(204),
+              Flexible(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: color.withAlpha(204),
+                    fontSize: 14,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: color,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
             ),
           ),
         ],
@@ -392,15 +448,19 @@ class _DonationPageState extends State<DonationPage> {
                                   style: Theme.of(context).textTheme.bodyMedium,
                                 ),
                                 const SizedBox(height: 4),
-                                Text(
-                                  '₹${totalDonations.toStringAsFixed(2)}',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
-                                      ?.copyWith(
-                                        color: Colors.green,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    '₹${_formatCurrency(totalDonations)}',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          color: Colors.green,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
                                 ),
                               ],
                             ),
@@ -435,11 +495,15 @@ class _DonationPageState extends State<DonationPage> {
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          'Score: ${winningNode.score}'
-                          '(₹${winningNode.donation.toStringAsFixed(2)} + '
-                          '${winningNode.comments.length} comments)',
-                          style: Theme.of(context).textTheme.bodySmall,
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Score: ${winningNode.score} '
+                            '(₹${_formatCurrency(winningNode.donation)} + '
+                            '${winningNode.comments.length} comments)',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
                         ),
                       ],
                     ],
