@@ -63,7 +63,7 @@ class WinnerCubit extends Cubit<WinnerState> {
       // Start the evaluation timer (mock 24-hour evaluation)
       // For demo purposes, we'll use a shorter duration
       const evaluationDuration = Duration(seconds: 10);
-      final remainingTime = evaluationDuration;
+      const remainingTime = evaluationDuration;
 
       emit(
         state.copyWith(

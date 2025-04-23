@@ -1,4 +1,6 @@
+import 'package:biftech/features/flowchart/cubit/cubit.dart';
 import 'package:biftech/features/flowchart/model/node_model.dart';
+import 'package:biftech/features/flowchart/view/widgets/comment_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:neopop/widgets/buttons/neopop_button/neopop_button.dart';
 
@@ -7,11 +9,15 @@ class CommentsPopup extends StatelessWidget {
   /// Constructor
   const CommentsPopup({
     required this.nodeModel,
+    required this.cubit,
     super.key,
   });
 
   /// The node model containing the comments
   final NodeModel nodeModel;
+
+  /// The FlowchartCubit for managing flowchart state
+  final FlowchartCubit cubit;
 
   @override
   Widget build(BuildContext context) {
@@ -351,9 +357,23 @@ class CommentsPopup extends StatelessWidget {
   }
 
   void _showCommentModal(BuildContext context) {
-    // Close the current dialog and pass the nodeId back to the parent
-    // to handle showing the comment modal
-    Navigator.of(context).pop(nodeModel.id);
+    // First, get the root context (the context outside the dialog)
+    final rootContext = Navigator.of(context, rootNavigator: true).context;
+
+    // Close the current dialog
+    Navigator.of(context).pop();
+
+    // Show the comment modal using the root context
+    showModalBottomSheet<void>(
+      context: rootContext,
+      isScrollControlled: true,
+      builder: (context) {
+        return CommentModal(
+          nodeId: nodeModel.id,
+          cubit: cubit,
+        );
+      },
+    );
   }
 
   // Helper methods to generate mock user data

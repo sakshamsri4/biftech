@@ -832,21 +832,19 @@ class NodeWidget extends StatelessWidget {
     );
   }
 
-  Future<void> _showCommentsPopup(BuildContext context) async {
-    final nodeId = await showDialog<String>(
+  void _showCommentsPopup(BuildContext context) {
+    // Get the cubit from the parent context
+    final cubit = context.read<FlowchartCubit>();
+
+    showDialog<void>(
       context: context,
       builder: (context) {
         return CommentsPopup(
           nodeModel: nodeModel,
+          cubit: cubit,
         );
       },
     );
-
-    // If we got a nodeId back and the widget is still mounted,
-    // show the comment modal
-    if (nodeId != null && context.mounted) {
-      _showCommentModal(context);
-    }
   }
 
   void _showCommentModal(BuildContext context) {
