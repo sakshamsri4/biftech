@@ -5,6 +5,7 @@ import 'package:biftech/features/flowchart/flowchart.dart';
 import 'package:biftech/features/home/home.dart';
 import 'package:biftech/features/video_feed/service/video_feed_service.dart';
 import 'package:biftech/features/video_feed/video_feed.dart';
+import 'package:biftech/features/winner/winner.dart';
 import 'package:biftech/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 
@@ -95,6 +96,13 @@ class _AppState extends State<App> {
           return MaterialPageRoute(
             settings: settings,
             builder: (context) => FlowchartPage(videoId: id),
+          );
+        } else if (routeName.startsWith('/winner/')) {
+          // Extract the ID from the route
+          final id = routeName.replaceFirst('/winner/', '');
+          return MaterialPageRoute(
+            settings: settings,
+            builder: (context) => WinnerPage(videoId: id),
           );
         }
 

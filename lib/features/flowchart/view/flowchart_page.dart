@@ -146,8 +146,18 @@ class _FlowchartViewState extends State<FlowchartView> {
           ),
           IconButton(
             icon: const Icon(Icons.emoji_events),
+            tooltip: 'Show winner dialog',
             onPressed: () {
               _showWinnerDialog(context);
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.workspace_premium),
+            tooltip: 'Declare winner',
+            onPressed: () {
+              // Get the videoId from the FlowchartCubit
+              final videoId = context.read<FlowchartCubit>().videoId;
+              Navigator.of(context).pushNamed('/winner/$videoId');
             },
           ),
         ],
