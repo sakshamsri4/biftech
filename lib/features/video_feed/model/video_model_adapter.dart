@@ -12,7 +12,7 @@ class VideoModelAdapter extends TypeAdapter<VideoModel> {
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    
+
     return VideoModel(
       id: fields[0] as String,
       title: fields[1] as String,
@@ -29,27 +29,28 @@ class VideoModelAdapter extends TypeAdapter<VideoModel> {
 
   @override
   void write(BinaryWriter writer, VideoModel obj) {
-    writer..writeByte(10)
-    ..writeByte(0)
-    ..write(obj.id)
-    ..writeByte(1)
-    ..write(obj.title)
-    ..writeByte(2)
-    ..write(obj.creator)
-    ..writeByte(3)
-    ..write(obj.views)
-    ..writeByte(4)
-    ..write(obj.thumbnailUrl)
-    ..writeByte(5)
-    ..write(obj.videoUrl)
-    ..writeByte(6)
-    ..write(obj.description)
-    ..writeByte(7)
-    ..write(obj.duration)
-    ..writeByte(8)
-    ..write(obj.publishedAt)
-    ..writeByte(9)
-    ..write(obj.tags);
+    writer
+      ..writeByte(10)
+      ..writeByte(0)
+      ..write(obj.id)
+      ..writeByte(1)
+      ..write(obj.title)
+      ..writeByte(2)
+      ..write(obj.creator)
+      ..writeByte(3)
+      ..write(obj.views)
+      ..writeByte(4)
+      ..write(obj.thumbnailUrl)
+      ..writeByte(5)
+      ..write(obj.videoUrl)
+      ..writeByte(6)
+      ..write(obj.description)
+      ..writeByte(7)
+      ..write(obj.duration)
+      ..writeByte(8)
+      ..write(obj.publishedAt)
+      ..writeByte(9)
+      ..write(obj.tags);
     // isPlaying is a runtime state and not stored
   }
 }

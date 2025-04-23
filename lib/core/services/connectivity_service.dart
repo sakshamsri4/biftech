@@ -55,7 +55,7 @@ class ConnectivityService {
   /// Update connection status based on connectivity result
   void _updateConnectionStatus(ConnectivityResult result) {
     final hasConnection = result != ConnectivityResult.none;
-    
+
     // Only notify if status changed
     if (_hasConnection != hasConnection) {
       _hasConnection = hasConnection;

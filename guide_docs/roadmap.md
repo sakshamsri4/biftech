@@ -88,7 +88,7 @@ This workflow must be followed for all development tasks.
   - Add "Participate" button that navigates to flowchart discussion
   - Ensure only one video plays at a time (auto-pause others)
 
-**Use:** `video_player` or `chewie` package
+**Use:** `video_player` or `Chewie` package
 **Test:** Test video playback and auto-pause functionality
 **Log in:** Video player integration challenges
 
@@ -224,7 +224,7 @@ List<String> comments;
 | hive | Local storage |
 | neopop | UI components |
 | video_player | Video playback |
-| chewie | Video player UI |
+| Chewie | Video player UI |
 | cached_network_image | Image caching |
 | image_picker | Media selection |
 | flutter_treeview | Flowchart visualization |

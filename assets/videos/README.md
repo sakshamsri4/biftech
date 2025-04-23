@@ -12,7 +12,7 @@ The app supports the following video formats:
 
 ## How to Add Sample Videos
 
-1. Download sample videos from sources like [Pexels](https://www.pexels.com/videos/) or [Pixabay](https://pixabay.com/videos/)
+1. Download sample videos from sources like [Pexels Video](https://www.pexels.com/videos/) or [Pixabay Video](https://pixabay.com/videos/)
 2. Place the videos in this folder
 3. Update the `videos.json` file in the `assets/json` folder to include the new videos
 

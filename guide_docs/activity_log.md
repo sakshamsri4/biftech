@@ -476,7 +476,7 @@ This file tracks all development activities, issues encountered, solutions imple
   4. Added proper error handling for video playback
   5. Ensured only one video plays at a time
 - 📁 Files created/changed:
-  - pubspec.yaml (added video_player, chewie, cached_network_image)
+  - pubspec.yaml (added video_player, Chewie, cached_network_image)
   - lib/features/video_feed/model/video_model.dart (added videoUrl and isPlaying fields)
   - lib/features/video_feed/cubit/video_feed_cubit.dart (added controller management)
   - lib/features/video_feed/view/widgets/video_card.dart (enhanced with video player)
@@ -636,7 +636,7 @@ This file tracks all development activities, issues encountered, solutions imple
   2. Be careful with concurrent modification of collections
   3. Use a copy of a collection when iterating and modifying
   4. Check widget.mounted before setState after async operations
-  5. Properly manage controller lifecycles with singletons
+  5. Properly manage controller life cycles with singletons
   6. Pause media instead of disposing when temporarily leaving a screen
 
 ## [2023-04-24 | 20:15 PM]
