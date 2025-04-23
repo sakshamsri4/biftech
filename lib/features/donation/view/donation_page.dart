@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:biftech/features/donation/donation.dart';
 import 'package:biftech/features/flowchart/cubit/cubit.dart';
 import 'package:biftech/features/flowchart/model/models.dart';
@@ -22,16 +24,25 @@ class DonationPage extends StatefulWidget {
 
 class _DonationPageState extends State<DonationPage> {
   List<VideoModel> _videos = [];
-  final Map<String, NodeModel?> _flowcharts = {};
   bool _isLoading = true;
+  late StreamController<Map<String, NodeModel?>> _flowchartsController;
+  late Stream<Map<String, NodeModel?>> _flowchartsStream;
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    _initializeData();
   }
 
-  Future<void> _loadData() async {
+  @override
+  void dispose() {
+    _flowchartsController.close();
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _initializeData() async {
     setState(() {
       _isLoading = true;
     });
@@ -41,16 +52,8 @@ class _DonationPageState extends State<DonationPage> {
       final videos = await VideoFeedService.instance.getVideos();
       _videos = videos;
 
-      // Load flowcharts for each video
-      for (final video in videos) {
-        try {
-          final flowchart =
-              await FlowchartRepository.instance.getFlowchartForVideo(video.id);
-          _flowcharts[video.id] = flowchart;
-        } catch (e) {
-          debugPrint('Error loading flowchart for video ${video.id}: $e');
-        }
-      }
+      // Create a stream that will emit updated flowchart data
+      _setupFlowchartsStream(videos);
     } catch (e) {
       debugPrint('Error loading data: $e');
     } finally {
@@ -59,6 +62,68 @@ class _DonationPageState extends State<DonationPage> {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  void _setupFlowchartsStream(List<VideoModel> videos) {
+    // Create a stream controller that will emit flowchart data
+    _flowchartsController =
+        StreamController<Map<String, NodeModel?>>.broadcast();
+    _flowchartsStream = _flowchartsController.stream;
+
+    // Function to load all flowcharts and emit the result
+    Future<void> loadFlowcharts() async {
+      final flowcharts = <String, NodeModel?>{};
+
+      for (final video in videos) {
+        try {
+          final flowchart =
+              await FlowchartRepository.instance.getFlowchartForVideo(video.id);
+          flowcharts[video.id] = flowchart;
+        } catch (e) {
+          debugPrint('Error loading flowchart for video ${video.id}: $e');
+          flowcharts[video.id] = null;
+        }
+      }
+
+      // Emit the flowcharts data
+      if (!_flowchartsController.isClosed) {
+        _flowchartsController.add(flowcharts);
+      }
+    }
+
+    // Load flowcharts immediately
+    loadFlowcharts();
+
+    // Set up a periodic timer to refresh the data
+    _refreshTimer = Timer.periodic(const Duration(seconds: 2), (_) {
+      loadFlowcharts();
+    });
+  }
+
+  // Method to manually refresh the data
+  Future<void> _refreshData() async {
+    // Load videos
+    final videos = await VideoFeedService.instance.getVideos();
+    _videos = videos;
+
+    // Function to load all flowcharts and emit the result
+    final flowcharts = <String, NodeModel?>{};
+
+    for (final video in videos) {
+      try {
+        final flowchart =
+            await FlowchartRepository.instance.getFlowchartForVideo(video.id);
+        flowcharts[video.id] = flowchart;
+      } catch (e) {
+        debugPrint('Error loading flowchart for video ${video.id}: $e');
+        flowcharts[video.id] = null;
+      }
+    }
+
+    // Emit the flowcharts data
+    if (!_flowchartsController.isClosed) {
+      _flowchartsController.add(flowcharts);
     }
   }
 
@@ -95,18 +160,33 @@ class _DonationPageState extends State<DonationPage> {
       );
     }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildHeader(),
-          const SizedBox(height: 24),
-          _buildDonationStats(),
-          const SizedBox(height: 24),
-          _buildDonationList(),
-        ],
-      ),
+    return StreamBuilder<Map<String, NodeModel?>>(
+      stream: _flowchartsStream,
+      builder: (context, snapshot) {
+        // Show loading indicator while waiting for the first data
+        if (!snapshot.hasData) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+
+        // Get the flowcharts data
+        final flowcharts = snapshot.data!;
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeader(),
+              const SizedBox(height: 24),
+              _buildDonationStats(flowcharts),
+              const SizedBox(height: 24),
+              _buildDonationList(flowcharts),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -181,12 +261,12 @@ class _DonationPageState extends State<DonationPage> {
     );
   }
 
-  Widget _buildDonationStats() {
+  Widget _buildDonationStats(Map<String, NodeModel?> flowcharts) {
     // Calculate total donations
     var totalDonations = 0.0;
     var totalFlowcharts = 0;
 
-    for (final flowchart in _flowcharts.values) {
+    for (final flowchart in flowcharts.values) {
       if (flowchart != null) {
         totalFlowcharts++;
         totalDonations += _calculateTotalDonations(flowchart);
@@ -344,10 +424,10 @@ class _DonationPageState extends State<DonationPage> {
     );
   }
 
-  Widget _buildDonationList() {
+  Widget _buildDonationList(Map<String, NodeModel?> flowcharts) {
     // Filter videos with flowcharts
     final videosWithFlowcharts = _videos.where((video) {
-      return _flowcharts[video.id] != null;
+      return flowcharts[video.id] != null;
     }).toList();
 
     if (videosWithFlowcharts.isEmpty) {
@@ -389,7 +469,7 @@ class _DonationPageState extends State<DonationPage> {
           itemCount: videosWithFlowcharts.length,
           itemBuilder: (context, index) {
             final video = videosWithFlowcharts[index];
-            final flowchart = _flowcharts[video.id];
+            final flowchart = flowcharts[video.id];
 
             if (flowchart == null) {
               return const SizedBox.shrink();
@@ -717,7 +797,7 @@ class _DonationPageState extends State<DonationPage> {
                   await flowchartCubit.updateNodeDonation(nodeId, newAmount);
 
                   // Refresh the data after donation
-                  await _loadData();
+                  await _refreshData();
 
                   // Hide the loading indicator
                   updateLoadingOverlay.remove();
