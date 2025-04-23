@@ -8,6 +8,17 @@ import 'package:hive/hive.dart';
 
 /// Repository for managing video feed data
 class VideoFeedRepository {
+  /// Factory constructor to get the singleton instance
+  factory VideoFeedRepository() {
+    _instance ??= VideoFeedRepository._();
+    return _instance!;
+  }
+
+  /// Factory constructor for backward compatibility
+  factory VideoFeedRepository.getInstance() {
+    return VideoFeedRepository();
+  }
+
   /// Private constructor for singleton pattern
   VideoFeedRepository._();
 
@@ -16,12 +27,6 @@ class VideoFeedRepository {
 
   /// Box for storing videos
   Box<VideoModel>? _videosBox;
-
-  /// Get the singleton instance
-  static VideoFeedRepository get instance {
-    _instance ??= VideoFeedRepository._();
-    return _instance!;
-  }
 
   /// Initialize the repository
   Future<void> initialize() async {

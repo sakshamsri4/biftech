@@ -301,7 +301,7 @@ class _UploadVideoViewState extends State<UploadVideoView> {
       debugPrint('Creating new video with repository helper methods');
 
       // Get the repository
-      final repository = VideoFeedRepository.instance;
+      final repository = VideoFeedRepository();
 
       // Generate a unique ID for the video
       final id = repository.generateVideoId();

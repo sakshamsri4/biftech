@@ -19,7 +19,7 @@ class VideoFeedCubit extends Cubit<VideoFeedState> {
     if (_instance != null && !_instance!.isClosed) {
       return _instance!;
     }
-    _instance = VideoFeedCubit._internal(VideoFeedRepository.instance);
+    _instance = VideoFeedCubit._internal(VideoFeedRepository());
     return _instance!;
   }
 

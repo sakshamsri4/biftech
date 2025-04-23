@@ -29,7 +29,7 @@ class VideoFeedService {
       }
 
       // Initialize the repository
-      await VideoFeedRepository.instance.initialize();
+      await VideoFeedRepository().initialize();
 
       _isInitialized = true;
       debugPrint('VideoFeedService initialized successfully');

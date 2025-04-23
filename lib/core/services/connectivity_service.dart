@@ -5,13 +5,13 @@ import 'package:flutter/foundation.dart';
 
 /// Service to check and monitor network connectivity
 class ConnectivityService {
-  /// Singleton instance
-  static final ConnectivityService instance = ConnectivityService._internal();
-
   /// Private constructor
   ConnectivityService._internal() {
     _initialize();
   }
+
+  /// Singleton instance
+  static final ConnectivityService instance = ConnectivityService._internal();
 
   /// Connectivity instance
   final Connectivity _connectivity = Connectivity();
