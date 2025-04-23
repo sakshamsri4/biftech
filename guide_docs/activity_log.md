@@ -1597,6 +1597,26 @@ This file tracks all development activities, issues encountered, solutions imple
   4. BlocProvider and BlocConsumer make it easy to manage state in modals
   5. Validation should be performed in both the UI and the cubit for better user experience and data integrity
 
+## [2023-04-27 | 4:30 PM]
+- ❌ Issue: Donation feature was implemented but not integrated into the app's navigation
+- ✅ Integrated donation feature into the app's navigation and UI
+- 🔄 Solutions implemented:
+  1. Created a DonationPage to display donation statistics and active discussions
+  2. Updated the home page to use the new DonationPage in the donation tab
+  3. Added a direct route to the donation page in the app's router
+  4. Created a proper branch for the donation feature as specified in the roadmap
+- 📁 Files changed:
+  - lib/features/donation/view/donation_page.dart (created)
+  - lib/features/home/view/home_page.dart (updated to use DonationPage)
+  - lib/app/view/app.dart (added donation route)
+  - guide_docs/activity_log.md (documented changes)
+- 📝 Lessons learned:
+  1. Always create a proper branch for each feature as specified in the roadmap
+  2. Integrating a feature into the app's navigation is essential for user accessibility
+  3. Displaying donation statistics provides users with feedback on their contributions
+  4. Reusing existing UI components and patterns maintains consistency across the app
+  5. Following the git workflow is crucial for maintaining a clean and organized codebase
+
 ## Template for Future Entries
 
 ```
