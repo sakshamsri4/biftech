@@ -1175,6 +1175,24 @@ This file tracks all development activities, issues encountered, solutions imple
   3. Implement proper error handling for tree operations
   4. Create comprehensive tests for tree structure and node operations
 
+## [2023-04-26 | 11:30 AM]
+- ❌ Issue: Flowchart feature not accessible from bottom navigation bar
+- ✅ Connected flowchart feature to bottom navigation bar
+- ❌ Issue: Working directly on main branch instead of feature branch
+- 🔄 Solutions implemented:
+  1. Updated HomePage to show flowchart list in the flowchart tab
+  2. Added getVideos method to VideoFeedService and VideoFeedRepository
+  3. Created feature branch and moved changes from main branch
+- 📁 Files changed:
+  - lib/features/home/view/home_page.dart (updated flowchart tab)
+  - lib/features/video_feed/service/video_feed_service.dart (added getVideos method)
+  - lib/features/video_feed/repository/video_feed_repository.dart (added getVideos method)
+- 📝 Lessons learned:
+  1. Always create feature branches before implementing new features
+  2. Never work directly on the main branch
+  3. Ensure all features are accessible from the main navigation
+  4. Follow the branching strategy specified in the roadmap
+
 ## Template for Future Entries
 
 ```
