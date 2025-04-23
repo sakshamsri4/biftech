@@ -12,7 +12,7 @@ void main() {
       );
 
       expect(find.byType(UploadVideoView), findsOneWidget);
-      expect(find.text('Upload Your Idea'), findsOneWidget);
+      expect(find.text('UPLOAD YOUR IDEA'), findsOneWidget);
     });
 
     testWidgets('renders form fields', (tester) async {
@@ -23,13 +23,13 @@ void main() {
       );
 
       // Check for form fields
-      expect(find.text('Title'), findsOneWidget);
-      expect(find.text('Creator Name'), findsOneWidget);
-      expect(find.text('Duration'), findsOneWidget);
-      expect(find.text('Description'), findsOneWidget);
-      expect(find.text('Thumbnail (Optional)'), findsOneWidget);
-      expect(find.text('Video'), findsOneWidget);
-      expect(find.text('Upload Video'), findsOneWidget);
+      expect(find.text('TITLE'), findsOneWidget);
+      expect(find.text('CREATOR NAME'), findsOneWidget);
+      expect(find.text('DURATION'), findsOneWidget);
+      expect(find.text('DESCRIPTION'), findsOneWidget);
+      expect(find.text('THUMBNAIL (OPTIONAL)'), findsOneWidget);
+      expect(find.text('VIDEO'), findsOneWidget);
+      expect(find.text('UPLOAD VIDEO'), findsOneWidget);
     });
 
     // This test is skipped because it requires a more complex setup

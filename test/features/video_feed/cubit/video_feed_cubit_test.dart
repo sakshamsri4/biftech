@@ -1,7 +1,6 @@
-import 'dart:convert';
-
 import 'package:biftech/features/video_feed/cubit/cubit.dart';
 import 'package:biftech/features/video_feed/model/models.dart';
+import 'package:biftech/features/video_feed/repository/video_feed_repository.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,39 +8,48 @@ import 'package:mocktail/mocktail.dart';
 
 class MockAssetBundle extends Mock implements AssetBundle {}
 
+class MockVideoFeedRepository extends Mock implements VideoFeedRepository {}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late VideoFeedCubit videoFeedCubit;
+  late MockVideoFeedRepository mockRepository;
 
-  // Mock JSON data
-  final mockJsonString = jsonEncode([
-    {
-      'id': 'v001',
-      'title': 'Test Video 1',
-      'creator': 'Test Creator 1',
-      'views': 1000,
-      'thumbnailUrl': 'https://example.com/thumbnail1.jpg',
-    },
-    {
-      'id': 'v002',
-      'title': 'Test Video 2',
-      'creator': 'Test Creator 2',
-      'views': 2000,
-      'thumbnailUrl': 'https://example.com/thumbnail2.jpg',
-    },
-  ]);
+  // Create mock videos
+  final mockVideos = [
+    const VideoModel(
+      id: 'v001',
+      title: 'Test Video 1',
+      creator: 'Test Creator 1',
+      views: 1000,
+      thumbnailUrl: 'https://example.com/thumbnail1.jpg',
+    ),
+    const VideoModel(
+      id: 'v002',
+      title: 'Test Video 2',
+      creator: 'Test Creator 2',
+      views: 2000,
+      thumbnailUrl: 'https://example.com/thumbnail2.jpg',
+    ),
+  ];
 
   setUp(() {
-    // Replace the default asset bundle with our mock
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMessageHandler('flutter/assets', (ByteData? message) async {
-      return ByteData.sublistView(
-        Uint8List.fromList(utf8.encode(mockJsonString)),
-      );
-    });
+    // Create mock repository
+    mockRepository = MockVideoFeedRepository();
 
-    videoFeedCubit = VideoFeedCubit();
+    // Set up mock repository behavior
+    when(() => mockRepository.loadVideosFromStorage())
+        .thenAnswer((_) async => mockVideos);
+    when(() => mockRepository.loadVideosFromAssets())
+        .thenAnswer((_) async => mockVideos);
+    when(() => mockRepository.saveVideosToStorage(any()))
+        .thenAnswer((_) async {});
+    when(() => mockRepository.getDefaultVideoUrl())
+        .thenReturn('assets/videos/test.mp4');
+
+    // Create a cubit with the initial state
+    videoFeedCubit = VideoFeedCubit()..emit(VideoFeedState.initial);
   });
 
   tearDown(() {
