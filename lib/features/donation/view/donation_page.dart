@@ -436,7 +436,8 @@ class _DonationPageState extends State<DonationPage> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Score: ${winningNode.score} (₹${winningNode.donation.toStringAsFixed(2)} + '
+                          'Score: ${winningNode.score}'
+                          '(₹${winningNode.donation.toStringAsFixed(2)} + '
                           '${winningNode.comments.length} comments)',
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
@@ -457,6 +458,14 @@ class _DonationPageState extends State<DonationPage> {
     final winningNode = _findWinningNode(rootNode);
     // Use the winning node ID
     final nodeId = winningNode.id;
+    // Get the video ID from the root node ID
+    final videoId = rootNode.id.replaceFirst('root_', '');
+
+    // Create a FlowchartCubit instance that will be used to update the node
+    final flowchartCubit = FlowchartCubit(
+      repository: FlowchartRepository.instance,
+      videoId: videoId,
+    )..loadFlowchart();
 
     showModalBottomSheet<void>(
       context: context,
@@ -465,11 +474,8 @@ class _DonationPageState extends State<DonationPage> {
         // Provide both FlowchartCubit and DonationCubit
         return MultiBlocProvider(
           providers: [
-            BlocProvider<FlowchartCubit>(
-              create: (context) => FlowchartCubit(
-                repository: FlowchartRepository.instance,
-                videoId: rootNode.id.replaceFirst('root_', ''),
-              ),
+            BlocProvider<FlowchartCubit>.value(
+              value: flowchartCubit,
             ),
             BlocProvider<DonationCubit>(
               create: (context) => DonationCubit(),
@@ -478,6 +484,9 @@ class _DonationPageState extends State<DonationPage> {
           child: DonationModal(
             nodeId: nodeId,
             onDonationComplete: (amount) {
+              // Update the node with the donation amount
+              flowchartCubit.updateNodeDonation(nodeId, amount);
+
               // Refresh the data after donation
               _loadData();
 
