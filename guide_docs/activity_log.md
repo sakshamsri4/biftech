@@ -1146,16 +1146,16 @@ This file tracks all development activities, issues encountered, solutions imple
 - ✅ Implemented Flowchart feature with visual discussion tree
 - ✅ Created NodeModel with all required fields and JSON serialization
 - ✅ Implemented FlowchartCubit for managing tree structure
-- ✅ Created FlowchartPage with graphview visualization
+- ✅ Created FlowchartPage with graph-view visualization
 - ✅ Added comment and challenge modals for interaction
 - ✅ Implemented winner selection and donation distribution logic
 - ❌ Issue: flutter_treeview package had compatibility issues
 - 🔄 Solutions implemented:
-  1. Switched to graphview package for tree visualization
+  1. Switched to graph-view package for tree visualization
   2. Implemented recursive tree traversal for finding nodes
   3. Created custom NodeWidget for displaying node content
 - 📁 Files changed:
-  - pubspec.yaml (added graphview package)
+  - pubspec.yaml (added graph-view package)
   - lib/features/flowchart/model/node_model.dart
   - lib/features/flowchart/cubit/flowchart_cubit.dart
   - lib/features/flowchart/cubit/flowchart_state.dart
