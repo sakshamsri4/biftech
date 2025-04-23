@@ -93,7 +93,7 @@ class _FlowchartViewState extends State<FlowchartView> {
         _resetView();
 
         // Apply a second reset after a delay to ensure the graph is fully built
-        Future.delayed(const Duration(milliseconds: 1000), () {
+        Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted) {
             _resetView();
           }
@@ -108,24 +108,36 @@ class _FlowchartViewState extends State<FlowchartView> {
       appBar: AppBar(
         title: const Text('Discussion Flowchart'),
         actions: [
-          // Focus on root node button
-          IconButton(
-            icon: const Icon(Icons.home),
-            tooltip: 'Focus on root node',
-            onPressed: _resetView,
-          ),
           // Refresh button
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Reload flowchart',
+            tooltip: 'Reload flowchart and focus on root node',
             onPressed: () {
+              // First reset the view to ensure we're starting from a clean state
+              // by resetting the transformation
+              _transformationController.value = Matrix4.identity();
+
+              // Then reload the flowchart
               context.read<FlowchartCubit>().loadFlowchart();
-              // Reset view after a short delay to allow the flowchart to load
+
+              // Reset view after a longer delay to ensure the flowchart
+              // is fully loaded and rendered
               Future<void>.delayed(
-                const Duration(milliseconds: 300),
+                const Duration(milliseconds: 800),
                 () {
                   if (mounted) {
+                    // Force a rebuild of the graph
+                    setState(() {});
+
+                    // Then reset the view to focus on the root node
                     _resetView();
+
+                    // Apply a second reset after a delay as a backup
+                    Future.delayed(const Duration(milliseconds: 500), () {
+                      if (mounted) {
+                        _resetView();
+                      }
+                    });
                   }
                 },
               );
@@ -449,6 +461,10 @@ class _FlowchartViewState extends State<FlowchartView> {
       graph.edges.clear();
       _buildGraphFromTree(state.rootNode!, null);
     });
+
+    // Ensure the root node is visible by first resetting to identity
+    // This helps prevent issues with previous transformations
+    _transformationController.value = Matrix4.identity();
 
     // Use a longer delay to ensure the graph is fully built and laid out
     // This is critical for reliable focusing on the first node

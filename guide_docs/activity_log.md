@@ -1529,6 +1529,27 @@ This file tracks all development activities, issues encountered, solutions imple
   5. Fallback mechanisms are crucial when working with the render tree
   6. Error handling is essential when working with the render tree to prevent crashes
 
+## [2023-04-27 | 1:30 PM]
+- ❌ Issue: Root node focusing works on initialization but not when the refresh button is tapped
+- ✅ Improved the refresh button functionality and removed redundant home button
+- 🔄 Solutions implemented:
+  1. Removed the redundant home button to simplify the UI
+  2. Enhanced the refresh button to properly focus on the root node after reloading
+  3. Added a reset to identity matrix before applying any transformations to ensure a clean state
+  4. Increased the delay after reloading to ensure the graph is fully built before focusing
+  5. Added multiple sequential resets with different delays for better reliability
+  6. Added a forced rebuild of the graph after reloading to ensure the render tree is updated
+- 📁 Files changed:
+  - lib/features/flowchart/view/flowchart_page.dart (improved refresh button and reset functionality)
+  - guide_docs/activity_log.md (documented changes)
+- 📝 Lessons learned:
+  1. Resetting to identity matrix before applying transformations prevents issues with previous transformations
+  2. Multiple sequential resets with different delays provide better reliability
+  3. Forcing a rebuild of the graph ensures the render tree is updated with the latest state
+  4. Longer delays are needed after reloading to ensure the graph is fully built before focusing
+  5. Simplifying the UI by removing redundant buttons improves user experience
+  6. The refresh button should handle both reloading the data and resetting the view
+
 ## Template for Future Entries
 
 ```
