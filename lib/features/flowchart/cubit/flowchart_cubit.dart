@@ -26,17 +26,39 @@ class FlowchartCubit extends Cubit<FlowchartState> {
       final rootNode = await repository.getFlowchartForVideo(videoId);
 
       if (rootNode == null) {
-        // Create a new root node if none exists
+        // Create a new root node if none exists with some initial comments
         final newRootNode = NodeModel(
           id: 'root_$videoId',
           text: 'Discussion for video $videoId',
+          comments: const [
+            'This is an interesting topic!',
+            'I agree with the main points.',
+            'Great discussion starter!',
+          ],
         );
-        await repository.saveFlowchart(videoId, newRootNode);
+
+        // Create a challenge node with comments
+        final challengeNode = NodeModel(
+          id: 'challenge_${DateTime.now().millisecondsSinceEpoch}',
+          text: 'I have a different perspective on this topic.',
+          comments: const [
+            'Good point!',
+            'I see what you mean.',
+          ],
+          donation: 25,
+        );
+
+        // Add the challenge to the root node
+        final rootWithChallenge = newRootNode.addChallenge(challengeNode);
+
+        // Save the flowchart with the root and challenge nodes
+        await repository.saveFlowchart(videoId, rootWithChallenge);
+
         emit(
           state.copyWith(
             status: FlowchartStatus.success,
-            rootNode: newRootNode,
-            expandedNodeIds: {newRootNode.id},
+            rootNode: rootWithChallenge,
+            expandedNodeIds: {rootWithChallenge.id, challengeNode.id},
           ),
         );
       } else {
