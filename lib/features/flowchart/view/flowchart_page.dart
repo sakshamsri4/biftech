@@ -113,7 +113,8 @@ class _FlowchartViewState extends State<FlowchartView> {
             icon: const Icon(Icons.refresh),
             tooltip: 'Reload flowchart and focus on root node',
             onPressed: () {
-              // First reset the view to ensure we're starting from a clean state
+              // First reset the view to
+              // ensure we're starting from a clean state
               // by resetting the transformation
               _transformationController.value = Matrix4.identity();
 
