@@ -172,6 +172,8 @@ class FlowchartCubit extends Cubit<FlowchartState> {
           error: 'Failed to add challenge: $e',
         ),
       );
+      // Re-throw the exception to ensure the method doesn't return null
+      throw Exception('Failed to add challenge: $e');
     }
   }
 
