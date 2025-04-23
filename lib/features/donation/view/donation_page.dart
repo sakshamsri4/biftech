@@ -453,7 +453,10 @@ class _DonationPageState extends State<DonationPage> {
     );
   }
 
-  void _showDonationModal(BuildContext context, NodeModel rootNode) {
+  Future<void> _showDonationModal(
+    BuildContext context,
+    NodeModel rootNode,
+  ) async {
     // Find the winning node to donate to
     final winningNode = _findWinningNode(rootNode);
     // Use the winning node ID
@@ -461,49 +464,118 @@ class _DonationPageState extends State<DonationPage> {
     // Get the video ID from the root node ID
     final videoId = rootNode.id.replaceFirst('root_', '');
 
-    // Create a FlowchartCubit instance that will be used to update the node
-    final flowchartCubit = FlowchartCubit(
-      repository: FlowchartRepository.instance,
-      videoId: videoId,
-    )..loadFlowchart();
+    // Show a loading indicator
+    final loadingOverlay = _showLoadingOverlay(context);
 
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) {
-        // Provide both FlowchartCubit and DonationCubit
-        return MultiBlocProvider(
-          providers: [
-            BlocProvider<FlowchartCubit>.value(
-              value: flowchartCubit,
+    try {
+      // Get the current donation amount for the node
+      final currentDonation = winningNode.donation;
+
+      // Create a FlowchartCubit instance that will be used to update the node
+      final flowchartCubit = FlowchartCubit(
+        repository: FlowchartRepository.instance,
+        videoId: videoId,
+      );
+
+      // Wait for the flowchart to load
+      await flowchartCubit.loadFlowchart();
+
+      // Hide the loading indicator
+      loadingOverlay.remove();
+
+      if (!context.mounted) return;
+
+      // Show the donation modal
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) {
+          // Provide both FlowchartCubit and DonationCubit
+          return MultiBlocProvider(
+            providers: [
+              BlocProvider<FlowchartCubit>.value(
+                value: flowchartCubit,
+              ),
+              BlocProvider<DonationCubit>(
+                create: (context) => DonationCubit(),
+              ),
+            ],
+            child: DonationModal(
+              nodeId: nodeId,
+              onDonationComplete: (amount) async {
+                // Show a loading indicator
+                final updateLoadingOverlay = _showLoadingOverlay(context);
+
+                try {
+                  // Update the node with the donation amount
+                  // (add to existing donation)
+                  final newAmount = currentDonation + amount;
+                  await flowchartCubit.updateNodeDonation(nodeId, newAmount);
+
+                  // Refresh the data after donation
+                  await _loadData();
+
+                  // Hide the loading indicator
+                  updateLoadingOverlay.remove();
+
+                  if (!context.mounted) return;
+
+                  // Show success message
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Successfully donated ₹${amount.toStringAsFixed(2)}',
+                      ),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } catch (e) {
+                  // Hide the loading indicator
+                  updateLoadingOverlay.remove();
+
+                  if (!context.mounted) return;
+
+                  // Show error message
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to update donation: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
             ),
-            BlocProvider<DonationCubit>(
-              create: (context) => DonationCubit(),
-            ),
-          ],
-          child: DonationModal(
-            nodeId: nodeId,
-            onDonationComplete: (amount) {
-              // Update the node with the donation amount
-              flowchartCubit.updateNodeDonation(nodeId, amount);
+          );
+        },
+      );
+    } catch (e) {
+      // Hide the loading indicator
+      loadingOverlay.remove();
 
-              // Refresh the data after donation
-              _loadData();
+      if (!context.mounted) return;
 
-              // Show success message
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Successfully donated ₹${amount.toStringAsFixed(2)}',
-                  ),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
-          ),
-        );
-      },
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to load flowchart: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  OverlayEntry _showLoadingOverlay(BuildContext context) {
+    final overlay = OverlayEntry(
+      builder: (context) => ColoredBox(
+        color: Colors.black.withAlpha(128),
+        child: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      ),
     );
+
+    Overlay.of(context).insert(overlay);
+    return overlay;
   }
 
   double _calculateTotalDonations(NodeModel node) {

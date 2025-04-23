@@ -1,6 +1,7 @@
 import 'package:biftech/core/services/error_logging_service.dart';
 import 'package:biftech/features/donation/donation.dart';
 import 'package:biftech/features/flowchart/cubit/cubit.dart';
+import 'package:biftech/features/flowchart/model/node_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:neopop/widgets/buttons/neopop_button/neopop_button.dart';
@@ -161,7 +162,7 @@ class _ChallengeModalState extends State<ChallengeModal> {
 
       // If user wants to add a donation, show the donation modal
       if (_showDonationAfterSubmit && mounted) {
-        _showDonationModal(context, challengeNodeId);
+        await _showDonationModal(context, challengeNodeId);
       }
     } catch (e, stackTrace) {
       // Log the error
@@ -189,8 +190,30 @@ class _ChallengeModalState extends State<ChallengeModal> {
     }
   }
 
-  void _showDonationModal(BuildContext context, String nodeId) {
-    showModalBottomSheet<void>(
+  Future<void> _showDonationModal(BuildContext context, String nodeId) async {
+    // Get the current node to find its donation amount
+    final state = widget.cubit.state;
+    if (state.rootNode == null) return;
+
+    // Find the node in the tree
+    NodeModel? findNode(NodeModel node) {
+      if (node.id == nodeId) return node;
+
+      for (final challenge in node.challenges) {
+        final found = findNode(challenge);
+        if (found != null) return found;
+      }
+
+      return null;
+    }
+
+    final node = findNode(state.rootNode!);
+    if (node == null) return;
+
+    // Get the current donation amount
+    final currentDonation = node.donation;
+
+    await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (context) {
@@ -198,9 +221,24 @@ class _ChallengeModalState extends State<ChallengeModal> {
           create: (context) => DonationCubit(),
           child: DonationModal(
             nodeId: nodeId,
-            onDonationComplete: (amount) {
-              // Update the node with the donation amount
-              widget.cubit.updateNodeDonation(nodeId, amount);
+            onDonationComplete: (amount) async {
+              // Add to the existing donation amount
+              final newAmount = currentDonation + amount;
+
+              // Update the node with the new donation amount
+              await widget.cubit.updateNodeDonation(nodeId, newAmount);
+
+              // Show success message
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Successfully donated ₹${amount.toStringAsFixed(2)}',
+                    ),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
             },
           ),
         );
