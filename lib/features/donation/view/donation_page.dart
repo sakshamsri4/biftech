@@ -7,6 +7,7 @@ import 'package:biftech/features/video_feed/model/video_model.dart';
 import 'package:biftech/features/video_feed/service/video_feed_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:neopop/neopop.dart';
 
 /// {@template donation_page}
 /// The main donation page of the application.
@@ -111,27 +112,31 @@ class _DonationPageState extends State<DonationPage> {
 
   Widget _buildHeader() {
     return Card(
-      elevation: 4,
+      elevation: 8,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24), // More generous padding
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Colors.green.shade100,
-                  child: const Icon(
-                    Icons.volunteer_activism,
-                    size: 30,
-                    color: Colors.green,
+                NeoPopShimmer(
+                  shimmerColor: Colors.green.shade300,
+                  child: CircleAvatar(
+                    radius: 32,
+                    backgroundColor: Colors.green.shade100,
+                    child: const Icon(
+                      Icons.volunteer_activism,
+                      size: 32,
+                      color: Color(0xFF00A86B), // Vibrant green
+                    ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 20),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,24 +145,35 @@ class _DonationPageState extends State<DonationPage> {
                         'Donation Center',
                         style:
                             Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w800, // Bolder
+                                  letterSpacing:
+                                      -0.5, // CRED-style tight letter spacing
+                                  color: Colors.black87,
                                 ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
                       Text(
                         'Support arguments you believe in',
-                        style: Theme.of(context).textTheme.bodyMedium,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black54,
+                            ),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24), // More spacing
             const Text(
               'Your donations help strengthen arguments in discussions\n'
               'and reward the best contributors.',
-              style: TextStyle(fontSize: 16),
+              style: TextStyle(
+                fontSize: 16,
+                height: 1.5,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
             ),
           ],
         ),
@@ -181,20 +197,25 @@ class _DonationPageState extends State<DonationPage> {
     final formattedDonation = _formatCurrency(totalDonations);
 
     return Card(
-      elevation: 2,
+      elevation: 6,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24), // More generous padding
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Donation Statistics',
-              style: Theme.of(context).textTheme.titleLarge,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
+                    color: Colors.black87,
+                  ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24), // More spacing
             // Use a more responsive layout for the stats
             LayoutBuilder(
               builder: (context, constraints) {
@@ -203,20 +224,20 @@ class _DonationPageState extends State<DonationPage> {
                   return Row(
                     children: [
                       Expanded(
-                        child: _buildStatCard(
+                        child: _buildNeoPOPStatCard(
                           'Total',
                           formattedDonation,
                           Icons.monetization_on,
-                          Colors.amber,
+                          const Color(0xFFFF9A3D), // More vibrant amber
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 20),
                       Expanded(
-                        child: _buildStatCard(
+                        child: _buildNeoPOPStatCard(
                           'Discussions',
                           totalFlowcharts.toString(),
                           Icons.account_tree,
-                          Colors.blue,
+                          const Color(0xFF4D7CFE), // More vibrant blue
                         ),
                       ),
                     ],
@@ -225,18 +246,18 @@ class _DonationPageState extends State<DonationPage> {
                   // For smaller screens, use a column layout
                   return Column(
                     children: [
-                      _buildStatCard(
+                      _buildNeoPOPStatCard(
                         'Total Donations',
                         formattedDonation,
                         Icons.monetization_on,
-                        Colors.amber,
+                        const Color(0xFFFF9A3D),
                       ),
-                      const SizedBox(height: 16),
-                      _buildStatCard(
+                      const SizedBox(height: 20),
+                      _buildNeoPOPStatCard(
                         'Active Discussions',
                         totalFlowcharts.toString(),
                         Icons.account_tree,
-                        Colors.blue,
+                        const Color(0xFF4D7CFE),
                       ),
                     ],
                   );
@@ -250,70 +271,75 @@ class _DonationPageState extends State<DonationPage> {
   }
 
   /// Format currency value to ensure it fits in the UI
-  String _formatCurrency(dynamic value) {
-    // If value is already a string, return it as is
-    if (value is String) return value;
-
-    // Convert to double
-    final doubleValue = value is double ? value : 0.0;
-
-    if (doubleValue >= 100000) {
-      return '${(doubleValue / 100000).toStringAsFixed(1)}L';
-    } else if (doubleValue >= 1000) {
-      return '${(doubleValue / 1000).toStringAsFixed(1)}K';
+  String _formatCurrency(double value) {
+    if (value >= 100000) {
+      return '₹${(value / 100000).toStringAsFixed(1)}L';
+    } else if (value >= 1000) {
+      return '₹${(value / 1000).toStringAsFixed(1)}K';
     } else {
-      return doubleValue.toStringAsFixed(0);
+      return '₹${value.toStringAsFixed(0)}';
     }
   }
 
-  Widget _buildStatCard(
+  Widget _buildNeoPOPStatCard(
     String title,
     String value,
     IconData icon,
     Color color,
   ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withAlpha(25),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withAlpha(76)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: color, size: 18),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: color.withAlpha(204),
-                    fontSize: 14,
+    return Transform.rotate(
+      angle: 0.02, // Slight tilt for 3D effect (about 1 degree)
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: color.withAlpha(25),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withAlpha(100), width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: color.withAlpha(40),
+              blurRadius: 8,
+              offset: const Offset(2, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, color: color, size: 20),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: color.withAlpha(220),
+                      fontSize: 16,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                value,
+                style: TextStyle(
+                  fontSize: 28, // Larger for emphasis
+                  fontWeight: FontWeight.w800,
+                  color: color,
+                  letterSpacing: -0.5,
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -373,9 +399,11 @@ class _DonationPageState extends State<DonationPage> {
             final winningNode = _findWinningNode(flowchart);
 
             return Card(
-              margin: const EdgeInsets.only(bottom: 16),
+              margin: const EdgeInsets.only(bottom: 24),
+              elevation: 4,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(color: Colors.grey.shade200),
               ),
               child: InkWell(
                 onTap: () {
@@ -384,9 +412,9 @@ class _DonationPageState extends State<DonationPage> {
                     '/flowchart/${video.id}',
                   );
                 },
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -394,23 +422,27 @@ class _DonationPageState extends State<DonationPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(12),
                             child: Image.asset(
                               video.thumbnailUrl,
-                              width: 100,
-                              height: 60,
+                              width: 120,
+                              height: 70,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
                                 return Container(
-                                  width: 100,
-                                  height: 60,
-                                  color: Colors.grey.shade300,
-                                  child: const Icon(Icons.image_not_supported),
+                                  width: 120,
+                                  height: 70,
+                                  color: Colors.grey.shade200,
+                                  child: Icon(
+                                    Icons.image_not_supported,
+                                    color: Colors.grey.shade400,
+                                    size: 32,
+                                  ),
                                 );
                               },
                             ),
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: 20),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -421,22 +453,30 @@ class _DonationPageState extends State<DonationPage> {
                                       .textTheme
                                       .titleMedium
                                       ?.copyWith(
-                                        fontWeight: FontWeight.bold,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: -0.5,
+                                        color: Colors.black87,
                                       ),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 6),
                                 Text(
                                   'by ${video.creator}',
-                                  style: Theme.of(context).textTheme.bodySmall,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.black54,
+                                      ),
                                 ),
                               ],
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
                       Row(
                         children: [
                           Expanded(
@@ -445,64 +485,164 @@ class _DonationPageState extends State<DonationPage> {
                               children: [
                                 Text(
                                   'Total Donations',
-                                  style: Theme.of(context).textTheme.bodyMedium,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black87,
+                                      ),
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 6),
                                 FittedBox(
                                   fit: BoxFit.scaleDown,
                                   alignment: Alignment.centerLeft,
                                   child: Text(
                                     '₹${_formatCurrency(totalDonations)}',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium
-                                        ?.copyWith(
-                                          color: Colors.green,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                    style: const TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w800,
+                                      color: Color(0xFF00A86B),
+                                      letterSpacing: -0.5,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          ElevatedButton.icon(
-                            onPressed: () {
+                          NeoPopButton(
+                            color: const Color(0xFF00A86B),
+                            onTapUp: () {
                               _showDonationModal(context, flowchart);
                             },
-                            icon: const Icon(Icons.volunteer_activism),
-                            label: const Text('Donate'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green.shade100,
-                              foregroundColor: Colors.green.shade800,
+                            onTapDown: () {},
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.volunteer_activism,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Donate',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ],
                       ),
                       ...[
-                        const Divider(height: 24),
-                        Text(
+                        const Divider(height: 32),
+                        const Text(
                           'Current Winning Argument:',
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                            color: Colors.black87,
+                            letterSpacing: -0.3,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF5F9FF),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: const Color(0xFF4D7CFE).withAlpha(50),
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                winningNode.text,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  height: 1.4,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          const Color(0xFF4D7CFE).withAlpha(20),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      'Score: ${winningNode.score}',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF4D7CFE),
+                                      ),
+                                    ),
                                   ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          winningNode.text,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        const SizedBox(height: 4),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            'Score: ${winningNode.score} '
-                            '(₹${_formatCurrency(winningNode.donation)} + '
-                            '${winningNode.comments.length} comments)',
-                            style: Theme.of(context).textTheme.bodySmall,
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          const Color(0xFF00A86B).withAlpha(20),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      '₹${_formatCurrency(
+                                        winningNode.donation,
+                                      )}',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF00A86B),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          const Color(0xFFFF9A3D).withAlpha(20),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      '${winningNode.comments.length} comments',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFFFF9A3D),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
                       ],
