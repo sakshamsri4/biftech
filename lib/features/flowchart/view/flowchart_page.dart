@@ -35,7 +35,7 @@ class FlowchartPage extends StatelessWidget {
 
             // Select it again after a delay to ensure it's still selected
             // after any state changes
-            Future.delayed(const Duration(milliseconds: 500), () {
+            Future<void>.delayed(const Duration(milliseconds: 500), () {
               if (cubit.state.rootNode != null) {
                 cubit.selectNode(cubit.state.rootNode!.id);
               }
@@ -89,11 +89,16 @@ class _FlowchartViewState extends State<FlowchartView> {
     // Add a listener to focus on the root node when the flowchart is loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
+        // Store the current context in the cubit for later use
+        if (context.mounted) {
+          context.read<FlowchartCubit>().context = context;
+        }
+        
         // Initial reset view when the widget is first built
         _resetView();
 
         // Apply a second reset after a delay to ensure the graph is fully built
-        Future.delayed(const Duration(milliseconds: 500), () {
+        Future<void>.delayed(const Duration(milliseconds: 500), () {
           if (mounted) {
             _resetView();
           }
@@ -134,7 +139,7 @@ class _FlowchartViewState extends State<FlowchartView> {
                     _resetView();
 
                     // Apply a second reset after a delay as a backup
-                    Future.delayed(const Duration(milliseconds: 500), () {
+                    Future<void>.delayed(const Duration(milliseconds: 500), () {
                       if (mounted) {
                         _resetView();
                       }
@@ -251,12 +256,12 @@ class _FlowchartViewState extends State<FlowchartView> {
         if (mounted) {
           // Use a longer delay for the initial focus
           // to ensure the graph is fully built
-          Future.delayed(const Duration(milliseconds: 800), () {
+          Future<void>.delayed(const Duration(milliseconds: 800), () {
             if (mounted) {
               _resetView();
 
               // Apply a second reset after a short delay as a backup
-              Future.delayed(const Duration(milliseconds: 500), () {
+              Future<void>.delayed(const Duration(milliseconds: 500), () {
                 if (mounted) {
                   _resetView();
                 }
@@ -489,7 +494,7 @@ class _FlowchartViewState extends State<FlowchartView> {
 
     // Use a longer delay to ensure the graph is fully built and laid out
     // This is critical for reliable focusing on the first node
-    Future.delayed(const Duration(milliseconds: 500), () {
+    Future<void>.delayed(const Duration(milliseconds: 500), () {
       if (!mounted) return;
 
       try {
@@ -556,7 +561,7 @@ class _FlowchartViewState extends State<FlowchartView> {
         debugPrint('Error resetting view: $e');
         // Try again with a longer delay if there was an error
         if (mounted) {
-          Future.delayed(const Duration(milliseconds: 500), () {
+          Future<void>.delayed(const Duration(milliseconds: 500), () {
             if (mounted) {
               // Fallback to a simpler transformation
               // if the first attempt failed

@@ -4,6 +4,7 @@ import 'package:biftech/core/services/error_logging_service.dart';
 import 'package:biftech/features/flowchart/cubit/flowchart_state.dart';
 import 'package:biftech/features/flowchart/model/models.dart';
 import 'package:biftech/features/flowchart/repository/flowchart_repository.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Cubit for managing flowchart state
@@ -17,6 +18,9 @@ class FlowchartCubit extends Cubit<FlowchartState> {
     _commentStreamController = StreamController<void>.broadcast();
     commentStream = _commentStreamController.stream;
   }
+
+  /// The BuildContext from the FlowchartPage
+  BuildContext? context;
 
   /// Stream controller for comment events
   late final StreamController<void> _commentStreamController;

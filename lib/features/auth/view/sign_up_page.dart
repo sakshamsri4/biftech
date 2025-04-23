@@ -80,7 +80,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     ),
                   );
                 // Navigate to home page
-                Future.delayed(Duration.zero, () {
+                Future<void>.delayed(Duration.zero, () {
                   if (context.mounted) {
                     Navigator.of(context).pushNamedAndRemoveUntil(
                       '/home',

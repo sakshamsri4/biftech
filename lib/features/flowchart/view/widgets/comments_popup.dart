@@ -1,8 +1,6 @@
 import 'package:biftech/features/flowchart/cubit/cubit.dart';
 import 'package:biftech/features/flowchart/model/node_model.dart';
-import 'package:biftech/features/flowchart/view/widgets/comment_modal.dart';
 import 'package:flutter/material.dart';
-import 'package:neopop/widgets/buttons/neopop_button/neopop_button.dart';
 
 /// A popup dialog that displays all comments for a node
 class CommentsPopup extends StatelessWidget {
@@ -58,7 +56,6 @@ class CommentsPopup extends StatelessWidget {
               )
             else
               _buildNoCommentsMessage(context),
-            _buildFooter(context),
           ],
         ),
       ),
@@ -294,85 +291,6 @@ class CommentsPopup extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildFooter(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(16),
-          bottomRight: Radius.circular(16),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          NeoPopButton(
-            color: Colors.grey.shade900,
-            onTapUp: () {
-              Navigator.of(context).pop();
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 12,
-              ),
-              child: Text(
-                'Close',
-                style: TextStyle(
-                  color: Colors.grey.shade300,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          NeoPopButton(
-            color: Colors.blue.shade900,
-            onTapUp: () {
-              Navigator.of(context).pop();
-              // Show the comment modal
-              _showCommentModal(context);
-            },
-            child: const Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 12,
-              ),
-              child: Text(
-                'Add Comment',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showCommentModal(BuildContext context) {
-    // First, get the root context (the context outside the dialog)
-    final rootContext = Navigator.of(context, rootNavigator: true).context;
-
-    // Close the current dialog
-    Navigator.of(context).pop();
-
-    // Show the comment modal using the root context
-    showModalBottomSheet<void>(
-      context: rootContext,
-      isScrollControlled: true,
-      builder: (context) {
-        return CommentModal(
-          nodeId: nodeModel.id,
-          cubit: cubit,
-        );
-      },
     );
   }
 

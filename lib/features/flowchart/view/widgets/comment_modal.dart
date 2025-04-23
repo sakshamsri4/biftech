@@ -122,6 +122,36 @@ class _CommentModalState extends State<CommentModal> {
     });
 
     try {
+      // Check if the cubit is closed before using it
+      var isCubitClosed = false;
+      final subscription = widget.cubit.stream.listen(null)
+        ..onDone(() {
+          isCubitClosed = true;
+        });
+
+      // Add small delay to allow the onDone handler to fire if cubit is closed
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      // Cancel the subscription to avoid memory leak
+      await subscription.cancel();
+
+      // If cubit is closed, don't proceed with the operation
+      if (isCubitClosed) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content:
+                  Text('Cannot add comment at this time. Please try again.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          setState(() {
+            _isSubmitting = false;
+          });
+        }
+        return;
+      }
+
       await widget.cubit.addComment(
         widget.nodeId,
         _commentController.text.trim(),
@@ -140,9 +170,12 @@ class _CommentModalState extends State<CommentModal> {
 
       Navigator.of(context).pop();
 
-      // Notify any listeners that a comment was added
-      // This will help update the donation page
-      widget.cubit.notifyCommentAdded();
+      // Check if cubit is still active before calling notifyCommentAdded
+      if (!isCubitClosed) {
+        // Notify any listeners that a comment was added
+        // This will help update the donation page
+        widget.cubit.notifyCommentAdded();
+      }
     } catch (e, stackTrace) {
       // Log the error
       ErrorLoggingService.instance.logError(
