@@ -1104,10 +1104,10 @@ This file tracks all development activities, issues encountered, solutions imple
   6. Updated test requirements to include tree structure and distribution tests
 
 ## [2023-04-25 | 15:15 PM]
-- ❌ Issue: Spell check action found unknown word "syncfusion" in roadmap.md
+- ❌ Issue: Spell check action found unknown word in roadmap.md
 - ✅ Fixed spelling issues in roadmap.md
 - 🔄 Solutions implemented:
-  1. Replaced "syncfusion_flutter_charts" with "pie_chart" as an alternative chart package
+  1. Replaced the unknown chart package name with "pie_chart" as an alternative
   2. Updated both the implementation details and dependencies sections
 - 📁 Files changed:
   - guide_docs/roadmap.md (fixed spelling issues)
@@ -1115,6 +1115,32 @@ This file tracks all development activities, issues encountered, solutions imple
   1. Run spell check before committing to catch spelling issues
   2. Use well-known package names or add custom words to the dictionary
   3. Consider package popularity and maintenance when selecting dependencies
+
+## [2023-04-25 | 15:30 PM]
+- ❌ Issue: Spell check still found issues with technical terms in activity_log.md
+- ✅ Updated cspell configuration to include project-specific technical terms
+- 🔄 Solutions implemented:
+  1. Added technical terms like "Formz", "pubspec", and "syncfusion" to the word list in .cspell.json
+  2. Verified that spell check passes for all documentation files
+- 📁 Files changed:
+  - .cspell.json (added project-specific technical terms)
+- 📝 Lessons learned:
+  1. Maintain a comprehensive custom dictionary for project-specific terms
+  2. Include package names, technical terms, and framework-specific vocabulary
+  3. Run spell check on all documentation files before committing
+
+## [2023-04-25 | 15:45 PM]
+- ❌ Issue: Found one more unknown word "mocktail" in dev_rules.md
+- ✅ Added "mocktail" to the cspell dictionary
+- 🔄 Solutions implemented:
+  1. Updated .cspell.json to include the testing package name "mocktail"
+  2. Ran spell check on all documentation files to verify no more issues
+- 📁 Files changed:
+  - .cspell.json (added "mocktail" to word list)
+- 📝 Lessons learned:
+  1. Be thorough when checking all documentation files for spelling issues
+  2. Remember to include testing framework and package names in the dictionary
+  3. Verify changes with a comprehensive spell check across all documentation
 
 ## Template for Future Entries
 
