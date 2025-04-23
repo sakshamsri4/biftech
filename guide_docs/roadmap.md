@@ -127,65 +127,146 @@ This workflow must be followed for all development tasks.
 **Test:** Test performance with multiple videos
 **Log in:** Memory management and performance optimization notes
 
-### 🔹 Step 4: Build Flowchart UI (3 hrs)
+### 🔹 Step 4: Build Flowchart UI and Interaction (4 hrs)
 **Branch:** `git checkout -b feature/flowchart`
 **Location:** `features/flowchart/view/flowchart_page.dart`
 **Action:**
-- Show a root idea node
-- Expandable/collapsible challenge nodes
-- Comments under each
+- Show a root idea node (the video topic)
+- Implement expandable/collapsible challenge nodes
+- Display comments under each node
+- Create a visual discussion tree with:
+  - Root node (the idea or topic)
+  - Comment threads for each node
+  - Challenge branches forming new nodes under the parent
+  - Expandable/collapsible tree structure
 
-**Use:** `flutter_treeview`
+**Use:** `flutter_treeview` for visualization
 **State mgmt:** `FlowchartCubit` manages tree structure
 **Data:** Use `NodeModel` with:
 ```dart
 String id;
 String text;
 double donation;
-List<NodeModel> challenges;
 List<String> comments;
+List<NodeModel> challenges;
+DateTime createdAt;
 ```
 
-**Test:** Add + expand nodes logic unit test
-**Log in:** Challenge: recursive state updates
+**Example JSON Structure:**
+```json
+{
+  "id": "root",
+  "text": "Electric Vehicles are the future",
+  "donation": 0,
+  "comments": ["Agreed!", "But what about battery waste?"],
+  "challenges": [
+    {
+      "id": "challenge1",
+      "text": "Battery production pollutes heavily",
+      "donation": 20,
+      "comments": ["Exactly!", "Data proves this."],
+      "challenges": []
+    }
+  ],
+  "createdAt": "2023-04-25T12:00:00Z"
+}
+```
 
-### 🔹 Step 5: Add Comment/Challenge Modal (1.5 hrs)
+**Test:**
+- Unit test for adding and expanding nodes
+- Test for tree structure manipulation
+- Test for proper node rendering
+
+**Log in:** Challenges with recursive state updates and tree visualization
+
+### 🔹 Step 5: Add Comment/Challenge Modal (2 hrs)
 **Branch:** Continue on `feature/flowchart` branch
 **Action:**
-- Tap "Comment" → input modal
-- Tap "Challenge" → modal with:
-  - Argument
-  - Optional donation
+- Implement "💬 Comment" button on each node:
+  - Tapping opens a modal with TextField for comment
+  - Comments are displayed inline under the node
+- Implement "⚔️ Challenge" button on each node:
+  - Tapping opens a modal with TextField for argument
+  - Include slider or TextField for donation amount (optional, mock only)
+  - After submission, new node appears as a child of the challenged node
+  - Tree updates in real-time locally
 
-**Use:** `showModalBottomSheet`
-**Store in:** `FlowchartCubit`
-**Test:** Cubit state after comment/challenge
-**Log in:** Donation parsing or input validation bugs
+**Use:**
+- `showModalBottomSheet` for input modals
+- NeoPopButton for comment and challenge buttons
+
+**Store in:** `FlowchartCubit` with methods:
+- `addComment(String nodeId, String comment)`
+- `addChallenge(String parentNodeId, String text, double donation)`
+
+**Test:**
+- Test Cubit state after adding comment
+- Test Cubit state after adding challenge
+- Test UI updates after state changes
+
+**Log in:**
+- Donation parsing or input validation bugs
+- Challenges with tree structure updates
 
 ## 📆 Day 2 – Logic + Mock Features + Polish
 
-### 🔹 Step 6: Add Donation Flow (1 hr)
+### 🔹 Step 6: Add Donation Flow (1.5 hrs)
 **Branch:** `git checkout -b feature/donation`
 **Location:** `features/donation/view/donation_modal.dart`
 **Action:**
-- Input donation amount + argument
-- Validate >= ₹1.0
-- Append to node
+- Create donation input UI with:
+  - Slider or TextField for amount selection
+  - Validation for minimum amount (>= ₹1.0)
+  - Visual feedback for selected amount
+- Implement mock donation storage:
+  - Store donation amount in NodeModel.donation
+  - No real PayPal integration - just mock UI
+  - Display donation amount on challenge nodes
 
-**Test:** Add donation updates the correct node
-**Log in:** Edge case test results
+**Use:**
+- NeoPopSlider or custom slider for amount selection
+- Form validation for donation amount
 
-### 🔹 Step 7: Winner Logic (1.5 hrs)
+**Test:**
+- Test that donation updates the correct node
+- Test validation logic for minimum donation
+- Test UI updates after donation
+
+**Log in:** Edge cases and validation challenges
+
+### 🔹 Step 7: Decision Logic and Winner Declaration (2.5 hrs)
 **Branch:** `git checkout -b feature/winner`
 **Location:** `features/winner/cubit/winner_cubit.dart`
 **Action:**
-- Add "Declare Winner" button
-- Traverse flowchart, find node with:
-  - Most donation + most comments
-  - Show winner in dialog
+- Implement "Declare Winner" button (mocking 24-hour evaluation)
+- Create evaluation algorithm:
+  - Calculate score for each node: score = totalDonation + numberOfComments
+  - Traverse the entire flowchart tree recursively
+  - Select node with highest score as winner
+  - Use tiebreakers: first submitted or deepest challenge
+- Implement winner declaration UI:
+  - Show dialog with title "Winning Argument"
+  - Display text of winning node
+  - Show donation earned (based on mock input)
+  - Add "View Distribution" button
+- Implement donation distribution logic (mock):
+  - Sum all donations in the tree
+  - Distribute as: 60% to winning argument, 20% to app contribution, 20% to platform margin
+  - Display distribution in a pie chart (optional)
 
-**Test:** Logic test with sample data
-**Log in:** Conflict between ties or empty case
+**Use:**
+- Recursive tree traversal for evaluation
+- `fl_chart` or `syncfusion_flutter_charts` for pie chart (optional)
+
+**Test:**
+- Test winner selection logic with various sample data
+- Test score calculation (comments + donations)
+- Test distribution percentages
+- Test tiebreaker scenarios
+
+**Log in:**
+- Challenges with recursive tree traversal
+- Handling edge cases (ties, empty tree)
 
 ### 🔹 Step 8: Theme, Responsiveness, Minor Polish (1.5 hrs)
 **Branch:** `git checkout -b feature/theme`
@@ -228,6 +309,8 @@ List<String> comments;
 | cached_network_image | Image caching |
 | image_picker | Media selection |
 | flutter_treeview | Flowchart visualization |
+| fl_chart | Pie chart for donation distribution (optional) |
+| syncfusion_flutter_charts | Alternative for charts (optional) |
 
 ## 📦 Final File Layout Reference
 
@@ -255,7 +338,7 @@ test/
 |--------|-------|
 | Auth | Cubit test (success, fail login) |
 | Video Feed | Widget test for rendering cards, video playback tests, upload form validation, controller management tests |
-| Flowchart | Cubit logic test (add node, comment) |
-| Donation | Validate donation input logic |
-| Winner | Test winner calculation logic |
+| Flowchart | Cubit logic test (add node, comment), tree structure tests, node rendering tests |
+| Donation | Validate donation input logic, test donation storage, test UI updates |
+| Winner | Test winner calculation logic, test score calculation, test distribution percentages, test tiebreaker scenarios |
 | Theme | Toggle test, default value check |

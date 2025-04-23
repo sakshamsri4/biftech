@@ -1088,6 +1088,21 @@ This file tracks all development activities, issues encountered, solutions imple
   7. Keep comprehensive documentation of supported formats
   8. Always update the activity log with all changes and lessons learned
 
+## [2023-04-25 | 14:30 PM]
+- ✅ Updated project roadmap with detailed flowchart interaction and decision logic requirements
+- ✅ Enhanced flowchart feature specifications with comprehensive node model structure
+- ✅ Added detailed decision logic for winner selection and donation distribution
+- ✅ Updated test requirements for flowchart and winner modules
+- 📁 Files changed:
+  - guide_docs/roadmap.md (updated flowchart and winner sections)
+- 📝 Implementation details:
+  1. Enhanced Step 4 (Flowchart UI) with detailed visual discussion tree requirements
+  2. Expanded Step 5 (Comment/Challenge Modal) with specific UI and interaction details
+  3. Updated Step 6 (Donation Flow) with mock donation storage requirements
+  4. Completely revised Step 7 (Decision Logic) with evaluation algorithm and distribution logic
+  5. Added new dependencies for optional pie chart visualization
+  6. Updated test requirements to include tree structure and distribution tests
+
 ## Template for Future Entries
 
 ```
