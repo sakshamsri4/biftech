@@ -21,10 +21,30 @@ class FlowchartPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => FlowchartCubit(
-        repository: FlowchartRepository.instance,
-        videoId: videoId,
-      )..loadFlowchart(),
+      create: (context) {
+        final cubit = FlowchartCubit(
+          repository: FlowchartRepository.instance,
+          videoId: videoId,
+        );
+
+        // Load the flowchart and ensure the root node is selected
+        cubit.loadFlowchart().then((_) {
+          if (cubit.state.rootNode != null) {
+            // Select the root node to ensure it's highlighted
+            cubit.selectNode(cubit.state.rootNode!.id);
+
+            // Select it again after a delay to ensure it's still selected
+            // after any state changes
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (cubit.state.rootNode != null) {
+                cubit.selectNode(cubit.state.rootNode!.id);
+              }
+            });
+          }
+        });
+
+        return cubit;
+      },
       child: const FlowchartView(),
     );
   }
@@ -43,14 +63,43 @@ class _FlowchartViewState extends State<FlowchartView> {
   final Graph graph = Graph()..isTree = true;
   BuchheimWalkerConfiguration builder = BuchheimWalkerConfiguration();
 
+  // Controller for the InteractiveViewer to programmatically control zoom/pan
+  final TransformationController _transformationController =
+      TransformationController();
+
+  // Key for the InteractiveViewer to force rebuild when needed
+  final GlobalKey _graphKey = GlobalKey();
+
+  // Key to track the root node widget
+  final GlobalKey _rootNodeKey = GlobalKey();
+
+  // Flag to track if this is the first load of the flowchart
+  bool _isFirstLoad = true;
+
   @override
   void initState() {
     super.initState();
+    // Configure the layout algorithm
     builder
-      ..siblingSeparation = 80
-      ..levelSeparation = 120
-      ..subtreeSeparation = 120
+      ..siblingSeparation = 100
+      ..levelSeparation = 150
+      ..subtreeSeparation = 150
       ..orientation = BuchheimWalkerConfiguration.ORIENTATION_TOP_BOTTOM;
+
+    // Add a listener to focus on the root node when the flowchart is loaded
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        // Initial reset view when the widget is first built
+        _resetView();
+
+        // Apply a second reset after a delay to ensure the graph is fully built
+        Future.delayed(const Duration(milliseconds: 1000), () {
+          if (mounted) {
+            _resetView();
+          }
+        });
+      }
+    });
   }
 
   @override
@@ -59,10 +108,27 @@ class _FlowchartViewState extends State<FlowchartView> {
       appBar: AppBar(
         title: const Text('Discussion Flowchart'),
         actions: [
+          // Focus on root node button
+          IconButton(
+            icon: const Icon(Icons.home),
+            tooltip: 'Focus on root node',
+            onPressed: _resetView,
+          ),
+          // Refresh button
           IconButton(
             icon: const Icon(Icons.refresh),
+            tooltip: 'Reload flowchart',
             onPressed: () {
               context.read<FlowchartCubit>().loadFlowchart();
+              // Reset view after a short delay to allow the flowchart to load
+              Future<void>.delayed(
+                const Duration(milliseconds: 300),
+                () {
+                  if (mounted) {
+                    _resetView();
+                  }
+                },
+              );
             },
           ),
           IconButton(
@@ -124,6 +190,11 @@ class _FlowchartViewState extends State<FlowchartView> {
     // Build the graph from the NodeModel tree
     _buildGraphFromTree(state.rootNode!, null);
 
+    // Debug the selected node
+    if (state.selectedNodeId != null) {
+      debugPrint('Selected node: ${state.selectedNodeId}');
+    }
+
     // Debug info
     debugPrint('Built graph with ${graph.nodes.length} nodes and '
         '${graph.edges.length} edges');
@@ -138,6 +209,31 @@ class _FlowchartViewState extends State<FlowchartView> {
       );
     }
 
+    // If this is the first load, ensure we focus on the root node
+    // after the graph is built
+    if (_isFirstLoad) {
+      _isFirstLoad = false;
+      // Use a post-frame callback to ensure the graph is fully built
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          // Use a longer delay for the initial focus
+          // to ensure the graph is fully built
+          Future.delayed(const Duration(milliseconds: 800), () {
+            if (mounted) {
+              _resetView();
+
+              // Apply a second reset after a short delay as a backup
+              Future.delayed(const Duration(milliseconds: 500), () {
+                if (mounted) {
+                  _resetView();
+                }
+              });
+            }
+          });
+        }
+      });
+    }
+
     return Container(
       width: MediaQuery.of(context).size.width,
       height: MediaQuery.of(context).size.height * 0.8,
@@ -146,10 +242,26 @@ class _FlowchartViewState extends State<FlowchartView> {
         borderRadius: BorderRadius.circular(8),
       ),
       child: InteractiveViewer(
+        key: _graphKey,
+        transformationController: _transformationController,
         constrained: false,
-        boundaryMargin: const EdgeInsets.all(500),
+        boundaryMargin: const EdgeInsets.all(1000),
         minScale: 0.1,
         maxScale: 2,
+        onInteractionEnd: (details) {
+          // Debug the current transformation
+          final matrix = _transformationController.value;
+          debugPrint('Current transformation matrix: $matrix');
+
+          // Log the scale factor (useful for debugging zoom issues)
+          final scale = matrix.getMaxScaleOnAxis();
+          debugPrint('Current scale factor: $scale');
+
+          // Log translation values (useful for debugging position issues)
+          final translationX = matrix.getTranslation().x;
+          final translationY = matrix.getTranslation().y;
+          debugPrint('Current translation: ($translationX, $translationY)');
+        },
         child: GraphView(
           graph: graph,
           algorithm: BuchheimWalkerAlgorithm(
@@ -166,12 +278,17 @@ class _FlowchartViewState extends State<FlowchartView> {
             // Find the NodeModel in the tree
             final nodeModel = _findNodeModelById(state.rootNode!, nodeId);
             final isSelected = state.selectedNodeId == nodeId;
+            final isRootNode = nodeModel.id == state.rootNode!.id;
+
+            // Use the root node key for the root node
+            final key = isRootNode ? _rootNodeKey : null;
 
             return GestureDetector(
               onTap: () {
                 context.read<FlowchartCubit>().selectNode(nodeModel.id);
               },
               child: NodeWidget(
+                key: key,
                 nodeModel: nodeModel,
                 isSelected: isSelected,
               ),
@@ -312,6 +429,107 @@ class _FlowchartViewState extends State<FlowchartView> {
         );
       },
     );
+  }
+
+  /// Reset the view to focus on the root node
+  void _resetView() {
+    final state = context.read<FlowchartCubit>().state;
+    if (state.rootNode == null) return;
+
+    // Get the root node ID
+    final rootNodeId = state.rootNode!.id;
+
+    // Select the root node to highlight it
+    context.read<FlowchartCubit>().selectNode(rootNodeId);
+
+    // Force a rebuild of the graph
+    setState(() {
+      // Clear and rebuild the graph
+      graph.nodes.clear();
+      graph.edges.clear();
+      _buildGraphFromTree(state.rootNode!, null);
+    });
+
+    // Use a longer delay to ensure the graph is fully built and laid out
+    // This is critical for reliable focusing on the first node
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (!mounted) return;
+
+      try {
+        // Find the actual position of the root node using its key
+        final rootNodeBox =
+            _rootNodeKey.currentContext?.findRenderObject() as RenderBox?;
+
+        if (rootNodeBox != null) {
+          // Get the position of the root node in the global coordinate system
+          final rootNodePosition = rootNodeBox.localToGlobal(Offset.zero);
+
+          // Get the size of the root node
+          final rootNodeSize = rootNodeBox.size;
+
+          // Get the container size
+          final containerWidth = MediaQuery.of(context).size.width;
+          final containerHeight = MediaQuery.of(context).size.height * 0.8;
+
+          // Calculate the center of the container
+          final containerCenterX = containerWidth / 2;
+          final containerCenterY = containerHeight / 2;
+
+          // Calculate the offset needed to center the root node
+          final offsetX =
+              containerCenterX - rootNodePosition.dx - (rootNodeSize.width / 2);
+          final offsetY = containerCenterY -
+              rootNodePosition.dy -
+              (rootNodeSize.height / 2);
+
+          // Create a transformation matrix that centers the root node
+          final matrix = Matrix4.identity()..translate(offsetX, offsetY);
+
+          // Apply the transformation
+          _transformationController.value = matrix;
+
+          // Debug print to help diagnose issues
+          debugPrint('Reset view to focus on root node: $rootNodeId');
+          debugPrint(
+            'Root node position: $rootNodePosition, size: $rootNodeSize',
+          );
+          debugPrint(
+            'Container center: ($containerCenterX, $containerCenterY)',
+          );
+          debugPrint('Applied offset: ($offsetX, $offsetY)');
+          debugPrint('Applied transformation: $matrix');
+
+          // Show a snackbar to provide feedback to the user
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('View reset to root node'),
+                duration: Duration(seconds: 1),
+              ),
+            );
+          }
+        } else {
+          debugPrint('Root node not found in render tree, using fallback');
+          // Fallback if the root node is not found
+          final containerWidth = MediaQuery.of(context).size.width;
+          final matrix = Matrix4.identity()..translate(containerWidth / 2, 100);
+          _transformationController.value = matrix;
+        }
+      } catch (e) {
+        debugPrint('Error resetting view: $e');
+        // Try again with a longer delay if there was an error
+        if (mounted) {
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted) {
+              // Fallback to a simpler transformation
+              // if the first attempt failed
+              final matrix = Matrix4.identity()..translate(100.0, 100);
+              _transformationController.value = matrix;
+            }
+          });
+        }
+      }
+    });
   }
 
   Widget _buildDistributionRow(

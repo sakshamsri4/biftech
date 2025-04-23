@@ -1303,6 +1303,232 @@ This file tracks all development activities, issues encountered, solutions imple
   3. Proper node identification prevents wrong nodes from being updated
   4. Detailed debug logging helps identify issues with node relationships
 
+## [2023-04-26 | 15:30 PM]
+- ❌ Issue: Refresh button not focusing on the root node of the flowchart
+- 🔄 Solutions implemented:
+  1. Added TransformationController to programmatically control the InteractiveViewer
+  2. Implemented _resetView method to focus specifically on the root node
+  3. Changed the refresh button to reload the flowchart and focus on the root node
+  4. Added a new "Focus on root node" button with home icon for direct access
+  5. Added automatic focus on the root node when the flowchart is first loaded
+  6. Improved zoom level for better visibility of the root node and its connections
+  7. Added feedback with a snackbar when the view is focused on the root node
+- 📁 Files changed:
+  - lib/features/flowchart/view/flowchart_page.dart (added root node focus functionality)
+- 📝 Lessons learned:
+  1. TransformationController provides programmatic control over InteractiveViewer
+  2. Focusing on the most important element (root node) improves user orientation
+  3. Automatic focus on initial load creates a better first-time user experience
+  4. Visual feedback helps users understand what actions have been performed
+
+## [2023-04-26 | 16:00 PM]
+- ❌ Issue: Refresh button not properly focusing on the root node
+- 🔄 Solutions implemented:
+  1. Enhanced _resetView method to select the root node and reset the view
+  2. Changed the button icon to home for better clarity
+  3. Added automatic focus on the root node when it's selected
+  4. Modified _buildFlowchart to detect when root node is selected
+  5. Added post-frame callback to ensure view is reset after layout
+  6. Added clear feedback with a snackbar when focusing on the root node
+- 📁 Files changed:
+  - lib/features/flowchart/view/flowchart_page.dart (improved root node focus)
+- 📝 Lessons learned:
+  1. Selecting a node and resetting the view should be combined for better UX
+  2. Post-frame callbacks are essential for view transformations after layout
+  3. Clear visual feedback helps users understand what actions have been performed
+  4. Home icon is more intuitive for "go to root node" functionality
+
+## [2023-04-26 | 16:30 PM]
+- ❌ Issue: Root node focus still not working correctly
+- 🔄 Solutions implemented:
+  1. Completely rewrote the _resetView method to rebuild the graph before resetting view
+  2. Added debugging for transformation matrix and selected nodes
+  3. Improved InteractiveViewer configuration with better boundary margins
+  4. Fixed refresh button to reset view after loading the flowchart
+  5. Removed conflicting automatic focus in _buildFlowchart method
+  6. Added proper state management with mounted checks for async operations
+- 📁 Files changed:
+  - lib/features/flowchart/view/flowchart_page.dart (fixed root node focus)
+- 📝 Lessons learned:
+  1. Rebuilding the graph ensures proper layout before resetting the view
+  2. Debugging transformation matrices helps understand view positioning
+  3. Proper boundary margins are essential for good InteractiveViewer behavior
+  4. Conflicting focus mechanisms can interfere with each other
+
+## [2023-04-26 | 17:00 PM]
+- ❌ Issue: Focus still not properly centered on the root node
+- 🔄 Solutions implemented:
+  1. Added explicit translation calculation based on container size
+  2. Applied specific translation to position root node at top center
+  3. Improved layout algorithm configuration for better spacing
+  4. Added detailed debugging for container size and translation
+  5. Used fixed offset values based on graph layout configuration
+- 📁 Files changed:
+  - lib/features/flowchart/view/flowchart_page.dart (improved root node positioning)
+- 📝 Lessons learned:
+  1. Matrix4.identity() alone is not sufficient - explicit translation is needed
+  2. Container dimensions must be considered when calculating translations
+  3. Fixed offsets can be more reliable than trying to calculate exact positions
+  4. Layout algorithm configuration affects the final node positioning
+
+## [2023-04-26 | 17:30 PM]
+- ❌ Issue: Root node focus still not working correctly with previous approach
+- 🔄 Solutions implemented:
+  1. Added scaling (0.8) to ensure the graph is visible at an appropriate size
+  2. Adjusted translation values to account for the applied scale
+  3. Removed automatic focus on load to prevent interference with manual focus
+  4. Improved comments to better explain the transformation logic
+  5. Fixed horizontal centering calculation to properly position the root node
+- 📁 Files changed:
+  - lib/features/flowchart/view/flowchart_page.dart (fixed root node focus with scaling)
+- 📝 Lessons learned:
+  1. Scaling must be applied before translation for proper positioning
+  2. Translation values must be adjusted for the applied scale
+  3. Automatic focus on load can interfere with manual focus operations
+  4. Coordinate systems in Flutter require careful consideration (positive Y is down)
+
+## [2023-04-26 | 18:00 PM]
+- ❌ Issue: Fixed translation values still not reliably focusing on the root node
+- 🔄 Solutions implemented:
+  1. Added GlobalKey to track the actual position of the root node
+  2. Modified GraphView builder to assign the key to the root node widget
+  3. Used RenderBox and localToGlobal to find the exact position of the root node
+  4. Calculated precise translation values based on the actual node position
+  5. Added fallback mechanism when the root node key is not available
+  6. Added detailed debugging for node position, size, and applied translations
+- 📁 Files changed:
+  - lib/features/flowchart/view/flowchart_page.dart (implemented precise root node tracking)
+- 📝 Lessons learned:
+  1. GlobalKeys can be used to track specific widgets in the widget tree
+  2. RenderBox and localToGlobal provide precise positioning information
+  3. Dynamic position calculation is more reliable than fixed offsets
+  4. Always include fallback mechanisms when relying on widget keys
+
+## [2023-04-26 | 18:30 PM]
+- ❌ Issue: Root node focus still inconsistent and unreliable
+- 🔄 Solutions implemented:
+  1. Simplified the _resetView method to just reset to identity matrix
+  2. Removed all complex position calculations that were causing inconsistencies
+  3. Added automatic focus on the root node when the widget is first built
+  4. Kept the refresh button functionality to reset view after loading
+  5. Improved feedback with clear snackbar messages
+- 📁 Files changed:
+  - lib/features/flowchart/view/flowchart_page.dart (simplified root node focus)
+- 📝 Lessons learned:
+  1. Sometimes the simplest solution is the most reliable
+  2. Complex position calculations can lead to inconsistent behavior
+  3. Matrix4.identity() provides a consistent reset point
+  4. The default view in GraphView already positions the root node appropriately
+
+## [2023-04-26 | 19:00 PM]
+- ❌ Issue: Continued issues with root node focus
+- 🔄 Solutions implemented:
+  1. Removed all attempts at custom positioning and scaling
+  2. Used the absolute simplest approach: just reset to identity matrix
+  3. Removed all unnecessary code that was causing issues
+  4. Kept only the essential functionality to reset the view
+- 📁 Files changed:
+  - lib/features/flowchart/view/flowchart_page.dart (further simplified root node focus)
+- 📝 Lessons learned:
+  1. When all else fails, use the simplest possible solution
+  2. Matrix4.identity() alone is sufficient to reset the view
+  3. The GraphView widget's default behavior already handles proper positioning
+  4. Avoid adding complexity when a simple solution works
+
+## [2023-04-26 | 19:30 PM]
+- ❌ Issue: Root node focus still not working properly
+- 🔄 Solutions implemented:
+  1. Completely rebuilt the graph on reset to ensure proper layout
+  2. Used a combination of identity matrix reset and graph rebuild
+  3. Added automatic focus on the root node when the widget is first built
+  4. Kept the refresh button functionality to reset view after loading
+- 📁 Files changed:
+  - lib/features/flowchart/view/flowchart_page.dart (improved root node focus with graph rebuild)
+- 📝 Lessons learned:
+  1. Sometimes rebuilding the entire graph is necessary for proper layout
+  2. Matrix4.identity() combined with graph rebuild provides better results
+  3. The GraphView widget needs a complete rebuild to properly focus
+  4. Simplicity is key - avoid complex transformations
+
+## [2023-04-26 | 20:00 PM]
+- ❌ Issue: Need to test and verify root node focus functionality
+- 🔄 Solutions implemented:
+  1. Added a delay after graph rebuild to ensure layout is complete before resetting view
+  2. Added detailed debug logging to help diagnose any remaining issues
+  3. Added user feedback with a snackbar when the view is reset
+  4. Improved error handling with mounted checks for async operations
+- 📁 Files changed:
+  - lib/features/flowchart/view/flowchart_page.dart (added testing and debugging for root node focus)
+- 📝 Lessons learned:
+  1. Timing is important - need to wait for layout to complete before transforming
+  2. Debug logging is essential for diagnosing issues in complex UI interactions
+  3. User feedback helps confirm when operations have completed
+  4. Always check if widget is mounted before updating state in async callbacks
+
+## [2023-04-27 | 10:00 AM]
+- ❌ Issue: Flowchart not consistently focusing on the root node when navigating to the flowchart screen
+- ✅ Implemented reliable root node focusing in the flowchart feature
+- 🔄 Solutions implemented:
+  1. Added a flag to track first load of the flowchart to ensure initial focus
+  2. Enhanced _resetView method with longer delay and error handling
+  3. Added multiple focus mechanisms to ensure at least one works
+  4. Improved debugging with detailed transformation matrix logging
+  5. Added root node selection in the FlowchartCubit when loading the flowchart
+  6. Increased delay time to ensure graph is fully built before focusing
+- 📁 Files changed:
+  - lib/features/flowchart/view/flowchart_page.dart (improved root node focusing)
+  - guide_docs/activity_log.md (documented changes)
+- 📝 Lessons learned:
+  1. Multiple focus mechanisms provide redundancy for better reliability
+  2. Proper timing with delays is critical for graph visualization
+  3. Error handling in transformation operations prevents crashes
+  4. Detailed logging helps diagnose focus and positioning issues
+  5. Selecting the root node in the cubit ensures proper highlighting
+  6. Post-frame callbacks ensure the UI is fully built before transformations
+
+## [2023-04-27 | 11:30 AM]
+- ❌ Issue: Previous solution for flowchart root node focus still not working consistently
+- ✅ Implemented a more direct approach to ensure the root node is always in focus
+- 🔄 Solutions implemented:
+  1. Used a direct translation approach instead of relying on Matrix4.identity()
+  2. Applied specific translation values based on container size to center the root node
+  3. Added multiple delayed focus attempts with increasing timeouts (500ms, 800ms, 1000ms)
+  4. Implemented redundant focus mechanisms at different stages of widget lifecycle
+  5. Added detailed logging of transformation matrix, scale, and translation values
+  6. Implemented fallback mechanisms if the primary focus attempt fails
+  7. Added double selection of root node in the cubit to ensure it remains selected
+- 📁 Files changed:
+  - lib/features/flowchart/view/flowchart_page.dart (completely revised focusing mechanism)
+  - guide_docs/activity_log.md (documented changes)
+- 📝 Lessons learned:
+  1. Direct translation with specific values is more reliable than identity matrix reset
+  2. Multiple redundant focus attempts with different delays provide better reliability
+  3. Container size must be considered when calculating translation values
+  4. Detailed logging of transformation values is essential for debugging
+  5. Fallback mechanisms are crucial for handling edge cases
+  6. Selecting the root node multiple times ensures it remains selected
+
+## [2023-04-27 | 12:30 PM]
+- ❌ Issue: Previous solutions for flowchart root node focus still not working consistently
+- ✅ Implemented a dynamic approach that finds the actual position of the root node in the render tree
+- 🔄 Solutions implemented:
+  1. Used the existing `_rootNodeKey` to find the actual position of the root node in the render tree
+  2. Calculated the exact offset needed to center the root node based on its actual position
+  3. Applied a transformation that centers the root node regardless of its position in the graph
+  4. Added detailed logging of root node position, size, and calculated offsets
+  5. Implemented fallback mechanisms if the root node is not found in the render tree
+  6. Added error handling to prevent crashes if the render tree is not ready
+- 📁 Files changed:
+  - lib/features/flowchart/view/flowchart_page.dart (implemented dynamic root node positioning)
+  - guide_docs/activity_log.md (documented changes)
+- 📝 Lessons learned:
+  1. Using GlobalKey to find the actual position of a widget in the render tree is more reliable than fixed positions
+  2. The render tree must be fully built before attempting to find a widget's position
+  3. Calculating the exact offset based on the widget's actual position ensures proper centering
+  4. Detailed logging of widget position and size is essential for debugging positioning issues
+  5. Fallback mechanisms are crucial when working with the render tree
+  6. Error handling is essential when working with the render tree to prevent crashes
+
 ## Template for Future Entries
 
 ```
