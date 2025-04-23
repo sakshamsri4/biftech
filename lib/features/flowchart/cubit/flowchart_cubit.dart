@@ -115,13 +115,16 @@ class FlowchartCubit extends Cubit<FlowchartState> {
   }
 
   /// Add a challenge to a node
-  Future<void> addChallenge(
+  /// Returns the ID of the newly created challenge node
+  Future<String> addChallenge(
     String parentNodeId,
     String text,
     double donation,
   ) async {
     try {
-      if (state.rootNode == null) return;
+      if (state.rootNode == null) {
+        throw Exception('Root node is null');
+      }
 
       // Create a new challenge node
       final challengeNode = NodeModel(
@@ -151,6 +154,11 @@ class FlowchartCubit extends Cubit<FlowchartState> {
             expandedNodeIds: expandedNodeIds,
           ),
         );
+
+        // Return the ID of the new challenge node
+        return challengeNode.id;
+      } else {
+        throw Exception('Failed to update root node');
       }
     } catch (e, stackTrace) {
       ErrorLoggingService.instance.logError(
@@ -180,6 +188,40 @@ class FlowchartCubit extends Cubit<FlowchartState> {
     if (state.rootNode == null) return 0;
 
     return _calculateTotalDonationsInTree(state.rootNode!);
+  }
+
+  /// Update the donation amount for a node
+  Future<void> updateNodeDonation(String nodeId, double amount) async {
+    try {
+      if (state.rootNode == null) return;
+
+      // Find the node and update its donation amount
+      final updatedRootNode = _updateNodeInTree(
+        state.rootNode!,
+        nodeId,
+        (node) => node.copyWith(donation: amount),
+      );
+
+      if (updatedRootNode != null) {
+        // Save the updated flowchart
+        await repository.saveFlowchart(videoId, updatedRootNode);
+
+        // Update the state
+        emit(state.copyWith(rootNode: updatedRootNode));
+      }
+    } catch (e, stackTrace) {
+      ErrorLoggingService.instance.logError(
+        e,
+        stackTrace: stackTrace,
+        context: 'FlowchartCubit.updateNodeDonation',
+      );
+      emit(
+        state.copyWith(
+          status: FlowchartStatus.failure,
+          error: 'Failed to update donation: $e',
+        ),
+      );
+    }
   }
 
   /// Helper method to update a node in the tree

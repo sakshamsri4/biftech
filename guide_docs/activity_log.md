@@ -1569,6 +1569,34 @@ This file tracks all development activities, issues encountered, solutions imple
   3. CI build failures can often be caused by dependency conflicts between branches
   4. Always check the error messages in CI logs carefully to identify the root cause
 
+## [2023-04-27 | 3:30 PM]
+- ❌ Issue: Donation flow was implemented as part of the flowchart feature, not as a separate feature module
+- ✅ Implemented donation flow as a separate feature module according to the roadmap
+- 🔄 Solutions implemented:
+  1. Created a separate donation feature module with its own view, cubit, and model
+  2. Implemented DonationModal with slider and text field for amount selection
+  3. Added validation for minimum donation amount (>= ₹1.0)
+  4. Updated the challenge modal to use the donation modal
+  5. Added updateNodeDonation method to FlowchartCubit
+  6. Added tests for the donation feature
+- 📁 Files changed:
+  - lib/features/donation/donation.dart (updated barrel file)
+  - lib/features/donation/view/donation_modal.dart (created)
+  - lib/features/donation/cubit/donation_cubit.dart (created)
+  - lib/features/donation/cubit/donation_state.dart (created)
+  - lib/features/donation/model/donation_model.dart (created)
+  - lib/features/flowchart/view/widgets/challenge_modal.dart (updated to use donation modal)
+  - lib/features/flowchart/cubit/flowchart_cubit.dart (added updateNodeDonation method)
+  - test/features/donation/cubit/donation_cubit_test.dart (created)
+  - test/features/donation/view/donation_modal_test.dart (created)
+  - guide_docs/activity_log.md (documented changes)
+- 📝 Lessons learned:
+  1. Separating features into their own modules improves code organization and maintainability
+  2. Using a checkbox to opt-in to donation provides a better user experience than forcing donation
+  3. Returning the ID of a newly created node allows for further operations on that node
+  4. BlocProvider and BlocConsumer make it easy to manage state in modals
+  5. Validation should be performed in both the UI and the cubit for better user experience and data integrity
+
 ## Template for Future Entries
 
 ```
