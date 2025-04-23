@@ -1550,6 +1550,25 @@ This file tracks all development activities, issues encountered, solutions imple
   5. Simplifying the UI by removing redundant buttons improves user experience
   6. The refresh button should handle both reloading the data and resetting the view
 
+## [2023-04-27 | 2:30 PM]
+- ❌ Issue: Dependency conflicts in pubspec.yaml causing build failures in CI
+- ✅ Fixed duplicate entries for formz and go_router packages
+- 🔄 Solutions implemented:
+  1. Updated formz from version ^0.6.1 to ^0.8.0
+  2. Updated go_router from version ^13.2.0 to ^15.1.1
+  3. Updated connectivity_plus from version ^5.0.2 to ^6.1.4
+  4. Fixed ConnectivityService to handle the new List<ConnectivityResult> type in connectivity_plus 6.1.4
+- 📁 Files changed:
+  - pubspec.yaml (updated package versions)
+  - pubspec.lock (updated package versions)
+  - lib/core/services/connectivity_service.dart (updated to handle new API)
+  - guide_docs/activity_log.md (documented changes)
+- 📝 Lessons learned:
+  1. When updating dependencies, always check for API changes that might affect your code
+  2. The connectivity_plus package now returns List<ConnectivityResult> instead of ConnectivityResult
+  3. CI build failures can often be caused by dependency conflicts between branches
+  4. Always check the error messages in CI logs carefully to identify the root cause
+
 ## Template for Future Entries
 
 ```
