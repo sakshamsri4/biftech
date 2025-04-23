@@ -1,0 +1,34 @@
+[
+  {
+    "id": "v000",
+    "title": "Sample Video 1",
+    "creator": "BifTech",
+    "views": 15000,
+    "thumbnailUrl": "assets/images/thumbnail1.jpg",
+    "videoUrl": "assets/videos/UTsR5nzN.mp4",
+    "description": "This is a sample video from our assets folder.",
+    "duration": "0:30",
+    "publishedAt": "2023-01-01T12:00:00Z",
+    "tags": [
+      "sample",
+      "demo",
+      "asset"
+    ]
+  },
+  {
+    "id": "v001",
+    "title": "Sample Video 2",
+    "creator": "BifTech",
+    "views": 12500,
+    "thumbnailUrl": "assets/images/thumbnail2.jpg",
+    "videoUrl": "assets/videos/3638-172489056_small.mp4",
+    "description": "Another sample video from our assets folder.",
+    "duration": "0:45",
+    "publishedAt": "2023-05-15T14:30:00Z",
+    "tags": [
+      "sample",
+      "demo",
+      "asset"
+    ]
+  }
+]
