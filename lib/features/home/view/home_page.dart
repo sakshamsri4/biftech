@@ -1,5 +1,8 @@
 import 'package:biftech/features/auth/model/user_model.dart';
 import 'package:biftech/features/auth/service/auth_service.dart';
+import 'package:biftech/features/flowchart/flowchart.dart';
+import 'package:biftech/features/flowchart/repository/flowchart_repository.dart';
+import 'package:biftech/features/video_feed/service/video_feed_service.dart';
 import 'package:biftech/features/video_feed/video_feed.dart';
 import 'package:flutter/material.dart';
 
@@ -352,27 +355,198 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildFlowchartTab() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.account_tree,
-            size: 100,
-            color: Colors.blue.shade200,
+    return FutureBuilder<List<VideoModel>>(
+      future: VideoFeedService.instance.getVideos(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 60,
+                  color: Colors.red.shade300,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Error loading flowcharts',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  snapshot.error.toString(),
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        }
+
+        final videos = snapshot.data ?? [];
+
+        if (videos.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.account_tree,
+                  size: 80,
+                  color: Colors.blue.shade200,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'No Flowcharts Available',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Watch videos to participate in discussions',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: videos.length,
+          itemBuilder: (context, index) {
+            final video = videos[index];
+            return _buildFlowchartCard(video);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildFlowchartCard(VideoModel video) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        onTap: () {
+          Navigator.pushNamed(
+            context,
+            '/flowchart/${video.id}',
+          );
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: _buildThumbnail(video.thumbnailUrl),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          video.title,
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'by ${video.creator}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 16,
+                runSpacing: 8,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.account_tree, size: 16),
+                      const SizedBox(width: 4),
+                      FutureBuilder<bool>(
+                        future: _hasFlowchart(video.id),
+                        builder: (context, snapshot) {
+                          final hasFlowchart = snapshot.data ?? false;
+                          return Text(
+                            hasFlowchart
+                                ? 'Discussion Active'
+                                : 'Start Discussion',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.remove_red_eye, size: 16),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${video.views} views',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          Text(
-            'Flowchart',
-            style: Theme.of(context).textTheme.headlineMedium,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Coming soon!',
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
-        ],
+        ),
       ),
+    );
+  }
+
+  Future<bool> _hasFlowchart(String videoId) async {
+    try {
+      final flowchart =
+          await FlowchartRepository.instance.getFlowchartForVideo(videoId);
+      return flowchart != null;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Builds a thumbnail image with fallback to default
+  Widget _buildThumbnail(String thumbnailUrl) {
+    // Log the error but don't show it to the user
+    return Image.asset(
+      thumbnailUrl,
+      width: 100,
+      height: 60,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        // Log the error
+        debugPrint('Error loading thumbnail: $thumbnailUrl - $error');
+
+        // Always show a placeholder without trying to load a default
+        // that might also fail
+        return const PlaceholderThumbnail();
+      },
     );
   }
 

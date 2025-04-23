@@ -41,8 +41,8 @@ class ConnectivityService {
   /// Check current connection status
   Future<bool> checkConnection() async {
     try {
-      final result = await _connectivity.checkConnectivity();
-      _updateConnectionStatus(result);
+      final results = await _connectivity.checkConnectivity();
+      _updateConnectionStatus(results);
       return _hasConnection;
     } catch (e) {
       debugPrint('Error checking connectivity: $e');
@@ -53,8 +53,10 @@ class ConnectivityService {
   }
 
   /// Update connection status based on connectivity result
-  void _updateConnectionStatus(ConnectivityResult result) {
-    final hasConnection = result != ConnectivityResult.none;
+  void _updateConnectionStatus(List<ConnectivityResult> results) {
+    // Consider connected if any result is not 'none'
+    final hasConnection =
+        results.any((result) => result != ConnectivityResult.none);
 
     // Only notify if status changed
     if (_hasConnection != hasConnection) {

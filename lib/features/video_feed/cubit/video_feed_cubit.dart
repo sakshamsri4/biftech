@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-
 import 'package:biftech/core/constants/error_messages.dart';
 import 'package:biftech/core/services/error_logging_service.dart';
 import 'package:biftech/features/video_feed/cubit/video_feed_state.dart';
@@ -280,10 +279,16 @@ class VideoFeedCubit extends Cubit<VideoFeedState> {
     if (isClosed) return;
 
     try {
+      // Create a copy of the controllers to avoid concurrent modification
+      final controllersCopy =
+          Map<String, VideoPlayerController>.from(_controllers);
+
       // Pause all controllers with error handling
-      for (final controller in _controllers.values) {
+      for (final controller in controllersCopy.values) {
         try {
-          await controller.pause();
+          if (controller.value.isInitialized) {
+            await controller.pause();
+          }
         } catch (e) {
           // Log error but continue with other controllers
           ErrorLoggingService.instance.logError(

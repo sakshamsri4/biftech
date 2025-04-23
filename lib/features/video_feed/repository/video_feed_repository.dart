@@ -217,4 +217,9 @@ class VideoFeedRepository {
     // Return a random video
     return videos[DateTime.now().millisecond % videos.length];
   }
+
+  /// Get all videos
+  Future<List<VideoModel>> getVideos() async {
+    return loadVideosFromStorage();
+  }
 }

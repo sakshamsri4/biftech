@@ -9,8 +9,14 @@ class VideoFeedService {
   /// Private constructor to prevent instantiation
   VideoFeedService._();
 
+  /// Singleton instance
+  static final VideoFeedService instance = VideoFeedService._();
+
   /// Whether the service has been initialized
   static bool _isInitialized = false;
+
+  /// Repository instance
+  final _repository = VideoFeedRepository();
 
   /// Initializes the video feed service
   static Future<void> initialize() async {
@@ -29,7 +35,7 @@ class VideoFeedService {
       }
 
       // Initialize the repository
-      await VideoFeedRepository().initialize();
+      await instance._repository.initialize();
 
       _isInitialized = true;
       debugPrint('VideoFeedService initialized successfully');
@@ -38,5 +44,13 @@ class VideoFeedService {
       // Re-throw to allow the caller to handle the error
       rethrow;
     }
+  }
+
+  /// Get all videos
+  Future<List<VideoModel>> getVideos() async {
+    if (!_isInitialized) {
+      await initialize();
+    }
+    return _repository.getVideos();
   }
 }

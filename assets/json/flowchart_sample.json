@@ -1,0 +1,31 @@
+{
+  "id": "root",
+  "text": "Electric Vehicles are the future",
+  "donation": 0,
+  "comments": ["Agreed!", "But what about battery waste?"],
+  "challenges": [
+    {
+      "id": "challenge1",
+      "text": "Battery production pollutes heavily",
+      "donation": 20,
+      "comments": ["Exactly!", "Data proves this."],
+      "challenges": [
+        {
+          "id": "challenge1_1",
+          "text": "New battery tech is reducing pollution",
+          "donation": 15,
+          "comments": ["Solid state batteries are promising"],
+          "challenges": []
+        }
+      ]
+    },
+    {
+      "id": "challenge2",
+      "text": "Electricity still comes from fossil fuels in many places",
+      "donation": 10,
+      "comments": ["True for now, but renewable energy is growing"],
+      "challenges": []
+    }
+  ],
+  "createdAt": "2023-04-25T12:00:00Z"
+}
