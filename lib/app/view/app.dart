@@ -1,5 +1,6 @@
 import 'package:biftech/features/auth/auth.dart';
 import 'package:biftech/features/auth/service/auth_service.dart';
+import 'package:biftech/features/flowchart/flowchart.dart';
 import 'package:biftech/features/home/home.dart';
 import 'package:biftech/features/video_feed/service/video_feed_service.dart';
 import 'package:biftech/features/video_feed/video_feed.dart';
@@ -87,10 +88,7 @@ class _AppState extends State<App> {
           final id = routeName.replaceFirst('/flowchart/', '');
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => Scaffold(
-              appBar: AppBar(title: const Text('Flowchart')),
-              body: Center(child: Text('Flowchart ID: $id')),
-            ),
+            builder: (context) => FlowchartPage(videoId: id),
           );
         }
 

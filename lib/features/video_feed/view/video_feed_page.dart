@@ -334,8 +334,7 @@ class _VideoListState extends State<_VideoList>
                     // Navigate to flowchart page with video ID
                     Navigator.pushNamed(
                       context,
-                      '/flowchart/:id',
-                      arguments: {'id': video.id},
+                      '/flowchart/${video.id}',
                     );
                   },
                   onDelete: (videoId) async {

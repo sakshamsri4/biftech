@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:biftech/features/auth/service/auth_service.dart';
+import 'package:biftech/features/flowchart/service/flowchart_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/widgets.dart';
 
@@ -36,9 +37,13 @@ Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
     // Initialize AuthService with proper error handling
     await AuthService.initialize();
     log('AuthService initialized successfully');
+
+    // Initialize FlowchartService
+    await FlowchartService.instance.initialize();
+    log('FlowchartService initialized successfully');
   } catch (e) {
     log(
-      'Failed to initialize AuthService: $e',
+      'Failed to initialize services: $e',
       stackTrace: StackTrace.current,
     );
     // Fallback behavior: Create an in-memory repository
@@ -47,6 +52,17 @@ Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
     try {
       await AuthService.initializeWithFallback();
       log('AuthService initialized with fallback');
+
+      // Try to initialize FlowchartService again
+      try {
+        await FlowchartService.instance.initialize();
+        log('FlowchartService initialized successfully after fallback');
+      } catch (flowchartError) {
+        log(
+          'Failed to initialize FlowchartService: $flowchartError',
+          stackTrace: StackTrace.current,
+        );
+      }
     } catch (fallbackError) {
       log(
         'Failed to initialize AuthService fallback: $fallbackError',
