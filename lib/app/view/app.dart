@@ -1,5 +1,6 @@
 import 'package:biftech/features/auth/auth.dart';
 import 'package:biftech/features/auth/service/auth_service.dart';
+import 'package:biftech/features/donation/view/donation_page.dart';
 import 'package:biftech/features/flowchart/flowchart.dart';
 import 'package:biftech/features/home/home.dart';
 import 'package:biftech/features/video_feed/service/video_feed_service.dart';
@@ -80,6 +81,11 @@ class _AppState extends State<App> {
         return MaterialPageRoute(
           settings: settings,
           builder: (context) => const VideoFeedPage(),
+        );
+      case '/donation':
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const DonationPage(),
         );
       default:
         // Handle dynamic routes

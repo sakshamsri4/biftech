@@ -1,5 +1,7 @@
 import 'package:biftech/features/auth/model/user_model.dart';
 import 'package:biftech/features/auth/service/auth_service.dart';
+import 'package:biftech/features/donation/donation.dart';
+import 'package:biftech/features/donation/view/donation_page.dart';
 import 'package:biftech/features/flowchart/flowchart.dart';
 import 'package:biftech/features/flowchart/repository/flowchart_repository.dart';
 import 'package:biftech/features/video_feed/service/video_feed_service.dart';
@@ -551,27 +553,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildDonateTab() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.volunteer_activism,
-            size: 100,
-            color: Colors.blue.shade200,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Donation',
-            style: Theme.of(context).textTheme.headlineMedium,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Coming soon!',
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
-        ],
-      ),
-    );
+    // Use the new DonationPage
+    return const DonationPage();
   }
 }
