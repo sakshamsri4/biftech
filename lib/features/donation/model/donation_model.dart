@@ -10,6 +10,16 @@ class DonationModel extends Equatable {
     required this.timestamp,
   });
 
+  /// Create donation from JSON
+  factory DonationModel.fromJson(Map<String, dynamic> json) {
+    return DonationModel(
+      id: json['id'] as String,
+      nodeId: json['nodeId'] as String,
+      amount: (json['amount'] as num).toDouble(),
+      timestamp: DateTime.parse(json['timestamp'] as String),
+    );
+  }
+
   /// Unique identifier for the donation
   final String id;
 
@@ -45,16 +55,6 @@ class DonationModel extends Equatable {
       'amount': amount,
       'timestamp': timestamp.toIso8601String(),
     };
-  }
-
-  /// Create donation from JSON
-  factory DonationModel.fromJson(Map<String, dynamic> json) {
-    return DonationModel(
-      id: json['id'] as String,
-      nodeId: json['nodeId'] as String,
-      amount: (json['amount'] as num).toDouble(),
-      timestamp: DateTime.parse(json['timestamp'] as String),
-    );
   }
 
   @override

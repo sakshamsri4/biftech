@@ -1,7 +1,9 @@
 import 'package:biftech/features/donation/donation.dart';
 import 'package:biftech/features/flowchart/cubit/cubit.dart';
 import 'package:biftech/features/flowchart/model/models.dart';
+import 'package:biftech/features/flowchart/model/node_model.dart';
 import 'package:biftech/features/flowchart/repository/flowchart_repository.dart';
+import 'package:biftech/features/video_feed/model/video_model.dart';
 import 'package:biftech/features/video_feed/service/video_feed_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -19,7 +21,7 @@ class DonationPage extends StatefulWidget {
 
 class _DonationPageState extends State<DonationPage> {
   List<VideoModel> _videos = [];
-  Map<String, NodeModel?> _flowcharts = {};
+  final Map<String, NodeModel?> _flowcharts = {};
   bool _isLoading = true;
 
   @override
@@ -41,8 +43,8 @@ class _DonationPageState extends State<DonationPage> {
       // Load flowcharts for each video
       for (final video in videos) {
         try {
-          final flowchart = await FlowchartRepository.instance
-              .getFlowchartForVideo(video.id);
+          final flowchart =
+              await FlowchartRepository.instance.getFlowchartForVideo(video.id);
           _flowcharts[video.id] = flowchart;
         } catch (e) {
           debugPrint('Error loading flowchart for video ${video.id}: $e');
@@ -136,9 +138,10 @@ class _DonationPageState extends State<DonationPage> {
                     children: [
                       Text(
                         'Donation Center',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -152,7 +155,8 @@ class _DonationPageState extends State<DonationPage> {
             ),
             const SizedBox(height: 16),
             const Text(
-              'Your donations help strengthen arguments in discussions and reward the best contributors.',
+              'Your donations help strengthen arguments in discussions\n'
+              'and reward the best contributors.',
               style: TextStyle(fontSize: 16),
             ),
           ],
@@ -163,8 +167,8 @@ class _DonationPageState extends State<DonationPage> {
 
   Widget _buildDonationStats() {
     // Calculate total donations
-    double totalDonations = 0;
-    int totalFlowcharts = 0;
+    var totalDonations = 0.0;
+    var totalFlowcharts = 0;
 
     for (final flowchart in _flowcharts.values) {
       if (flowchart != null) {
@@ -224,9 +228,9 @@ class _DonationPageState extends State<DonationPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withAlpha(25),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withAlpha(76)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -239,7 +243,7 @@ class _DonationPageState extends State<DonationPage> {
                 title,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: color.withOpacity(0.8),
+                  color: color.withAlpha(204),
                 ),
               ),
             ],
@@ -304,14 +308,14 @@ class _DonationPageState extends State<DonationPage> {
           itemBuilder: (context, index) {
             final video = videosWithFlowcharts[index];
             final flowchart = _flowcharts[video.id];
-            
+
             if (flowchart == null) {
               return const SizedBox.shrink();
             }
-            
+
             final totalDonations = _calculateTotalDonations(flowchart);
             final winningNode = _findWinningNode(flowchart);
-            
+
             return Card(
               margin: const EdgeInsets.only(bottom: 16),
               shape: RoundedRectangleBorder(
@@ -414,13 +418,14 @@ class _DonationPageState extends State<DonationPage> {
                           ),
                         ],
                       ),
-                      if (winningNode != null) ...[
+                      ...[
                         const Divider(height: 24),
                         Text(
                           'Current Winning Argument:',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -431,7 +436,8 @@ class _DonationPageState extends State<DonationPage> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Score: ${winningNode.score} (₹${winningNode.donation.toStringAsFixed(2)} + ${winningNode.comments.length} comments)',
+                          'Score: ${winningNode.score} (₹${winningNode.donation.toStringAsFixed(2)} + '
+                          '${winningNode.comments.length} comments)',
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
@@ -449,7 +455,8 @@ class _DonationPageState extends State<DonationPage> {
   void _showDonationModal(BuildContext context, NodeModel rootNode) {
     // Find the winning node to donate to
     final winningNode = _findWinningNode(rootNode);
-    final nodeId = winningNode?.id ?? rootNode.id;
+    // Use the winning node ID
+    final nodeId = winningNode.id;
 
     showModalBottomSheet<void>(
       context: context,
@@ -465,7 +472,7 @@ class _DonationPageState extends State<DonationPage> {
             onDonationComplete: (amount) {
               // Refresh the data after donation
               _loadData();
-              
+
               // Show success message
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -484,18 +491,18 @@ class _DonationPageState extends State<DonationPage> {
 
   double _calculateTotalDonations(NodeModel node) {
     var total = node.donation;
-    
+
     for (final challenge in node.challenges) {
       total += _calculateTotalDonations(challenge);
     }
-    
+
     return total;
   }
 
   NodeModel _findWinningNode(NodeModel node) {
     var highestNode = node;
     var highestScore = node.score;
-    
+
     for (final challenge in node.challenges) {
       final winningNode = _findWinningNode(challenge);
       if (winningNode.score > highestScore) {
@@ -508,7 +515,7 @@ class _DonationPageState extends State<DonationPage> {
         }
       }
     }
-    
+
     return highestNode;
   }
 }

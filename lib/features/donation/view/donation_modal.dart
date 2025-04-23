@@ -1,5 +1,6 @@
 import 'package:biftech/core/services/error_logging_service.dart';
 import 'package:biftech/features/donation/cubit/donation_cubit.dart';
+import 'package:biftech/features/donation/cubit/donation_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -18,7 +19,7 @@ class DonationModal extends StatefulWidget {
   final String nodeId;
 
   /// Callback when donation is complete
-  final Function(double amount) onDonationComplete;
+  final void Function(double amount) onDonationComplete;
 
   @override
   State<DonationModal> createState() => _DonationModalState();
@@ -27,8 +28,8 @@ class DonationModal extends StatefulWidget {
 class _DonationModalState extends State<DonationModal> {
   final _donationController = TextEditingController(text: '1.0');
   final _formKey = GlobalKey<FormState>();
-  bool _isSubmitting = false;
-  double _donationAmount = 1.0;
+  // Track the donation amount
+  double _donationAmount = 1;
 
   @override
   void dispose() {
@@ -48,7 +49,8 @@ class _DonationModalState extends State<DonationModal> {
           } else if (state.status == DonationStatus.failure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.errorMessage ?? 'Failed to process donation'),
+                content:
+                    Text(state.errorMessage ?? 'Failed to process donation'),
                 backgroundColor: Colors.red,
               ),
             );
@@ -83,14 +85,15 @@ class _DonationModalState extends State<DonationModal> {
                       Expanded(
                         child: Slider(
                           value: _donationAmount,
-                          min: 1.0,
-                          max: 100.0,
+                          min: 1,
+                          max: 100,
                           divisions: 99,
                           label: '₹${_donationAmount.toStringAsFixed(1)}',
                           onChanged: (value) {
                             setState(() {
                               _donationAmount = value;
-                              _donationController.text = value.toStringAsFixed(1);
+                              _donationController.text =
+                                  value.toStringAsFixed(1);
                             });
                           },
                         ),
@@ -196,13 +199,9 @@ class _DonationModalState extends State<DonationModal> {
       return;
     }
 
-    setState(() {
-      _isSubmitting = true;
-    });
-
     try {
       final donation = double.tryParse(_donationController.text) ?? 0;
-      
+
       if (donation < 1.0) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -210,9 +209,6 @@ class _DonationModalState extends State<DonationModal> {
             backgroundColor: Colors.red,
           ),
         );
-        setState(() {
-          _isSubmitting = false;
-        });
         return;
       }
 
@@ -238,10 +234,6 @@ class _DonationModalState extends State<DonationModal> {
           backgroundColor: Colors.red,
         ),
       );
-      
-      setState(() {
-        _isSubmitting = false;
-      });
     }
   }
 }
