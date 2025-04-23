@@ -6,7 +6,6 @@ import 'package:biftech/features/flowchart/view/widgets/comment_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:graphview/graphview.dart';
-import 'package:neopop/widgets/buttons/neopop_button/neopop_button.dart';
 
 /// Page for displaying and interacting with a flowchart
 class FlowchartPage extends StatelessWidget {
@@ -48,9 +47,9 @@ class _FlowchartViewState extends State<FlowchartView> {
   void initState() {
     super.initState();
     builder
-      ..siblingSeparation = 100
-      ..levelSeparation = 150
-      ..subtreeSeparation = 150
+      ..siblingSeparation = 80
+      ..levelSeparation = 120
+      ..subtreeSeparation = 120
       ..orientation = BuchheimWalkerConfiguration.ORIENTATION_TOP_BOTTOM;
   }
 
@@ -92,7 +91,8 @@ class _FlowchartViewState extends State<FlowchartView> {
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 16),
-                    Text(state.error ?? 'Unknown error'),
+                    // Don't show technical error details to users
+                    const Text('Something went wrong. Please try again.'),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () {
@@ -124,38 +124,60 @@ class _FlowchartViewState extends State<FlowchartView> {
     // Build the graph from the NodeModel tree
     _buildGraphFromTree(state.rootNode!, null);
 
-    return InteractiveViewer(
-      constrained: false,
-      boundaryMargin: const EdgeInsets.all(100),
-      minScale: 0.01,
-      maxScale: 5.6,
-      child: GraphView(
-        graph: graph,
-        algorithm: BuchheimWalkerAlgorithm(
-          builder,
-          TreeEdgeRenderer(builder),
-        ),
-        paint: Paint()
-          ..color = Colors.green
-          ..strokeWidth = 1
-          ..style = PaintingStyle.stroke,
-        builder: (Node node) {
-          // Get the NodeModel from the node's key
-          final nodeId = node.key?.value as String;
-          // Find the NodeModel in the tree
-          final nodeModel = _findNodeModelById(state.rootNode!, nodeId);
-          final isSelected = state.selectedNodeId == nodeId;
+    // Debug info
+    debugPrint('Built graph with ${graph.nodes.length} nodes and '
+        '${graph.edges.length} edges');
 
-          return GestureDetector(
-            onTap: () {
-              context.read<FlowchartCubit>().selectNode(nodeModel.id);
-            },
-            child: NodeWidget(
-              nodeModel: nodeModel,
-              isSelected: isSelected,
-            ),
-          );
-        },
+    // Print details about each node and edge
+    for (final node in graph.nodes) {
+      debugPrint('Node: ${node.key?.value}');
+    }
+    for (final edge in graph.edges) {
+      debugPrint(
+        'Edge: ${edge.source.key?.value} -> ${edge.destination.key?.value}',
+      );
+    }
+
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      height: MediaQuery.of(context).size.height * 0.8,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: InteractiveViewer(
+        constrained: false,
+        boundaryMargin: const EdgeInsets.all(500),
+        minScale: 0.1,
+        maxScale: 2,
+        child: GraphView(
+          graph: graph,
+          algorithm: BuchheimWalkerAlgorithm(
+            builder,
+            TreeEdgeRenderer(builder),
+          ),
+          paint: Paint()
+            ..color = Colors.orange.shade400
+            ..strokeWidth = 2
+            ..style = PaintingStyle.stroke,
+          builder: (Node node) {
+            // Get the NodeModel from the node's key
+            final nodeId = node.key?.value as String;
+            // Find the NodeModel in the tree
+            final nodeModel = _findNodeModelById(state.rootNode!, nodeId);
+            final isSelected = state.selectedNodeId == nodeId;
+
+            return GestureDetector(
+              onTap: () {
+                context.read<FlowchartCubit>().selectNode(nodeModel.id);
+              },
+              child: NodeWidget(
+                nodeModel: nodeModel,
+                isSelected: isSelected,
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -180,19 +202,31 @@ class _FlowchartViewState extends State<FlowchartView> {
 
   /// Find a NodeModel by its ID in the tree
   NodeModel _findNodeModelById(NodeModel rootNode, String nodeId) {
-    if (rootNode.id == nodeId) {
-      return rootNode;
+    // Create a map of all nodes for faster lookup
+    final nodeMap = <String, NodeModel>{};
+    _buildNodeMap(rootNode, nodeMap);
+
+    // Look up the node by ID
+    final node = nodeMap[nodeId];
+    if (node != null) {
+      return node;
     }
 
-    for (final challenge in rootNode.challenges) {
-      try {
-        return _findNodeModelById(challenge, nodeId);
-      } catch (_) {
-        // Node not found in this branch, continue searching
-      }
-    }
+    // If node not found, log the error and return the root node as fallback
+    debugPrint('Node not found: $nodeId, using root node as fallback');
+    debugPrint('Available nodes: ${nodeMap.keys.join(', ')}');
+    return rootNode;
+  }
 
-    throw Exception('Node not found: $nodeId');
+  /// Build a map of all nodes in the tree for faster lookup
+  void _buildNodeMap(NodeModel node, Map<String, NodeModel> nodeMap) {
+    // Add this node to the map
+    nodeMap[node.id] = node;
+
+    // Recursively add all challenge nodes
+    for (final challenge in node.challenges) {
+      _buildNodeMap(challenge, nodeMap);
+    }
   }
 
   void _showWinnerDialog(BuildContext context) {
@@ -322,18 +356,87 @@ class NodeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Check if this node has challenges
+    final hasChallenges = nodeModel.challenges.isNotEmpty;
+
+    // Determine the node color based on its position in the tree
+    final isRoot = nodeModel.id.startsWith('root_');
+    final isChallenge = nodeModel.id.startsWith('challenge_');
+
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      elevation: isSelected ? 8 : 1,
-      color: isSelected ? Colors.blue.shade50 : null,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(4),
+      elevation: isSelected ? 8 : 2,
+      color: isSelected
+          ? Colors.blue.shade50
+          : isRoot
+              ? Colors.green.shade50
+              : isChallenge
+                  ? Colors.orange.shade50
+                  : Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: hasChallenges
+            ? BorderSide(color: Colors.orange.shade400, width: 2)
+            : isRoot
+                ? BorderSide(color: Colors.green.shade400, width: 2)
+                : BorderSide.none,
+      ),
+      child: Container(
+        constraints: const BoxConstraints(
+          minWidth: 120,
+          maxWidth: 200,
+        ),
+        padding: const EdgeInsets.all(12),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Row(
+              children: [
+                if (isRoot)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    margin: const EdgeInsets.only(right: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade400,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      'ROOT',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  )
+                else if (isChallenge)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    margin: const EdgeInsets.only(right: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade400,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      'CHALLENGE',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 4),
             Text(
               nodeModel.text,
               style: Theme.of(context).textTheme.titleMedium,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
             ),
             if (nodeModel.donation > 0) ...[
               const SizedBox(height: 8),
@@ -350,7 +453,8 @@ class NodeWidget extends StatelessWidget {
                 ],
               ),
             ],
-            if (nodeModel.comments.isNotEmpty) ...[
+            if (nodeModel.comments.isNotEmpty &&
+                nodeModel.comments.length <= 2) ...[
               const SizedBox(height: 16),
               const Divider(),
               const SizedBox(height: 8),
@@ -359,61 +463,64 @@ class NodeWidget extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleSmall,
               ),
               const SizedBox(height: 8),
-              ...nodeModel.comments.map(
-                (comment) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(comment),
+              ...nodeModel.comments.take(2).map(
+                    (comment) => Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        comment,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                  ),
+              if (nodeModel.comments.length > 2)
+                Text(
+                  '+ ${nodeModel.comments.length - 2} more comments',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.grey,
+                      ),
                 ),
-              ),
             ],
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                NeoPopButton(
-                  color: Colors.blue.shade100,
-                  onTapUp: () {
-                    _showCommentModal(context);
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.comment, size: 16),
+                      onPressed: () => _showCommentModal(context),
+                      tooltip: 'Comment',
+                      constraints: const BoxConstraints(),
+                      padding: const EdgeInsets.all(4),
                     ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.comment, size: 16),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Comment',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ],
+                    Text(
+                      '${nodeModel.comments.length}',
+                      style: Theme.of(context).textTheme.bodySmall,
                     ),
-                  ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                NeoPopButton(
-                  color: Colors.red.shade100,
-                  onTapUp: () {
-                    _showChallengeModal(context);
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.flash_on,
+                        size: 16,
+                        color: Colors.orange,
+                      ),
+                      onPressed: () => _showChallengeModal(context),
+                      tooltip: 'Challenge',
+                      constraints: const BoxConstraints(),
+                      padding: const EdgeInsets.all(4),
                     ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.flash_on, size: 16),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Challenge',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ],
+                    Text(
+                      '${nodeModel.challenges.length}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.orange,
+                          ),
                     ),
-                  ),
+                  ],
                 ),
               ],
             ),
@@ -424,21 +531,33 @@ class NodeWidget extends StatelessWidget {
   }
 
   void _showCommentModal(BuildContext context) {
+    // Get the cubit from the parent context
+    final cubit = context.read<FlowchartCubit>();
+
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (context) {
-        return CommentModal(nodeId: nodeModel.id);
+        return CommentModal(
+          nodeId: nodeModel.id,
+          cubit: cubit,
+        );
       },
     );
   }
 
   void _showChallengeModal(BuildContext context) {
+    // Get the cubit from the parent context
+    final cubit = context.read<FlowchartCubit>();
+
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (context) {
-        return ChallengeModal(parentNodeId: nodeModel.id);
+        return ChallengeModal(
+          parentNodeId: nodeModel.id,
+          cubit: cubit,
+        );
       },
     );
   }

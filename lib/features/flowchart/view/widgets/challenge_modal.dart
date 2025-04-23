@@ -1,7 +1,7 @@
+import 'package:biftech/core/services/error_logging_service.dart';
 import 'package:biftech/features/flowchart/cubit/cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:neopop/widgets/buttons/neopop_button/neopop_button.dart';
 
 /// Modal for adding a challenge to a node
@@ -9,11 +9,15 @@ class ChallengeModal extends StatefulWidget {
   /// Constructor
   const ChallengeModal({
     required this.parentNodeId,
+    required this.cubit,
     super.key,
   });
 
   /// ID of the parent node to challenge
   final String parentNodeId;
+
+  /// Cubit for managing flowchart state
+  final FlowchartCubit cubit;
 
   @override
   State<ChallengeModal> createState() => _ChallengeModalState();
@@ -192,21 +196,30 @@ class _ChallengeModalState extends State<ChallengeModal> {
     try {
       final donation = double.tryParse(_donationController.text) ?? 0;
 
-      await context.read<FlowchartCubit>().addChallenge(
-            widget.parentNodeId,
-            _textController.text.trim(),
-            donation,
-          );
+      await widget.cubit.addChallenge(
+        widget.parentNodeId,
+        _textController.text.trim(),
+        donation,
+      );
 
       if (!mounted) return;
 
       Navigator.of(context).pop();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // Log the error
+      ErrorLoggingService.instance.logError(
+        e,
+        stackTrace: stackTrace,
+        context: 'ChallengeModal._submitChallenge',
+      );
+
       if (!mounted) return;
 
+      // Show a user-friendly message
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to add challenge: $e'),
+        const SnackBar(
+          content: Text('Failed to add challenge. Please try again.'),
+          backgroundColor: Colors.red,
         ),
       );
     } finally {

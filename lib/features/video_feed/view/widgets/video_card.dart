@@ -1,6 +1,7 @@
 import 'package:biftech/core/services/error_logging_service.dart';
 import 'package:biftech/features/video_feed/cubit/cubit.dart';
 import 'package:biftech/features/video_feed/model/models.dart';
+import 'package:biftech/features/video_feed/view/widgets/placeholder_thumbnail.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -505,27 +506,21 @@ class _VideoCardState extends State<VideoCard> {
                                         ),
                                       ),
                                     ),
-                                    errorWidget: (context, url, error) =>
-                                        const ColoredBox(
-                                      color: Color(0xFF1E1E1E),
-                                      child: Center(
-                                        child: Icon(
-                                          Icons.video_library,
-                                          color: Color(0xFF6C63FF),
-                                          size: 48,
-                                        ),
-                                      ),
-                                    ),
+                                    errorWidget: (context, url, error) {
+                                      // Log the error
+                                      ErrorLoggingService.instance.logError(
+                                        error,
+                                        context: 'VideoCard.thumbnail',
+                                      );
+                                      return const PlaceholderThumbnail(
+                                        width: double.infinity,
+                                        height: double.infinity,
+                                      );
+                                    },
                                   )
-                                : const ColoredBox(
-                                    color: Color(0xFF1E1E1E),
-                                    child: Center(
-                                      child: Icon(
-                                        Icons.video_library,
-                                        color: Color(0xFF6C63FF),
-                                        size: 48,
-                                      ),
-                                    ),
+                                : const PlaceholderThumbnail(
+                                    width: double.infinity,
+                                    height: double.infinity,
                                   ),
 
                           // Play button overlay with NeoPOP styling

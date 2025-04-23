@@ -1193,6 +1193,116 @@ This file tracks all development activities, issues encountered, solutions imple
   3. Ensure all features are accessible from the main navigation
   4. Follow the branching strategy specified in the roadmap
 
+## [2023-04-26 | 12:15 PM]
+- ❌ Issue: Error messages showing on UI instead of being properly logged
+- ❌ Issue: Missing thumbnail images causing errors
+- ❌ Issue: Concurrent modification error in VideoFeedCubit.pauseAllVideos
+- 🔄 Solutions implemented:
+  1. Created PlaceholderThumbnail widget for graceful fallback
+  2. Updated error handling to log errors but not show them to users
+  3. Fixed concurrent modification issue in pauseAllVideos method
+  4. Added images directory to pubspec.yaml assets
+- 📁 Files changed:
+  - lib/features/home/view/home_page.dart (improved error handling)
+  - lib/features/video_feed/cubit/video_feed_cubit.dart (fixed concurrent modification)
+  - lib/features/video_feed/view/widgets/video_card.dart (improved error handling)
+  - lib/features/video_feed/view/widgets/placeholder_thumbnail.dart (new file)
+  - pubspec.yaml (added images directory to assets)
+- 📝 Lessons learned:
+  1. Never show technical errors directly to users
+  2. Always provide graceful fallbacks for missing assets
+  3. Be careful with concurrent modifications in collections
+  4. Log errors properly for debugging but show user-friendly messages
+
+## [2023-04-26 | 13:00 PM]
+- ❌ Issue: Error messages showing in UI when adding comments/challenges
+- ❌ Issue: Exceptions thrown in _findNodeModelById could be shown to users
+- 🔄 Solutions implemented:
+  1. Updated CommentModal and ChallengeModal to properly log errors
+  2. Replaced raw error messages with user-friendly messages
+  3. Modified _findNodeModelById to return a fallback instead of throwing exceptions
+  4. Added proper error logging with stacktraces
+- 📁 Files changed:
+  - lib/features/flowchart/view/widgets/comment_modal.dart (improved error handling)
+  - lib/features/flowchart/view/widgets/challenge_modal.dart (improved error handling)
+  - lib/features/flowchart/view/flowchart_page.dart (improved error handling)
+- 📝 Lessons learned:
+  1. Always catch exceptions and provide fallbacks in UI code
+  2. Log errors with stacktraces for better debugging
+  3. Show user-friendly error messages instead of technical details
+  4. Ensure all error handling is consistent across the application
+
+## [2023-04-26 | 13:30 PM]
+- ❌ Issue: Provider not found error when adding comments/challenges
+- 🔄 Solutions implemented:
+  1. Modified CommentModal and ChallengeModal to accept a FlowchartCubit parameter
+  2. Updated the NodeWidget to pass the cubit when showing modals
+  3. Removed unused imports
+- 📁 Files changed:
+  - lib/features/flowchart/view/widgets/comment_modal.dart (added cubit parameter)
+  - lib/features/flowchart/view/widgets/challenge_modal.dart (added cubit parameter)
+  - lib/features/flowchart/view/flowchart_page.dart (passed cubit to modals)
+- 📝 Lessons learned:
+  1. Be careful with provider scoping in modal dialogs and bottom sheets
+  2. Pass dependencies explicitly when crossing route boundaries
+  3. Remember that showModalBottomSheet creates a new route
+  4. Always test UI interactions thoroughly
+
+## [2023-04-26 | 14:00 PM]
+- ❌ Issue: Flowchart visualization not displaying properly
+- ❌ Issue: Graph edges not visible between nodes
+- ❌ Issue: Node cards too large for a proper flowchart view
+- 🔄 Solutions implemented:
+  1. Improved graph layout configuration with better spacing
+  2. Added container with fixed size to ensure graph is visible
+  3. Made edges more visible with thicker blue lines
+  4. Redesigned NodeWidget to be more compact and suitable for a flowchart
+  5. Added constraints to limit node width for better layout
+  6. Improved text overflow handling with ellipsis
+  7. Added comment count indicator
+- 📁 Files changed:
+  - lib/features/flowchart/view/flowchart_page.dart (improved visualization)
+- 📝 Lessons learned:
+  1. Graph visualization requires careful layout configuration
+  2. Node size and spacing are critical for a readable flowchart
+  3. Visual hierarchy is important for complex tree structures
+  4. Always test with multiple nodes to ensure proper layout
+
+## [2023-04-26 | 14:30 PM]
+- ❌ Issue: Challenge functionality not working correctly in flowchart
+- ❌ Issue: Tree structure not clearly visible to users
+- 🔄 Solutions implemented:
+  1. Added visual indicators for nodes with challenges (orange border)
+  2. Added challenge count indicator next to challenge button
+  3. Reduced node size for better tree visualization
+  4. Added debug logging for nodes and edges to troubleshoot issues
+  5. Adjusted layout parameters for better tree structure
+- 📁 Files changed:
+  - lib/features/flowchart/view/flowchart_page.dart (improved challenge visualization)
+- 📝 Lessons learned:
+  1. Visual indicators are important for showing relationships in a tree
+  2. Debug logging is essential for troubleshooting graph visualization issues
+  3. Node size and constraints significantly impact the overall tree layout
+  4. Proper visual feedback helps users understand the discussion structure
+
+## [2023-04-26 | 15:00 PM]
+- ❌ Issue: Challenge nodes not properly branching from parent nodes
+- ❌ Issue: Wrong nodes being updated when adding challenges
+- 🔄 Solutions implemented:
+  1. Completely rewrote the node lookup algorithm to use a map for faster and more reliable lookups
+  2. Added visual differentiation between root nodes and challenge nodes
+  3. Added type badges to clearly identify node types (ROOT, CHALLENGE)
+  4. Changed edge colors to orange for better visibility
+  5. Improved layout parameters for clearer tree structure
+  6. Added more detailed debug logging for node identification
+- 📁 Files changed:
+  - lib/features/flowchart/view/flowchart_page.dart (fixed node lookup and improved visualization)
+- 📝 Lessons learned:
+  1. Using a map for node lookup is much more reliable than recursive search
+  2. Visual differentiation between node types is crucial for understanding tree structure
+  3. Proper node identification prevents wrong nodes from being updated
+  4. Detailed debug logging helps identify issues with node relationships
+
 ## Template for Future Entries
 
 ```

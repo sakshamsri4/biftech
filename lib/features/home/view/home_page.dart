@@ -451,12 +451,7 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: Image.asset(
-                      video.thumbnailUrl,
-                      width: 100,
-                      height: 60,
-                      fit: BoxFit.cover,
-                    ),
+                    child: _buildThumbnail(video.thumbnailUrl),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -483,10 +478,12 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
               const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Wrap(
+                spacing: 16,
+                runSpacing: 8,
                 children: [
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(Icons.account_tree, size: 16),
                       const SizedBox(width: 4),
@@ -505,6 +502,7 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(Icons.remove_red_eye, size: 16),
                       const SizedBox(width: 4),
@@ -531,6 +529,25 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       return false;
     }
+  }
+
+  /// Builds a thumbnail image with fallback to default
+  Widget _buildThumbnail(String thumbnailUrl) {
+    // Log the error but don't show it to the user
+    return Image.asset(
+      thumbnailUrl,
+      width: 100,
+      height: 60,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        // Log the error
+        debugPrint('Error loading thumbnail: $thumbnailUrl - $error');
+
+        // Always show a placeholder without trying to load a default
+        // that might also fail
+        return const PlaceholderThumbnail();
+      },
+    );
   }
 
   Widget _buildDonateTab() {

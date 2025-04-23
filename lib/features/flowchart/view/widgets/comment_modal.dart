@@ -1,6 +1,6 @@
+import 'package:biftech/core/services/error_logging_service.dart';
 import 'package:biftech/features/flowchart/cubit/cubit.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:neopop/widgets/buttons/neopop_button/neopop_button.dart';
 
 /// Modal for adding a comment to a node
@@ -8,11 +8,15 @@ class CommentModal extends StatefulWidget {
   /// Constructor
   const CommentModal({
     required this.nodeId,
+    required this.cubit,
     super.key,
   });
 
   /// ID of the node to comment on
   final String nodeId;
+
+  /// Cubit for managing flowchart state
+  final FlowchartCubit cubit;
 
   @override
   State<CommentModal> createState() => _CommentModalState();
@@ -118,20 +122,29 @@ class _CommentModalState extends State<CommentModal> {
     });
 
     try {
-      await context.read<FlowchartCubit>().addComment(
-            widget.nodeId,
-            _commentController.text.trim(),
-          );
+      await widget.cubit.addComment(
+        widget.nodeId,
+        _commentController.text.trim(),
+      );
 
       if (!mounted) return;
 
       Navigator.of(context).pop();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // Log the error
+      ErrorLoggingService.instance.logError(
+        e,
+        stackTrace: stackTrace,
+        context: 'CommentModal._submitComment',
+      );
+
       if (!mounted) return;
 
+      // Show a user-friendly message
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to add comment: $e'),
+        const SnackBar(
+          content: Text('Failed to add comment. Please try again.'),
+          backgroundColor: Colors.red,
         ),
       );
     } finally {
