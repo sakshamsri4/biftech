@@ -79,6 +79,12 @@ class AuthService {
     return _authRepository!;
   }
 
+  /// Creates an in-memory repository that doesn't persist data.
+  /// This is useful for fallback scenarios when the main repository fails.
+  static AuthRepository createInMemoryRepository() {
+    return AuthRepository.fallback();
+  }
+
   /// Overrides the repository for testing purposes.
   /// This should only be used in tests.
   @visibleForTesting

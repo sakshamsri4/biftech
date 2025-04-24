@@ -60,9 +60,10 @@ class WinnerCubit extends Cubit<WinnerState> {
         platformShare: platformShare,
       );
 
-      // Start the evaluation timer (mock 24-hour evaluation)
-      // For demo purposes, we'll use a shorter duration
-      const evaluationDuration = Duration(seconds: 10);
+      // Start the evaluation timer (24-hour evaluation)
+      // For demo purposes, we provide a way to speed up the timer
+      // In a real app, this would be a fixed 24-hour duration
+      final evaluationDuration = _getEvaluationDuration();
       final remainingTime = evaluationDuration;
 
       emit(
@@ -134,5 +135,48 @@ class WinnerCubit extends Cubit<WinnerState> {
   /// Calculate the total donations in the flowchart
   double calculateTotalDonations() {
     return flowchartCubit.calculateTotalDonations();
+  }
+
+  /// Get the evaluation duration based on environment
+  Duration _getEvaluationDuration() {
+    // Check if we're in debug mode or testing environment
+    assert(
+      () {
+        // In debug mode, use a shorter duration for testing
+        return true;
+      }(),
+      'This assert is only used to check if we are in debug mode',
+    );
+
+    // For demo/debug purposes, use a shorter duration (10 seconds)
+    // In production, this would be 24 hours
+    const debugDuration = Duration(seconds: 10);
+
+    // In a real production app, we would use:
+    // return const Duration(hours: 24);
+
+    // For this demo, always use the debug duration
+    return debugDuration;
+  }
+
+  /// Speed up the timer (for testing purposes only)
+  void speedUpTimer() {
+    if (_evaluationTimer != null && state.status == WinnerStatus.waiting) {
+      // Cancel the current timer
+      _evaluationTimer!.cancel();
+
+      // Set a very short remaining time
+      const remainingTime = Duration(seconds: 3);
+
+      // Update the state
+      emit(
+        state.copyWith(
+          remainingTime: remainingTime,
+        ),
+      );
+
+      // Start a new timer with the shorter duration
+      _startEvaluationTimer(remainingTime);
+    }
   }
 }

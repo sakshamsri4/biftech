@@ -1,10 +1,14 @@
 import 'package:biftech/core/services/error_logging_service.dart';
-import 'package:biftech/features/donation/donation.dart';
+import 'package:biftech/features/donation/cubit/donation_cubit.dart';
+import 'package:biftech/features/donation/view/donation_modal.dart';
 import 'package:biftech/features/flowchart/cubit/cubit.dart';
-import 'package:biftech/features/flowchart/model/node_model.dart';
+import 'package:biftech/shared/theme/colors.dart';
+import 'package:biftech/shared/theme/dimens.dart';
+import 'package:biftech/shared/widgets/buttons/primary_button.dart';
+import 'package:biftech/shared/widgets/buttons/secondary_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:neopop/widgets/buttons/neopop_button/neopop_button.dart';
 
 /// Modal for adding a challenge to a node
 class ChallengeModal extends StatefulWidget {
@@ -28,9 +32,7 @@ class ChallengeModal extends StatefulWidget {
 class _ChallengeModalState extends State<ChallengeModal> {
   final _textController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  bool _isSubmitting = false;
-  bool _showDonationAfterSubmit = false;
-  // We don't need to store the challenge node ID as a field
+  final bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -40,93 +42,87 @@ class _ChallengeModalState extends State<ChallengeModal> {
 
   @override
   Widget build(BuildContext context) {
+    // Define CRED styles with dark theme
+    final titleStyle = Theme.of(context).textTheme.titleLarge?.copyWith(
+          color: textWhite,
+          fontWeight: FontWeight.w700,
+        );
+    const labelStyle = TextStyle(color: textWhite70);
+    final inputBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppDimens.radiusM),
+      borderSide: const BorderSide(color: textWhite50),
+    );
+
     return Padding(
       padding: EdgeInsets.only(
-        top: 16,
-        left: 16,
-        right: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+        top: AppDimens.spaceM,
+        left: AppDimens.spaceM,
+        right: AppDimens.spaceM,
+        // Adjust padding to prevent keyboard overlap
+        bottom: MediaQuery.of(context).viewInsets.bottom + AppDimens.spaceM,
       ),
       child: Form(
         key: _formKey,
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize: MainAxisSize.min, // Make modal height fit content
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '⚔️ Challenge',
-              style: Theme.of(context).textTheme.titleLarge,
+              '⚔️ Add Challenge', // Updated title
+              style: titleStyle,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppDimens.spaceM),
             TextFormField(
               controller: _textController,
-              decoration: const InputDecoration(
-                labelText: 'Your Argument',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: 'Your Argument / Counter-Point',
+                labelStyle: labelStyle,
+                hintText: 'Present your counter-argument...',
+                hintStyle: const TextStyle(color: textWhite50),
+                border: inputBorder,
+                enabledBorder: inputBorder,
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                  borderSide: const BorderSide(color: accentPrimary),
+                ),
+                filled: true,
+                fillColor: primaryBackground,
               ),
-              maxLines: 3,
+              maxLines: 4, // Allow more lines for detailed arguments
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: textWhite, // Explicitly set text color to white
+                  ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return 'Please enter your argument';
                 }
+                if (value.trim().length < 10) {
+                  // Encourage more thoughtful challenges
+                  return 'Argument should be at least 10 characters';
+                }
                 return null;
               },
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Checkbox(
-                  value: _showDonationAfterSubmit,
-                  onChanged: (value) {
-                    setState(() {
-                      _showDonationAfterSubmit = value ?? false;
-                    });
-                  },
-                ),
-                Expanded(
-                  child: Text(
-                    'Add a donation to strengthen your challenge',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppDimens.spaceL), // Increased spacing
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                NeoPopButton(
-                  color: Colors.grey.shade200,
-                  onTapUp: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: Text('Cancel'),
-                  ),
+                // Cancel Button
+                SecondaryButton(
+                  label: 'Cancel',
+                  onPressed: _isSubmitting
+                      ? null
+                      : () {
+                          HapticFeedback.lightImpact();
+                          Navigator.of(context).pop();
+                        },
                 ),
-                const SizedBox(width: 8),
-                NeoPopButton(
-                  color: Colors.red.shade100,
-                  onTapUp: _isSubmitting ? null : _submitChallenge,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: _isSubmitting
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Text('Submit Challenge'),
-                  ),
+                const SizedBox(width: AppDimens.spaceXS), // Spacing
+                // Submit Button
+                PrimaryButton(
+                  label: 'Next: Add Donation',
+                  isLoading: _isSubmitting,
+                  onPressed: _isSubmitting ? null : _proceedToDonation,
                 ),
               ],
             ),
@@ -136,34 +132,114 @@ class _ChallengeModalState extends State<ChallengeModal> {
     );
   }
 
-  Future<void> _submitChallenge() async {
+  // Proceed to donation screen after validating challenge
+  Future<void> _proceedToDonation() async {
+    // Validate the form
     if (_formKey.currentState?.validate() != true) {
+      await HapticFeedback.heavyImpact(); // Indicate validation error
       return;
     }
 
-    setState(() {
-      _isSubmitting = true;
-    });
+    // Store the challenge text temporarily
+    final challengeText = _textController.text.trim();
 
+    // Close the current modal
+    if (!mounted) return;
+    Navigator.of(context).pop();
+
+    // Store the FlowchartCubit before showing the modal
+    // This is the key fix - we're getting the cubit from the current context
+    // where it's definitely available
+    final flowchartCubit = widget.cubit;
+
+    // Show the donation modal
+    if (!mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: secondaryBackground,
+      barrierColor: Colors.black.withAlpha((0.7 * 255).round()),
+      builder: (BuildContext modalContext) {
+        // Use MultiBlocProvider to provide both cubits
+        return MultiBlocProvider(
+          providers: [
+            // Provide the existing FlowchartCubit
+            BlocProvider<FlowchartCubit>.value(
+              value: flowchartCubit,
+            ),
+            // Create a new DonationCubit
+            BlocProvider<DonationCubit>(
+              create: (_) => DonationCubit(flowchartCubit: flowchartCubit),
+            ),
+          ],
+          child: Builder(
+            builder: (providerContext) {
+              // Use the new context that has access to both providers
+              return DonationModal(
+                nodeId: widget.parentNodeId,
+                nodeText: 'Support your challenge with a donation',
+                onDonationComplete: (double amount) async {
+                  // Now submit the challenge with the donation amount
+                  await _submitChallenge(challengeText, amount);
+                },
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  // Submit challenge with donation amount
+  Future<void> _submitChallenge(
+    String challengeText,
+    double donationAmount,
+  ) async {
     try {
-      // First add the challenge with 0 donation
-      final challengeNodeId = await widget.cubit.addChallenge(
+      // Show loading indicator
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+              SizedBox(width: 16),
+              Text('Adding your challenge...'),
+            ],
+          ),
+          duration: Duration(seconds: 10),
+        ),
+      );
+
+      // Call the cubit to add the challenge
+      await widget.cubit.addChallenge(
         widget.parentNodeId,
-        _textController.text.trim(),
-        0, // Initial donation amount is 0
+        challengeText,
+        donationAmount,
       );
 
       if (!mounted) return;
 
-      // We have the challenge node ID from the cubit
+      // Clear any existing snackbars
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
-      // Close the challenge modal
-      Navigator.of(context).pop();
-
-      // If user wants to add a donation, show the donation modal
-      if (_showDonationAfterSubmit && mounted) {
-        await _showDonationModal(context, challengeNodeId);
-      }
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Challenge added with ₹$donationAmount donation!',
+          ),
+          backgroundColor: success,
+          duration: const Duration(seconds: 2),
+        ),
+      );
     } catch (e, stackTrace) {
       // Log the error
       ErrorLoggingService.instance.logError(
@@ -174,75 +250,18 @@ class _ChallengeModalState extends State<ChallengeModal> {
 
       if (!mounted) return;
 
-      // Show a user-friendly message
+      // Clear any existing snackbars
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+      // Show user-friendly error message
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Failed to add challenge. Please try again.'),
-          backgroundColor: Colors.red,
+          content: Text(
+            'Failed to add challenge. Please try again.',
+          ),
+          backgroundColor: error,
         ),
       );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-      }
     }
-  }
-
-  Future<void> _showDonationModal(BuildContext context, String nodeId) async {
-    // Get the current node to find its donation amount
-    final state = widget.cubit.state;
-    if (state.rootNode == null) return;
-
-    // Find the node in the tree
-    NodeModel? findNode(NodeModel node) {
-      if (node.id == nodeId) return node;
-
-      for (final challenge in node.challenges) {
-        final found = findNode(challenge);
-        if (found != null) return found;
-      }
-
-      return null;
-    }
-
-    final node = findNode(state.rootNode!);
-    if (node == null) return;
-
-    // Get the current donation amount
-    final currentDonation = node.donation;
-
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) {
-        return BlocProvider(
-          create: (context) => DonationCubit(),
-          child: DonationModal(
-            nodeId: nodeId,
-            onDonationComplete: (amount) async {
-              // Add to the existing donation amount
-              final newAmount = currentDonation + amount;
-
-              // Update the node with the new donation amount
-              await widget.cubit.updateNodeDonation(nodeId, newAmount);
-
-              // Show success message
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Successfully donated ₹${amount.toStringAsFixed(2)}',
-                    ),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              }
-            },
-          ),
-        );
-      },
-    );
   }
 }

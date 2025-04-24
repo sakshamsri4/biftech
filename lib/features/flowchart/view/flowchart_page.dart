@@ -1,10 +1,16 @@
+import 'package:biftech/features/donation/cubit/donation_cubit.dart';
+import 'package:biftech/features/donation/view/donation_modal.dart';
 import 'package:biftech/features/flowchart/cubit/cubit.dart';
 import 'package:biftech/features/flowchart/model/models.dart';
 import 'package:biftech/features/flowchart/repository/flowchart_repository.dart';
-import 'package:biftech/features/flowchart/view/widgets/challenge_modal.dart';
-import 'package:biftech/features/flowchart/view/widgets/comment_modal.dart';
+import 'package:biftech/features/flowchart/view/widgets/widgets.dart';
 import 'package:biftech/features/winner/winner.dart';
+import 'package:biftech/shared/animations/animations.dart';
+import 'package:biftech/shared/theme/colors.dart';
+import 'package:biftech/shared/theme/dimens.dart';
+import 'package:biftech/shared/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:graphview/graphview.dart';
 
@@ -46,7 +52,11 @@ class FlowchartPage extends StatelessWidget {
 
         return cubit;
       },
-      child: const FlowchartView(),
+      // Apply dark background globally here
+      child: const ColoredBox(
+        color: Color(0xFF1A1A2E), // Base dark color
+        child: FlowchartView(),
+      ),
     );
   }
 }
@@ -106,70 +116,64 @@ class _FlowchartViewState extends State<FlowchartView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent, // Make scaffold transparent
       appBar: AppBar(
-        title: const Text('Discussion Flowchart'),
+        title: const Text(
+          'Discussion Flowchart',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.transparent, // Transparent AppBar
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white), // White back arrow
         actions: [
-          // Refresh button
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Reload flowchart and focus on root node',
-            onPressed: () {
-              // First reset the view to
-              // ensure we're starting from a clean state
-              // by resetting the transformation
-              _transformationController.value = Matrix4.identity();
-
-              // Then reload the flowchart
-              context.read<FlowchartCubit>().loadFlowchart();
-
-              // Reset view after a longer delay to ensure the flowchart
-              // is fully loaded and rendered
-              Future<void>.delayed(
-                const Duration(milliseconds: 800),
-                () {
-                  if (mounted) {
-                    // Force a rebuild of the graph
-                    setState(() {});
-
-                    // Then reset the view to focus on the root node
-                    _resetView();
-
-                    // Apply a second reset after a delay as a backup
-                    Future.delayed(const Duration(milliseconds: 500), () {
-                      if (mounted) {
-                        _resetView();
-                      }
-                    });
-                  }
-                },
-              );
-            },
+          // Refresh button with animation and haptics
+          PressableScale(
+            child: IconButton(
+              icon: const Icon(Icons.refresh, color: Colors.white70),
+              tooltip: 'Reload & Recenter',
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                _transformationController.value = Matrix4.identity();
+                context.read<FlowchartCubit>().loadFlowchart();
+                Future<void>.delayed(
+                  const Duration(milliseconds: 800),
+                  () {
+                    if (mounted) {
+                      setState(() {});
+                      _resetView();
+                      Future.delayed(const Duration(milliseconds: 500), () {
+                        if (mounted) {
+                          _resetView();
+                        }
+                      });
+                    }
+                  },
+                );
+              },
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.emoji_events),
-            tooltip: 'Show winner dialog',
-            onPressed: () {
-              _showWinnerDialog(context);
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.workspace_premium),
-            tooltip: 'Declare winner',
-            onPressed: () {
-              // Get the FlowchartCubit and videoId
-              final flowchartCubit = context.read<FlowchartCubit>();
-              final videoId = flowchartCubit.videoId;
-
-              // Navigate to the WinnerPage with the FlowchartCubit
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (context) => WinnerPage(
-                    videoId: videoId,
-                    flowchartCubit: flowchartCubit,
+          // Declare winner button with animation and haptics
+          PressableScale(
+            child: IconButton(
+              icon: const Icon(
+                Icons.workspace_premium,
+                color: Colors.purpleAccent,
+              ), // Purple accent
+              tooltip: 'Declare winner',
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                final flowchartCubit = context.read<FlowchartCubit>();
+                final videoId = flowchartCubit.videoId;
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (context) => WinnerPage(
+                      videoId: videoId,
+                      flowchartCubit: flowchartCubit,
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -178,35 +182,103 @@ class _FlowchartViewState extends State<FlowchartView> {
           switch (state.status) {
             case FlowchartStatus.initial:
             case FlowchartStatus.loading:
+              // Custom Loading State
               return const Center(
-                child: CircularProgressIndicator(),
-              );
-            case FlowchartStatus.failure:
-              return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      'Failed to load flowchart',
-                      style: Theme.of(context).textTheme.titleLarge,
+                    CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Colors.purpleAccent,
+                      ),
                     ),
-                    const SizedBox(height: 16),
-                    // Don't show technical error details to users
-                    const Text('Something went wrong. Please try again.'),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        context.read<FlowchartCubit>().loadFlowchart();
-                      },
-                      child: const Text('Try Again'),
+                    SizedBox(height: AppDimens.spaceL),
+                    Text(
+                      'Loading Flowchart...',
+                      style: TextStyle(color: Colors.white70, fontSize: 16),
                     ),
                   ],
                 ),
               );
+            case FlowchartStatus.failure:
+              // Custom Error State
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(30),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 60,
+                        color: Colors.red.shade300,
+                      ),
+                      const SizedBox(height: AppDimens.spaceM),
+                      Text(
+                        'Oops! Failed to load flowchart.',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleLarge
+                            ?.copyWith(color: Colors.white),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: AppDimens.spaceXS),
+                      Text(
+                        'Something went wrong. Please check your connection and try again.',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(color: Colors.white70),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: AppDimens.spaceXL),
+                      // Use GradientButton for retry
+                      GradientButton(
+                        onPressed: () {
+                          context.read<FlowchartCubit>().loadFlowchart();
+                        },
+                        child: const Text('Try Again'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
             case FlowchartStatus.success:
               if (state.rootNode == null) {
-                return const Center(
-                  child: Text('No flowchart available'),
+                // Custom Empty State (if flowchart is successfully loaded but empty)
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(30),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.account_tree_outlined,
+                          size: 80,
+                          color: Colors.purple.shade200,
+                        ),
+                        const SizedBox(height: AppDimens.spaceL),
+                        Text(
+                          'Discussion Not Started',
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          "Be the first to add a point to this video's discussion!",
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(color: Colors.white70),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
                 );
               }
               return _buildFlowchart(context, state);
@@ -273,7 +345,7 @@ class _FlowchartViewState extends State<FlowchartView> {
       height: MediaQuery.of(context).size.height * 0.8,
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
       ),
       child: InteractiveViewer(
         key: _graphKey,
@@ -303,8 +375,8 @@ class _FlowchartViewState extends State<FlowchartView> {
             TreeEdgeRenderer(builder),
           ),
           paint: Paint()
-            ..color = Colors.orange.shade400
-            ..strokeWidth = 2
+            ..color = Colors.purpleAccent.withAlpha((0.5 * 255).round())
+            ..strokeWidth = 1.5
             ..style = PaintingStyle.stroke,
           builder: (Node node) {
             // Get the NodeModel from the node's key
@@ -319,6 +391,7 @@ class _FlowchartViewState extends State<FlowchartView> {
 
             return GestureDetector(
               onTap: () {
+                HapticFeedback.lightImpact();
                 context.read<FlowchartCubit>().selectNode(nodeModel.id);
               },
               child: NodeWidget(
@@ -378,91 +451,6 @@ class _FlowchartViewState extends State<FlowchartView> {
     for (final challenge in node.challenges) {
       _buildNodeMap(challenge, nodeMap);
     }
-  }
-
-  void _showWinnerDialog(BuildContext context) {
-    final cubit = context.read<FlowchartCubit>();
-    final winningNode = cubit.findWinningNode();
-    final totalDonations = cubit.calculateTotalDonations();
-
-    if (winningNode == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No winner found'),
-        ),
-      );
-      return;
-    }
-
-    // Calculate distribution
-    final winnerShare = totalDonations * 0.6;
-    final appShare = totalDonations * 0.2;
-    final platformShare = totalDonations * 0.2;
-
-    showDialog<void>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Winning Argument'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  winningNode.text,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Score: ${winningNode.score} '
-                  '(${winningNode.donation.toInt()} donation + '
-                  '${winningNode.comments.length} comments)',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 16),
-                const Divider(),
-                const SizedBox(height: 8),
-                const Text('Donation Distribution:'),
-                const SizedBox(height: 8),
-                _buildDistributionRow(
-                  context,
-                  'Winner (60%)',
-                  winnerShare,
-                ),
-                _buildDistributionRow(
-                  context,
-                  'App Contribution (20%)',
-                  appShare,
-                ),
-                _buildDistributionRow(
-                  context,
-                  'Platform Margin (20%)',
-                  platformShare,
-                ),
-                const SizedBox(height: 8),
-                const Divider(),
-                const SizedBox(height: 8),
-                _buildDistributionRow(
-                  context,
-                  'Total',
-                  totalDonations,
-                  isBold: true,
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Close'),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   /// Reset the view to focus on the root node
@@ -540,9 +528,11 @@ class _FlowchartViewState extends State<FlowchartView> {
           // Show a snackbar to provide feedback to the user
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('View reset to root node'),
-                duration: Duration(seconds: 1),
+              SnackBar(
+                content: const Text('View recentered'),
+                duration: const Duration(seconds: 1),
+                backgroundColor: Colors.grey.shade800, // Dark snackbar
+                behavior: SnackBarBehavior.floating, // Optional: floating style
               ),
             );
           }
@@ -569,30 +559,6 @@ class _FlowchartViewState extends State<FlowchartView> {
       }
     });
   }
-
-  Widget _buildDistributionRow(
-    BuildContext context,
-    String label,
-    double amount, {
-    bool isBold = false,
-  }) {
-    final textStyle = isBold
-        ? Theme.of(context).textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            )
-        : Theme.of(context).textTheme.bodyMedium;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: textStyle),
-          Text('₹${amount.toStringAsFixed(2)}', style: textStyle),
-        ],
-      ),
-    );
-  }
 }
 
 /// Widget for displaying a node in the flowchart
@@ -612,171 +578,206 @@ class NodeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Check if this node has challenges
-    final hasChallenges = nodeModel.challenges.isNotEmpty;
+    // Theme elements
+    const signaturePurple = Colors.deepPurpleAccent; // Adjusted purple
+    const cardDarkBg = Color(0xFF2A2A3E); // Slightly lighter dark for card
+    const borderRadius = BorderRadius.all(Radius.circular(AppDimens.radiusXL));
+    final shadowColor = Colors.black.withAlpha((0.4 * 255).round());
+    const shadowBlurRadius = AppDimens.spaceS;
+    const shadowOffset = Offset(0, 6);
+    final titleStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+          height: 1.3,
+        );
+    final bodyStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: Colors.white.withAlpha((0.85 * 255).round()),
+          height: 1.4,
+        );
+    final smallTextStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: Colors.white.withAlpha((0.7 * 255).round()),
+        );
 
-    // Determine the node color based on its position in the tree
+    // Determine node type
     final isRoot = nodeModel.id.startsWith('root_');
-    final isChallenge = nodeModel.id.startsWith('challenge_');
+    // final isChallenge = nodeModel.id.startsWith('challenge_');
 
-    return Card(
-      margin: const EdgeInsets.all(4),
-      elevation: isSelected ? 8 : 2,
-      color: isSelected
-          ? Colors.blue.shade50
-          : isRoot
-              ? Colors.green.shade50
-              : isChallenge
-                  ? Colors.orange.shade50
-                  : Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: hasChallenges
-            ? BorderSide(color: Colors.orange.shade400, width: 2)
-            : isRoot
-                ? BorderSide(color: Colors.green.shade400, width: 2)
-                : BorderSide.none,
+    // Define border based on selection
+    final border = isSelected
+        ? Border.all(color: signaturePurple, width: 2.5)
+        : Border.all(color: Colors.white.withAlpha((0.15 * 255).round()));
+
+    return Container(
+      margin: const EdgeInsets.all(10),
+      constraints: const BoxConstraints(
+        minWidth: 180,
+        maxWidth: 240,
       ),
-      child: Container(
-        constraints: const BoxConstraints(
-          minWidth: 120,
-          maxWidth: 200,
-        ),
-        padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: cardDarkBg,
+        borderRadius: borderRadius,
+        border: border,
+        boxShadow: [
+          BoxShadow(
+            color: shadowColor,
+            blurRadius: shadowBlurRadius,
+            offset: shadowOffset,
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppDimens.spaceM),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Root node indicator
+            if (isRoot)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppDimens.spaceXS),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.star,
+                      color: Colors.amber.shade300,
+                      size: AppDimens.spaceM,
+                    ),
+                    const SizedBox(width: AppDimens.spaceXXS),
+                    Text(
+                      'Starting Point',
+                      style: smallTextStyle?.copyWith(
+                        color: Colors.amber.shade300,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            // Node Text (Title)
+            Text(nodeModel.text, style: titleStyle),
+
+            // Donation Info - Always show, but with different styling based on amount
+            const SizedBox(height: 10),
             Row(
               children: [
-                if (isRoot)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                    margin: const EdgeInsets.only(right: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.green.shade400,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: const Text(
-                      'ROOT',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 8,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  )
-                else if (isChallenge)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                    margin: const EdgeInsets.only(right: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.shade400,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: const Text(
-                      'CHALLENGE',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 8,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                Icon(
+                  Icons.monetization_on,
+                  color: nodeModel.donation > 0
+                      ? Colors.greenAccent.shade400
+                      : const Color.fromARGB(128, 128, 128, 128),
+                  size: 18,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  nodeModel.donation > 0
+                      ? '₹${nodeModel.donation.toStringAsFixed(0)}'
+                      : 'No donations yet',
+                  style: bodyStyle?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: nodeModel.donation > 0
+                        ? Colors.greenAccent.shade400
+                        : const Color.fromARGB(128, 128, 128, 128),
                   ),
+                ),
               ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              nodeModel.text,
-              style: Theme.of(context).textTheme.titleMedium,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
-            if (nodeModel.donation > 0) ...[
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Icon(Icons.monetization_on, color: Colors.amber),
-                  const SizedBox(width: 4),
-                  Text(
-                    '₹${nodeModel.donation.toStringAsFixed(2)}',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+
+            // Comments Section (if any)
+            if (nodeModel.comments.isNotEmpty) ...[
+              const SizedBox(height: AppDimens.spaceS),
+              Divider(color: Colors.white.withAlpha((0.1 * 255).round())),
+              const SizedBox(height: AppDimens.spaceXS),
+              InkWell(
+                // Make the whole comment section tappable
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  _showCommentsPopup(context);
+                },
+                borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: AppDimens.spaceXXS),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.comment_outlined,
+                        color: Colors.white70,
+                        size: AppDimens.spaceM,
+                      ),
+                      const SizedBox(width: AppDimens.spaceXS),
+                      Expanded(
+                        child: Text(
+                          nodeModel.comments.first,
+                          style: smallTextStyle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                  ),
-                ],
-              ),
-            ],
-            if (nodeModel.comments.isNotEmpty &&
-                nodeModel.comments.length <= 2) ...[
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 8),
-              Text(
-                'Comments:',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              const SizedBox(height: 8),
-              ...nodeModel.comments.take(2).map(
-                    (comment) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Text(
-                        comment,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall,
                       ),
-                    ),
-                  ),
-              if (nodeModel.comments.length > 2)
-                Text(
-                  '+ ${nodeModel.comments.length - 2} more comments',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.grey,
+                      const SizedBox(width: AppDimens.spaceXS),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: signaturePurple.withAlpha((0.8 * 255).round()),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${nodeModel.comments.length}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
+                        ),
                       ),
+                    ],
+                  ),
                 ),
+              ),
             ],
-            const SizedBox(height: 8),
+
+            // Action Buttons Divider (always show for spacing)
+            const SizedBox(height: AppDimens.spaceXS),
+            Divider(color: Colors.white.withAlpha((0.1 * 255).round())),
+            const SizedBox(height: AppDimens.spaceXXS),
+
+            // Action Buttons (Comment/Donate/Challenge)
             Row(
+              // Use spaceBetween for better control and wrap buttons with Flexible
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.comment, size: 16),
-                      onPressed: () => _showCommentModal(context),
-                      tooltip: 'Comment',
-                      constraints: const BoxConstraints(),
-                      padding: const EdgeInsets.all(4),
-                    ),
-                    Text(
-                      '${nodeModel.comments.length}',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
+                // Comment Button - Wrap with Flexible
+                Flexible(
+                  child: _buildActionButton(
+                    context: context,
+                    icon: Icons.add_comment_outlined,
+                    label: 'Comment',
+                    onPressed: () => _showCommentModal(context),
+                    color: Colors.white70,
+                  ),
                 ),
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(
-                        Icons.flash_on,
-                        size: 16,
-                        color: Colors.orange,
-                      ),
-                      onPressed: () => _showChallengeModal(context),
-                      tooltip: 'Challenge',
-                      constraints: const BoxConstraints(),
-                      padding: const EdgeInsets.all(4),
-                    ),
-                    Text(
-                      '${nodeModel.challenges.length}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.orange,
-                          ),
-                    ),
-                  ],
+                // Donate Button - Wrap with Flexible
+                Flexible(
+                  child: _buildActionButton(
+                    context: context,
+                    icon: Icons.monetization_on_outlined,
+                    label: 'Donate',
+                    onPressed: () => _showDonationModal(context),
+                    color: Colors.greenAccent.shade400,
+                  ),
+                ),
+                // Challenge Button - Wrap with Flexible
+                Flexible(
+                  child: _buildActionButton(
+                    context: context,
+                    icon: Icons.flash_on_outlined,
+                    label: 'Challenge',
+                    onPressed: () => _showChallengeModal(context),
+                    color: Colors.purpleAccent, // Use purple accent
+                  ),
                 ),
               ],
             ),
@@ -786,33 +787,187 @@ class NodeWidget extends StatelessWidget {
     );
   }
 
-  void _showCommentModal(BuildContext context) {
-    // Get the cubit from the parent context
+  // Helper widget for action buttons (redesigned)
+  Widget _buildActionButton({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+    required Color color,
+  }) {
+    return TextButton.icon(
+      style: TextButton.styleFrom(
+        // Reduce horizontal padding further
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+        foregroundColor: color,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimens.radiusXXL),
+        ),
+        // Allow button to shrink
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      icon: Icon(icon, size: 18),
+      label: Text(
+        label,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+        // Prevent wrapping and use ellipsis if text is too long
+        softWrap: false,
+        overflow: TextOverflow.ellipsis,
+      ),
+      onPressed: () {
+        HapticFeedback.lightImpact();
+        onPressed();
+      },
+    );
+  }
+
+  // --- Modal Launchers --- (Add Haptic Feedback & Dark Theme Styling)
+
+  void _showCommentsPopup(BuildContext context) {
     final cubit = context.read<FlowchartCubit>();
+    showDialog<void>(
+      context: context,
+      // Use a custom barrier color for dark theme
+      barrierColor: Colors.black.withAlpha((0.7 * 255).round()),
+      builder: (dialogContext) {
+        return CommentsPopup(
+          nodeModel: nodeModel,
+          cubit: cubit,
+          onAddCommentPressed: () {
+            // Show the comment modal after the popup is closed
+            // Use a slight delay to ensure the popup is fully closed
+            Future.delayed(const Duration(milliseconds: 300), () {
+              if (context.mounted) {
+                _showCommentModal(context);
+              }
+            });
+          },
+        );
+      },
+    );
+  }
+
+  void _showCommentModal(BuildContext context) {
+    // Store the FlowchartCubit before showing the modal
+    final flowchartCubit = context.read<FlowchartCubit>();
 
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      builder: (context) {
-        return CommentModal(
-          nodeId: nodeModel.id,
-          cubit: cubit,
+      backgroundColor: secondaryBackground, // Use theme color
+      barrierColor: Colors.black.withAlpha((0.7 * 255).round()),
+      shape: const RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppDimens.radiusXXL)),
+      ),
+      builder: (modalContext) {
+        // Provide cubit to the modal using BlocProvider.value
+        return BlocProvider<FlowchartCubit>.value(
+          value: flowchartCubit,
+          child: Builder(
+            builder: (providerContext) {
+              // Use the new context that has access to the provider
+              return CommentModal(
+                nodeId: nodeModel.id,
+                cubit: flowchartCubit,
+              );
+            },
+          ),
         );
       },
     );
   }
 
   void _showChallengeModal(BuildContext context) {
-    // Get the cubit from the parent context
-    final cubit = context.read<FlowchartCubit>();
+    // Store the FlowchartCubit before showing the modal
+    final flowchartCubit = context.read<FlowchartCubit>();
+
+    // Update ChallengeModal design for dark theme
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: secondaryBackground, // Use theme color
+      barrierColor: Colors.black.withAlpha((0.7 * 255).round()),
+      shape: const RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppDimens.radiusXXL)),
+      ),
+      builder: (modalContext) {
+        // Provide cubit to the modal using BlocProvider.value
+        return BlocProvider<FlowchartCubit>.value(
+          value: flowchartCubit,
+          child: Builder(
+            builder: (providerContext) {
+              // Use the new context that has access to the provider
+              return ChallengeModal(
+                parentNodeId: nodeModel.id,
+                cubit: flowchartCubit,
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  void _showDonationModal(BuildContext context) {
+    // Store the FlowchartCubit before showing the modal
+    // This ensures we're getting it from the correct context
+    final flowchartCubit = context.read<FlowchartCubit>();
 
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      builder: (context) {
-        return ChallengeModal(
-          parentNodeId: nodeModel.id,
-          cubit: cubit,
+      backgroundColor: secondaryBackground,
+      barrierColor: Colors.black.withAlpha((0.7 * 255).round()),
+      shape: const RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppDimens.radiusXXL)),
+      ),
+      builder: (modalContext) {
+        // Create a MultiBlocProvider to provide both cubits
+        return MultiBlocProvider(
+          providers: [
+            // Provide the existing FlowchartCubit using BlocProvider.value
+            BlocProvider<FlowchartCubit>.value(
+              value: flowchartCubit,
+            ),
+            // Create a new DonationCubit with the FlowchartCubit
+            BlocProvider<DonationCubit>(
+              create: (context) =>
+                  DonationCubit(flowchartCubit: flowchartCubit),
+            ),
+          ],
+          child: Builder(
+            builder: (providerContext) {
+              // Use the new context that has access to both providers
+              return DonationModal(
+                nodeId: nodeModel.id,
+                nodeText: nodeModel.text,
+                currentDonation: nodeModel.donation,
+                onDonationComplete: (double amount) {
+                  // The donation is handled by the DonationCubit
+                  // which will update the FlowchartCubit
+                  Navigator.of(modalContext).pop();
+
+                  // Show a success message
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Donation of ₹$amount successful!'),
+                        backgroundColor: Colors.green,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                },
+              );
+            },
+          ),
         );
       },
     );

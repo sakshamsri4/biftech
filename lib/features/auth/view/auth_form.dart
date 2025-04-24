@@ -1,6 +1,9 @@
 import 'package:biftech/features/auth/cubit/auth_cubit.dart';
 import 'package:biftech/features/auth/cubit/auth_state.dart';
 import 'package:biftech/features/auth/model/models.dart';
+import 'package:biftech/shared/theme/typography.dart';
+import 'package:biftech/shared/widgets/buttons/secondary_button.dart';
+import 'package:biftech/shared/widgets/buttons/tertiary_button.dart';
 import 'package:biftech/shared/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -75,7 +78,7 @@ class _AuthFormState extends State<AuthForm> {
               ),
             );
           // Navigate to home page
-          Future.delayed(Duration.zero, () {
+          Future<void>.delayed(Duration.zero, () {
             if (context.mounted) {
               Navigator.of(context).pushNamedAndRemoveUntil(
                 '/home',
@@ -141,6 +144,7 @@ class _WelcomeHeader extends StatelessWidget {
     // Make the header responsive based on screen size
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 360;
+    final theme = Theme.of(context);
 
     return Column(
       children: [
@@ -148,12 +152,13 @@ class _WelcomeHeader extends StatelessWidget {
           Icons.account_circle_outlined,
           // Adjust icon size based on screen size
           size: isSmallScreen ? 60 : 80,
-          color: Colors.blue,
+          color: theme.colorScheme.primary, // Use theme primary color
         ),
         SizedBox(height: isSmallScreen ? 12 : 16),
         Text(
           'Welcome to Biftech',
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+          style: theme.textTheme.credH2 ?? // Use CRED typography extension
+              theme.textTheme.headlineMedium?.copyWith(
                 // Adjust font size based on screen size
                 fontSize: isSmallScreen ? 20 : null,
               ),
@@ -163,10 +168,12 @@ class _WelcomeHeader extends StatelessWidget {
         SizedBox(height: isSmallScreen ? 6 : 8),
         Text(
           'Please sign in to continue',
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                // Adjust font size based on screen size
-                fontSize: isSmallScreen ? 14 : null,
-              ),
+          style:
+              theme.textTheme.credBodyLarge ?? // Use CRED typography extension
+                  theme.textTheme.bodyLarge?.copyWith(
+                    // Adjust font size based on screen size
+                    fontSize: isSmallScreen ? 14 : null,
+                  ),
           // Center text and ensure it doesn't overflow
           textAlign: TextAlign.center,
         ),
@@ -260,9 +267,9 @@ class _ForgotPasswordButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextButton(
+    return TertiaryButton(
+      label: 'Forgot Password?',
       onPressed: onPressed,
-      child: const Text('Forgot Password?'),
     );
   }
 }
@@ -274,9 +281,9 @@ class _SignUpButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextButton(
+    return SecondaryButton(
+      label: 'Sign Up',
       onPressed: onPressed,
-      child: const Text('Sign Up'),
     );
   }
 }
