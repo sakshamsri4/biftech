@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Biftech Logo](https://storage.googleapis.com/cms-storage-bucket/6e19fee6b47b36ca613f.png)
+![Biftech Logo](assets/images/app_icon.png)
 
 [![Flutter Version](https://img.shields.io/badge/Flutter-3.5.0-blue.svg)](https://flutter.dev/)
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
@@ -44,42 +44,89 @@ Biftech is an innovative platform where users can share ideas through interactiv
 <table>
   <tr>
     <td align="center">
-      <img src="https://raw.githubusercontent.com/flutter/website/main/src/assets/images/docs/get-started/ios/starter-app.png" width="200" alt="Authentication Screen"/>
+      <img src="assets/screenshots/login.png" width="200" alt="Login Screen"/>
       <br />
-      <em>Authentication</em>
+      <em>Login</em>
     </td>
     <td align="center">
-      <img src="https://raw.githubusercontent.com/flutter/website/main/src/assets/images/docs/get-started/ios/starter-app-incremented.png" width="200" alt="Video Feed"/>
+      <img src="assets/screenshots/sign_up.png" width="200" alt="Sign Up Screen"/>
       <br />
-      <em>Video Feed</em>
+      <em>Sign Up</em>
     </td>
     <td align="center">
-      <img src="https://docs.flutter.dev/assets/images/docs/ui/layout/lakes.jpg" width="200" alt="Flowchart View"/>
+      <img src="assets/screenshots/forgot_pass.png" width="200" alt="Forgot Password"/>
       <br />
-      <em>Flowchart View</em>
+      <em>Forgot Password</em>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <img src="https://docs.flutter.dev/assets/images/docs/ui/layout/card-flutter-gallery.png" width="200" alt="Comments"/>
+      <img src="assets/screenshots/home_screen.png" width="200" alt="Home Screen"/>
+      <br />
+      <em>Home Screen</em>
+    </td>
+    <td align="center">
+      <img src="assets/screenshots/video_feed.png" width="200" alt="Video Feed"/>
+      <br />
+      <em>Video Feed</em>
+    </td>
+    <td align="center">
+      <img src="assets/screenshots/upload.png" width="200" alt="Upload Video"/>
+      <br />
+      <em>Upload Video</em>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="assets/screenshots/flowchart.png" width="200" alt="Flowchart View"/>
+      <br />
+      <em>Flowchart View</em>
+    </td>
+    <td align="center">
+      <img src="assets/screenshots/discussion_flow.png" width="200" alt="Discussion Flow"/>
+      <br />
+      <em>Discussion Flow</em>
+    </td>
+    <td align="center">
+      <img src="assets/screenshots/comments.png" width="200" alt="Comments"/>
       <br />
       <em>Comments</em>
     </td>
+  </tr>
+  <tr>
     <td align="center">
-      <img src="https://docs.flutter.dev/assets/images/docs/ui/layout/pavlova-large.jpg" width="200" alt="Donation"/>
+      <img src="assets/screenshots/donate.png" width="200" alt="Donation Screen"/>
       <br />
       <em>Donation</em>
     </td>
     <td align="center">
-      <img src="https://docs.flutter.dev/assets/images/docs/ui/layout/lakes-icons.jpg" width="200" alt="Winner Screen"/>
+      <img src="assets/screenshots/numpad.png" width="200" alt="Numpad for Donation"/>
+      <br />
+      <em>Donation Numpad</em>
+    </td>
+    <td align="center">
+      <img src="assets/screenshots/declar winner.png" width="200" alt="Declare Winner"/>
+      <br />
+      <em>Declare Winner</em>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="assets/screenshots/Winner.png" width="200" alt="Winner Screen"/>
       <br />
       <em>Winner Screen</em>
+    </td>
+    <td align="center">
+      <img src="assets/screenshots/overview.png" width="200" alt="App Overview"/>
+      <br />
+      <em>App Overview</em>
+    </td>
+    <td align="center">
+      <!-- Placeholder for future screenshot -->
     </td>
   </tr>
 </table>
 </div>
-
-> **Note**: These are placeholder screenshots. Replace them with actual screenshots of your app before submitting.
 
 ## Architecture
 
@@ -233,7 +280,7 @@ Text(context.l10n.appTitle)
 
 <div align="center">
 
-**Biftech** • Developed with ❤️ by Your Name
+**Biftech** • Developed with ❤️ by Saksham Srivastava
 
 </div>
 
