@@ -162,7 +162,7 @@ class _ChallengeModalState extends State<ChallengeModal> {
   Future<void> _submitChallenge() async {
     // Validate the form
     if (_formKey.currentState?.validate() != true) {
-      await HapticFeedback.heavyImpact(); // Indicate validation error (await)
+      await HapticFeedback.heavyImpact(); // Indicate validation error
       return;
     }
 

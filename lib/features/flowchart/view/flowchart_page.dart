@@ -499,7 +499,8 @@ class NodeWidget extends StatelessWidget {
     // CRED Design Principles
     const signaturePurple = Color(0xFF6C63FF);
     const borderRadius = BorderRadius.all(Radius.circular(16)); // 16px radius
-    final shadowColor = Colors.black.withOpacity(0.3); // 30% opacity shadow
+    final shadowColor = Colors.black
+        .withAlpha((0.3 * 255).round()); // 30% opacity shadow using withAlpha
     const shadowBlurRadius = 8.0; // 8px blur
     const shadowOffset = Offset(0, 4); // Offset for depth
     final titleStyle = Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -508,10 +509,12 @@ class NodeWidget extends StatelessWidget {
           color: Colors.white, // High contrast
         );
     final bodyStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
-          color: Colors.white.withOpacity(0.85), // High contrast
+          color: Colors.white
+              .withAlpha((0.85 * 255).round()), // High contrast using withAlpha
         );
     final smallTextStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: Colors.white.withOpacity(0.7), // High contrast
+          color: Colors.white
+              .withAlpha((0.7 * 255).round()), // High contrast using withAlpha
         );
     // Removed subtleBorderStyle as border is handled directly in BoxDecoration
 
@@ -523,7 +526,10 @@ class NodeWidget extends StatelessWidget {
     final Gradient nodeGradient;
     if (isSelected) {
       nodeGradient = LinearGradient(
-        colors: [signaturePurple.withOpacity(0.9), signaturePurple],
+        colors: [
+          signaturePurple.withAlpha((0.9 * 255).round()),
+          signaturePurple,
+        ], // Use withAlpha
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       );
@@ -559,8 +565,12 @@ class NodeWidget extends StatelessWidget {
         borderRadius: borderRadius,
         border: Border.all(
           color: isSelected
-              ? Colors.white.withOpacity(0.5) // Brighter border when selected
-              : Colors.white.withOpacity(0.1), // Subtle border
+              ? Colors.white.withAlpha(
+                  (0.5 * 255).round(),
+                ) // Brighter border when selected using withAlpha
+              : Colors.white.withAlpha(
+                  (0.1 * 255).round(),
+                ), // Subtle border using withAlpha
         ),
         boxShadow: [
           BoxShadow(
@@ -620,7 +630,9 @@ class NodeWidget extends StatelessWidget {
                 // Comments Section
                 if (nodeModel.comments.isNotEmpty) ...[
                   const SizedBox(height: 12),
-                  Divider(color: Colors.white.withOpacity(0.15)),
+                  Divider(
+                    color: Colors.white.withAlpha((0.15 * 255).round()),
+                  ), // Use withAlpha
                   const SizedBox(height: 8),
                   GestureDetector(
                     onTap: () => _showCommentsPopup(context),
@@ -640,16 +652,22 @@ class NodeWidget extends StatelessWidget {
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.2),
+                            color: Colors.black.withAlpha(
+                              (0.2 * 255).round(),
+                            ), // Use withAlpha
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withAlpha(
+                                (0.2 * 255).round(),
+                              ), // Use withAlpha
                             ),
                           ),
                           child: Text(
                             '${nodeModel.comments.length}',
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.9),
+                              color: Colors.white.withAlpha(
+                                (0.9 * 255).round(),
+                              ), // Use withAlpha
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
                             ),
@@ -665,10 +683,12 @@ class NodeWidget extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.15),
+                        color: Colors.black
+                            .withAlpha((0.15 * 255).round()), // Use withAlpha
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white
+                              .withAlpha((0.1 * 255).round()), // Use withAlpha
                         ),
                       ),
                       child: Column(
@@ -685,7 +705,9 @@ class NodeWidget extends StatelessWidget {
                             Text(
                               'Tap to view all ${nodeModel.comments.length}',
                               style: TextStyle(
-                                color: signaturePurple.withOpacity(0.9),
+                                color: signaturePurple.withAlpha(
+                                  (0.9 * 255).round(),
+                                ), // Use withAlpha
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -699,7 +721,9 @@ class NodeWidget extends StatelessWidget {
 
                 // Action Buttons (Comment/Challenge)
                 const SizedBox(height: 12),
-                Divider(color: Colors.white.withOpacity(0.15)),
+                Divider(
+                  color: Colors.white.withAlpha((0.15 * 255).round()),
+                ), // Use withAlpha
                 const SizedBox(height: 4),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -711,7 +735,8 @@ class NodeWidget extends StatelessWidget {
                       count: nodeModel.comments.length,
                       tooltip: 'Comment',
                       onPressed: () => _showCommentModal(context),
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white
+                          .withAlpha((0.8 * 255).round()), // Use withAlpha
                     ),
                     // Challenge Button
                     _buildActionButton(
