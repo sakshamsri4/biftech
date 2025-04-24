@@ -1,5 +1,7 @@
 import 'package:biftech/features/flowchart/cubit/cubit.dart';
 import 'package:biftech/features/flowchart/model/node_model.dart';
+import 'package:biftech/shared/theme/colors.dart';
+import 'package:biftech/shared/theme/dimens.dart';
 import 'package:flutter/material.dart';
 
 /// A popup dialog that displays all comments for a node
@@ -24,7 +26,7 @@ class CommentsPopup extends StatelessWidget {
 
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.all(16),
+      insetPadding: const EdgeInsets.all(AppDimens.spaceM),
       child: Container(
         width: double.infinity,
         constraints: BoxConstraints(
@@ -32,17 +34,17 @@ class CommentsPopup extends StatelessWidget {
           maxHeight: MediaQuery.of(context).size.height * 0.7,
         ),
         decoration: BoxDecoration(
-          color: Colors.black,
-          borderRadius: BorderRadius.circular(16),
+          color: secondaryBackground,
+          borderRadius: BorderRadius.circular(AppDimens.radiusXL),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withAlpha(128),
+              color: Colors.black.withAlpha((0.5 * 255).round()),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
           ],
           border: Border.all(
-            color: Colors.grey.shade800,
+            color: Colors.white.withAlpha((0.1 * 255).round()),
           ),
         ),
         child: Column(
@@ -64,16 +66,21 @@ class CommentsPopup extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+      padding: const EdgeInsets.fromLTRB(
+        AppDimens.spaceXL,
+        AppDimens.spaceXL,
+        AppDimens.spaceXL,
+        AppDimens.spaceM,
+      ),
       decoration: BoxDecoration(
-        color: Colors.black,
+        color: secondaryBackground,
         borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(16),
-          topRight: Radius.circular(16),
+          topLeft: Radius.circular(AppDimens.radiusXL),
+          topRight: Radius.circular(AppDimens.radiusXL),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.shade900,
+            color: Colors.black.withAlpha((0.3 * 255).round()),
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),
@@ -90,8 +97,8 @@ class CommentsPopup extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.blue.shade900,
-                      borderRadius: BorderRadius.circular(12),
+                      color: accentPrimary,
+                      borderRadius: BorderRadius.circular(AppDimens.radiusM),
                     ),
                     child: const Icon(
                       Icons.comment,
@@ -100,14 +107,12 @@ class CommentsPopup extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Text(
+                  Text(
                     'Comments',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.5,
-                    ),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.5,
+                        ),
                   ),
                 ],
               ),
@@ -117,28 +122,26 @@ class CommentsPopup extends StatelessWidget {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.blue.shade900,
-                  borderRadius: BorderRadius.circular(16),
+                  color: accentPrimary,
+                  borderRadius: BorderRadius.circular(AppDimens.radiusL),
                 ),
                 child: Text(
                   '${nodeModel.comments.length}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppDimens.spaceM),
             decoration: BoxDecoration(
-              color: Colors.grey.shade900,
-              borderRadius: BorderRadius.circular(12),
+              color: primaryBackground,
+              borderRadius: BorderRadius.circular(AppDimens.radiusM),
               border: Border.all(
-                color: Colors.grey.shade800,
+                color: Colors.white.withAlpha((0.1 * 255).round()),
               ),
             ),
             child: Column(
@@ -146,21 +149,18 @@ class CommentsPopup extends StatelessWidget {
               children: [
                 Text(
                   'Discussion Point',
-                  style: TextStyle(
-                    color: Colors.grey.shade400,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: textWhite50,
+                        fontWeight: FontWeight.w600,
+                      ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   nodeModel.text,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    height: 1.4,
-                  ),
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        height: 1.4,
+                      ),
                 ),
               ],
             ),
@@ -172,7 +172,7 @@ class CommentsPopup extends StatelessWidget {
 
   Widget _buildCommentsList(BuildContext context, List<String> comments) {
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(horizontal: AppDimens.spaceXL),
       shrinkWrap: true,
       itemCount: comments.length,
       itemBuilder: (context, index) {
@@ -180,17 +180,17 @@ class CommentsPopup extends StatelessWidget {
         final isEven = index.isEven;
 
         return Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          padding: const EdgeInsets.all(16),
+          margin: const EdgeInsets.only(bottom: AppDimens.spaceM),
+          padding: const EdgeInsets.all(AppDimens.spaceM),
           decoration: BoxDecoration(
-            color: isEven ? Colors.grey.shade900 : Colors.black,
-            borderRadius: BorderRadius.circular(12),
+            color: isEven ? secondaryBackground : primaryBackground,
+            borderRadius: BorderRadius.circular(AppDimens.radiusM),
             border: Border.all(
-              color: isEven ? Colors.grey.shade800 : Colors.grey.shade900,
+              color: Colors.white.withAlpha((0.1 * 255).round()),
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withAlpha(77),
+                color: Colors.black.withAlpha((0.3 * 255).round()),
                 blurRadius: 5,
                 offset: const Offset(0, 2),
               ),
@@ -211,11 +211,10 @@ class CommentsPopup extends StatelessWidget {
                     child: Center(
                       child: Text(
                         _getInitials(index),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
+                        style:
+                            Theme.of(context).textTheme.labelMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                       ),
                     ),
                   ),
@@ -225,18 +224,16 @@ class CommentsPopup extends StatelessWidget {
                     children: [
                       Text(
                         _getUsername(index),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
+                        style:
+                            Theme.of(context).textTheme.labelMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
                       ),
                       Text(
                         _getTimeAgo(index),
-                        style: TextStyle(
-                          color: Colors.grey.shade500,
-                          fontSize: 12,
-                        ),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: textWhite50,
+                            ),
                       ),
                     ],
                   ),
@@ -245,11 +242,9 @@ class CommentsPopup extends StatelessWidget {
               const SizedBox(height: 12),
               Text(
                 comment,
-                style: TextStyle(
-                  color: Colors.grey.shade300,
-                  fontSize: 15,
-                  height: 1.4,
-                ),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      height: 1.4,
+                    ),
               ),
             ],
           ),
@@ -260,32 +255,30 @@ class CommentsPopup extends StatelessWidget {
 
   Widget _buildNoCommentsMessage(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppDimens.spaceXL),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.chat_bubble_outline,
               size: 48,
-              color: Colors.grey.shade700,
+              color: textWhite50,
             ),
             const SizedBox(height: 16),
             Text(
               'No comments yet',
-              style: TextStyle(
-                color: Colors.grey.shade400,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: textWhite70,
+                    fontWeight: FontWeight.w600,
+                  ),
             ),
             const SizedBox(height: 8),
             Text(
               'Be the first to share your thoughts',
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 14,
-              ),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: textWhite50,
+                  ),
               textAlign: TextAlign.center,
             ),
           ],

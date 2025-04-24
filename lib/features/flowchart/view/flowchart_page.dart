@@ -4,6 +4,7 @@ import 'package:biftech/features/flowchart/repository/flowchart_repository.dart'
 import 'package:biftech/features/flowchart/view/widgets/widgets.dart';
 import 'package:biftech/features/winner/winner.dart';
 import 'package:biftech/shared/animations/animations.dart';
+import 'package:biftech/shared/theme/colors.dart';
 import 'package:biftech/shared/theme/dimens.dart';
 import 'package:biftech/shared/widgets/widgets.dart';
 import 'package:flutter/material.dart';
@@ -813,11 +814,10 @@ class NodeWidget extends StatelessWidget {
 
   void _showCommentsPopup(BuildContext context) {
     final cubit = context.read<FlowchartCubit>();
-    // TODO: Update CommentsPopup design for dark theme
     showDialog<void>(
       context: context,
       // Use a custom barrier color for dark theme
-      barrierColor: Colors.black.withAlpha((0.6 * 255).round()),
+      barrierColor: Colors.black.withAlpha((0.7 * 255).round()),
       builder: (dialogContext) {
         return CommentsPopup(
           nodeModel: nodeModel,
@@ -829,12 +829,11 @@ class NodeWidget extends StatelessWidget {
 
   void _showCommentModal(BuildContext context) {
     final cubit = context.read<FlowchartCubit>();
-    // TODO: Update CommentModal design for dark theme
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF1F1F2E), // Darker modal background
-      barrierColor: Colors.black.withAlpha((0.6 * 255).round()),
+      backgroundColor: secondaryBackground, // Use theme color
+      barrierColor: Colors.black.withAlpha((0.7 * 255).round()),
       shape: const RoundedRectangleBorder(
         borderRadius:
             BorderRadius.vertical(top: Radius.circular(AppDimens.radiusXXL)),
@@ -852,12 +851,12 @@ class NodeWidget extends StatelessWidget {
 
   void _showChallengeModal(BuildContext context) {
     final cubit = context.read<FlowchartCubit>();
-    // TODO: Update ChallengeModal design for dark theme
+    // Update ChallengeModal design for dark theme
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF1F1F2E), // Darker modal background
-      barrierColor: Colors.black.withAlpha((0.6 * 255).round()),
+      backgroundColor: secondaryBackground, // Use theme color
+      barrierColor: Colors.black.withAlpha((0.7 * 255).round()),
       shape: const RoundedRectangleBorder(
         borderRadius:
             BorderRadius.vertical(top: Radius.circular(AppDimens.radiusXXL)),

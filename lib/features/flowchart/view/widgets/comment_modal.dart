@@ -1,7 +1,11 @@
 import 'package:biftech/core/services/error_logging_service.dart';
 import 'package:biftech/features/flowchart/cubit/cubit.dart';
+import 'package:biftech/shared/theme/colors.dart';
+import 'package:biftech/shared/theme/dimens.dart';
+import 'package:biftech/shared/widgets/buttons/primary_button.dart';
+import 'package:biftech/shared/widgets/buttons/secondary_button.dart';
 import 'package:flutter/material.dart';
-import 'package:neopop/widgets/buttons/neopop_button/neopop_button.dart';
+import 'package:flutter/services.dart';
 
 /// Modal for adding a comment to a node
 class CommentModal extends StatefulWidget {
@@ -37,10 +41,10 @@ class _CommentModalState extends State<CommentModal> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
-        top: 16,
-        left: 16,
-        right: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+        top: AppDimens.spaceM,
+        left: AppDimens.spaceM,
+        right: AppDimens.spaceM,
+        bottom: MediaQuery.of(context).viewInsets.bottom + AppDimens.spaceM,
       ),
       child: Form(
         key: _formKey,
@@ -50,15 +54,30 @@ class _CommentModalState extends State<CommentModal> {
           children: [
             Text(
               '💬 Add Comment',
-              style: Theme.of(context).textTheme.titleLarge,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: textWhite,
+                    fontWeight: FontWeight.w700,
+                  ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppDimens.spaceM),
             TextFormField(
               controller: _commentController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Your Comment',
-                border: OutlineInputBorder(),
+                labelStyle: const TextStyle(color: Colors.white),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                  borderSide: const BorderSide(color: textWhite50),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                  borderSide: const BorderSide(color: accentPrimary),
+                ),
               ),
+              style: Theme.of(context).textTheme.bodyMedium,
               maxLines: 3,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
@@ -67,42 +86,27 @@ class _CommentModalState extends State<CommentModal> {
                 return null;
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppDimens.spaceM),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                NeoPopButton(
-                  color: Colors.grey.shade200,
-                  onTapUp: () {
+                SecondaryButton(
+                  label: 'Cancel',
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
                     Navigator.of(context).pop();
                   },
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: Text('Cancel'),
-                  ),
                 ),
-                const SizedBox(width: 8),
-                NeoPopButton(
-                  color: Colors.blue.shade100,
-                  onTapUp: _isSubmitting ? null : _submitComment,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: _isSubmitting
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Text('Submit'),
-                  ),
+                const SizedBox(width: AppDimens.spaceXS),
+                PrimaryButton(
+                  label: 'Submit',
+                  isLoading: _isSubmitting,
+                  onPressed: _isSubmitting
+                      ? null
+                      : () {
+                          HapticFeedback.lightImpact();
+                          _submitComment();
+                        },
                 ),
               ],
             ),
