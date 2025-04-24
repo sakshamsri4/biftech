@@ -5,16 +5,14 @@ import 'package:biftech/features/flowchart/flowchart.dart';
 import 'package:biftech/features/flowchart/repository/flowchart_repository.dart';
 import 'package:biftech/features/video_feed/service/video_feed_service.dart';
 import 'package:biftech/features/video_feed/video_feed.dart';
+import 'package:biftech/shared/animations/animations.dart';
+import 'package:biftech/shared/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-/// {@template home_page}
-/// The main home page of the application.
-/// {@endtemplate}
 class HomePage extends StatefulWidget {
-  /// {@macro home_page}
   const HomePage({super.key});
 
-  /// The route name for this page.
   static const routeName = '/home';
 
   @override
@@ -35,7 +33,9 @@ class _HomePageState extends State<HomePage> {
     final authRepository = AuthService.getAuthRepository();
     final currentUser = authRepository.getCurrentUser();
 
-    if (currentUser != null) {
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+
+    if (currentUser != null && mounted) {
       setState(() {
         _currentUser = currentUser;
       });
@@ -60,44 +60,82 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  final BoxDecoration _backgroundDecoration = const BoxDecoration(
+    gradient: LinearGradient(
+      colors: [Color(0xFF1A1A2E), Color(0xFF16213E), Color(0xFF0F3460)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+  );
+
+  final Duration _staggerDelay = const Duration(milliseconds: 100);
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('BifTech'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _logout,
-            tooltip: 'Logout',
+    return Container(
+      decoration: _backgroundDecoration,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: EntranceAnimation(
+            delay: _staggerDelay * 0,
+            child: const Text(
+              'BifTech',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
-        ],
-      ),
-      body: _buildBody(),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.white),
+          actions: [
+            EntranceAnimation(
+              delay: _staggerDelay * 1,
+              child: PressableScale(
+                child: IconButton(
+                  icon: const Icon(Icons.logout),
+                  onPressed: _logout,
+                  tooltip: 'Logout',
+                  color: Colors.white70,
+                ),
+              ),
+            ),
+          ],
+        ),
+        body: _buildBody(),
+        bottomNavigationBar: EntranceAnimation(
+          delay: _staggerDelay * 6,
+          offset: const Offset(0, 50),
+          child: BottomNavigationBar(
+            items: const <BottomNavigationBarItem>[
+              BottomNavigationBarItem(
+                icon: Icon(Icons.home),
+                label: 'Home',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.video_collection),
+                label: 'Videos',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.account_tree),
+                label: 'Flowchart',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.volunteer_activism),
+                label: 'Donate',
+              ),
+            ],
+            currentIndex: _selectedIndex,
+            backgroundColor: const Color(0xFF16213E).withOpacity(0.8),
+            selectedItemColor: Colors.white,
+            unselectedItemColor: Colors.white54,
+            type: BottomNavigationBarType.fixed,
+            elevation: 0,
+            onTap: _onItemTapped,
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.video_collection),
-            label: 'Videos',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_tree),
-            label: 'Flowchart',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.volunteer_activism),
-            label: 'Donate',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
-        onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed,
+        ),
       ),
     );
   }
@@ -105,132 +143,99 @@ class _HomePageState extends State<HomePage> {
   Widget _buildBody() {
     if (_currentUser == null) {
       return const Center(
-        child: CircularProgressIndicator(),
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        ),
       );
     }
 
-    switch (_selectedIndex) {
-      case 0:
-        return _buildHomeTab();
-      case 1:
-        return _buildVideosTab();
-      case 2:
-        return _buildFlowchartTab();
-      case 3:
-        return _buildDonateTab();
-      default:
-        return _buildHomeTab();
-    }
+    return IndexedStack(
+      index: _selectedIndex,
+      children: [
+        _buildHomeTab(),
+        _buildVideosTab(),
+        _buildFlowchartTab(),
+        _buildDonateTab(),
+      ],
+    );
   }
 
   Widget _buildHomeTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildWelcomeCard(),
-          const SizedBox(height: 24),
-          _buildFeaturedSection(),
-          const SizedBox(height: 24),
-          _buildRecentActivitySection(),
+          EntranceAnimation(
+            delay: _staggerDelay * 2,
+            child: _buildWelcomeSection(),
+          ),
+          const SizedBox(height: 32),
+          EntranceAnimation(
+            delay: _staggerDelay * 3,
+            child: _buildFeaturedSection(),
+          ),
+          const SizedBox(height: 32),
+          EntranceAnimation(
+            delay: _staggerDelay * 4,
+            child: _buildRecentActivitySection(),
+          ),
+          const SizedBox(height: 20),
         ],
       ),
     );
   }
 
-  Widget _buildWelcomeCard() {
-    // Ensure _currentUser is not null
-    if (_currentUser == null) {
-      return Card(
-        elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+  Widget _buildWelcomeSection() {
+    final userName = _currentUser?.name ?? 'User';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Welcome back,',
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                color: Colors.white70,
+                fontWeight: FontWeight.w300,
+              ),
         ),
-        child: const Padding(
-          padding: EdgeInsets.all(16),
-          child: Center(
-            child: CircularProgressIndicator(),
+        Text(
+          userName,
+          style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                height: 1.2,
+              ),
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 24),
+        Text(
+          'Your progress this week:',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Colors.white.withOpacity(0.8),
           ),
         ),
-      );
-    }
-
-    // Safe to use _currentUser now
-    final userName = _currentUser?.name ?? 'User';
-    final userInitial = userName.isNotEmpty ? userName[0].toUpperCase() : 'U';
-
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Colors.blue.shade100,
-                  child: Text(
-                    userInitial,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Welcome back,',
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                      Text(
-                        userName,
-                        style:
-                            Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Your progress this week:',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const LinearProgressIndicator(
-              value: 0.7,
-              backgroundColor: Colors.grey,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              '70% complete',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey,
-              ),
-            ),
-          ],
+        const SizedBox(height: 12),
+        GradientProgressIndicator(
+          value: 0.7,
+          gradient: const LinearGradient(
+            colors: [Color(0xFFE94560), Color(0xFF0F3460)],
+          ),
+          backgroundColor: Colors.white.withOpacity(0.1),
+          height: 10,
+          borderRadius: BorderRadius.circular(5),
         ),
-      ),
+        const SizedBox(height: 8),
+        Text(
+          '70% complete',
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.white.withOpacity(0.6),
+          ),
+        ),
+      ],
     );
   }
 
@@ -242,59 +247,79 @@ class _HomePageState extends State<HomePage> {
           'Featured Content',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
         ),
         const SizedBox(height: 16),
         SizedBox(
-          height: 200,
+          height: 220,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
+            clipBehavior: Clip.none,
             itemCount: 5,
             itemBuilder: (context, index) {
-              return Container(
-                width: 280,
-                margin: const EdgeInsets.only(right: 16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: Colors.grey.shade200,
-                  image: DecorationImage(
-                    image: NetworkImage(
-                      'https://picsum.photos/seed/${index + 1}/280/200',
-                    ),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(12),
-                            bottomRight: Radius.circular(12),
-                          ),
-                          color: Colors.black.withAlpha(179),
-                        ),
-                        child: Text(
-                          'Featured Item ${index + 1}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+              return EntranceAnimation(
+                delay: _staggerDelay * (index * 0.5),
+                offset: const Offset(20, 0),
+                child: PressableScale(
+                  child: _buildPremiumCard(index),
                 ),
               );
             },
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildPremiumCard(int index) {
+    return Container(
+      width: 280,
+      margin: const EdgeInsets.only(right: 20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        image: DecorationImage(
+          image: NetworkImage(
+            'https://picsum.photos/seed/${index + 1}/560/440',
+          ),
+          fit: BoxFit.cover,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.4),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            colors: [
+              Colors.black.withOpacity(0),
+              Colors.black.withOpacity(0.8),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            stops: const [0.5, 1.0],
+          ),
+        ),
+        child: Align(
+          alignment: Alignment.bottomLeft,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              'Featured Item ${index + 1}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -306,6 +331,7 @@ class _HomePageState extends State<HomePage> {
           'Recent Activity',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
         ),
         const SizedBox(height: 16),
@@ -313,23 +339,39 @@ class _HomePageState extends State<HomePage> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: 5,
-          separatorBuilder: (context, index) => const Divider(),
+          separatorBuilder: (context, index) => Divider(
+            color: Colors.white.withOpacity(0.1),
+            height: 1,
+          ),
           itemBuilder: (context, index) {
-            return ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Colors.blue.shade100,
-                child: Icon(
-                  _getActivityIcon(index),
-                  color: Colors.blue,
-                ),
-              ),
-              title: Text('Activity ${index + 1}'),
-              subtitle: Text('Description for activity ${index + 1}'),
-              trailing: Text(
-                '${index + 1}h ago',
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontSize: 12,
+            return EntranceAnimation(
+              delay: _staggerDelay * (index * 0.5),
+              child: PressableScale(
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.white.withOpacity(0.1),
+                    child: Icon(
+                      _getActivityIcon(index),
+                      color: Colors.white70,
+                    ),
+                  ),
+                  title: Text(
+                    'Activity ${index + 1}',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  subtitle: Text(
+                    'Description for activity ${index + 1}',
+                    style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                  ),
+                  trailing: Text(
+                    '${index + 1}h ago',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.5),
+                      fontSize: 12,
+                    ),
+                  ),
+                  onTap: HapticFeedback.lightImpact,
                 ),
               ),
             );
@@ -351,91 +393,128 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildVideosTab() {
-    // Directly embed the VideoFeedPage content
-    return const VideoFeedPage();
+    return Container(
+      decoration: _backgroundDecoration,
+      child: const VideoFeedPage(),
+    );
   }
 
   Widget _buildFlowchartTab() {
-    return FutureBuilder<List<VideoModel>>(
-      future: VideoFeedService.instance.getVideos(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    return Container(
+      decoration: _backgroundDecoration,
+      child: FutureBuilder<List<VideoModel>>(
+        future: VideoFeedService.instance.getVideos(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            );
+          }
 
-        if (snapshot.hasError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 60,
-                  color: Colors.red.shade300,
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 60,
+                      color: Colors.red.shade300,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Error loading flowcharts',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(color: Colors.white),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      snapshot.error.toString(),
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(color: Colors.white70),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  'Error loading flowcharts',
-                  style: Theme.of(context).textTheme.titleLarge,
+              ),
+            );
+          }
+
+          final videos = snapshot.data ?? [];
+
+          if (videos.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.account_tree,
+                      size: 80,
+                      color: Colors.blue.shade200,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No Flowcharts Available',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(color: Colors.white),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Watch videos to participate in discussions',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(color: Colors.white70),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  snapshot.error.toString(),
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  textAlign: TextAlign.center,
+              ),
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: videos.length,
+            itemBuilder: (context, index) {
+              final video = videos[index];
+              return EntranceAnimation(
+                delay: _staggerDelay * index,
+                child: PressableScale(
+                  child: _buildFlowchartCard(video),
                 ),
-              ],
-            ),
+              );
+            },
           );
-        }
-
-        final videos = snapshot.data ?? [];
-
-        if (videos.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.account_tree,
-                  size: 80,
-                  color: Colors.blue.shade200,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'No Flowcharts Available',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Watch videos to participate in discussions',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          );
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: videos.length,
-          itemBuilder: (context, index) {
-            final video = videos[index];
-            return _buildFlowchartCard(video);
-          },
-        );
-      },
+        },
+      ),
     );
   }
 
   Widget _buildFlowchartCard(VideoModel video) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
+      elevation: 4,
+      color: const Color(0xFF16213E).withOpacity(0.7),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shadowColor: Colors.black.withOpacity(0.5),
       child: InkWell(
         onTap: () {
+          HapticFeedback.lightImpact();
           Navigator.pushNamed(
             context,
             '/flowchart/${video.id}',
@@ -464,6 +543,7 @@ class _HomePageState extends State<HomePage> {
                           style:
                               Theme.of(context).textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
+                                    color: Colors.white,
                                   ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -471,7 +551,10 @@ class _HomePageState extends State<HomePage> {
                         const SizedBox(height: 4),
                         Text(
                           'by ${video.creator}',
-                          style: Theme.of(context).textTheme.bodySmall,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: Colors.white70),
                         ),
                       ],
                     ),
@@ -483,35 +566,15 @@ class _HomePageState extends State<HomePage> {
                 spacing: 16,
                 runSpacing: 8,
                 children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.account_tree, size: 16),
-                      const SizedBox(width: 4),
-                      FutureBuilder<bool>(
-                        future: _hasFlowchart(video.id),
-                        builder: (context, snapshot) {
-                          final hasFlowchart = snapshot.data ?? false;
-                          return Text(
-                            hasFlowchart
-                                ? 'Discussion Active'
-                                : 'Start Discussion',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          );
-                        },
-                      ),
-                    ],
+                  _buildMetaInfo(
+                    icon: Icons.account_tree,
+                    future: _hasFlowchart(video.id),
+                    trueText: 'Discussion Active',
+                    falseText: 'Start Discussion',
                   ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.remove_red_eye, size: 16),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${video.views} views',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
+                  _buildMetaInfo(
+                    icon: Icons.remove_red_eye,
+                    text: '${video.views} views',
                   ),
                 ],
               ),
@@ -519,6 +582,50 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildMetaInfo({
+    required IconData icon,
+    String? text,
+    Future<bool>? future,
+    String? trueText,
+    String? falseText,
+  }) {
+    Widget textWidget;
+    if (text != null) {
+      textWidget = Text(
+        text,
+        style: Theme.of(context)
+            .textTheme
+            .bodySmall
+            ?.copyWith(color: Colors.white70),
+      );
+    } else if (future != null && trueText != null && falseText != null) {
+      textWidget = FutureBuilder<bool>(
+        future: future,
+        builder: (context, snapshot) {
+          final result = snapshot.data ?? false;
+          return Text(
+            result ? trueText : falseText,
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.copyWith(color: Colors.white70),
+          );
+        },
+      );
+    } else {
+      textWidget = const SizedBox.shrink();
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 16, color: Colors.white54),
+        const SizedBox(width: 4),
+        textWidget,
+      ],
     );
   }
 
@@ -532,27 +639,37 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  /// Builds a thumbnail image with fallback to default
   Widget _buildThumbnail(String thumbnailUrl) {
-    // Log the error but don't show it to the user
     return Image.asset(
       thumbnailUrl,
       width: 100,
       height: 60,
       fit: BoxFit.cover,
       errorBuilder: (context, error, stackTrace) {
-        // Log the error
         debugPrint('Error loading thumbnail: $thumbnailUrl - $error');
-
-        // Always show a placeholder without trying to load a default
-        // that might also fail
         return const PlaceholderThumbnail();
       },
     );
   }
 
   Widget _buildDonateTab() {
-    // Use the new DonationPage
-    return const DonationPage();
+    return Container(
+      decoration: _backgroundDecoration,
+      child: const DonationPage(),
+    );
+  }
+}
+
+class PlaceholderThumbnail extends StatelessWidget {
+  const PlaceholderThumbnail({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 100,
+      height: 60,
+      color: Colors.grey.shade800,
+      child: const Icon(Icons.image_not_supported, color: Colors.grey),
+    );
   }
 }
