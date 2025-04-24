@@ -65,7 +65,7 @@ class TertiaryButton extends StatelessWidget {
       padding: padding,
       useScaleAnimation: false, // Disable scale
       useOpacityAnimation: true, // Enable opacity change on press
-      builder: (context, bool isPressed) {
+      builder: (context, {required bool isPressed}) {
         // Explicitly type isPressed
         // Tertiary button doesn't need a complex builder for background/border,
         // just rely on the BaseButton's opacity handling for enabled/disabled state.

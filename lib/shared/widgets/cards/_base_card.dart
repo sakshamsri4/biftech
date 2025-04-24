@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// Base widget for cards, handling common properties like padding, radius, and child.
-/// Specific styling (background, border, shadow) is applied by subclasses.
+/// Base widget for cards, handling common properties like padding,
+///  radius, and child.
+/// Specific styling (background, border, shadow) is applied by
+/// subclasses.
 class BaseCard extends StatelessWidget {
   const BaseCard({
     required this.child,

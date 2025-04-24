@@ -60,7 +60,7 @@ class PrimaryButton extends StatelessWidget {
       height: height,
       borderRadius: borderRadius,
       padding: padding,
-      builder: (context, bool isPressed) {
+      builder: (context, {required bool isPressed}) {
         return Ink(
           decoration: BoxDecoration(
             gradient: _isEnabled ? gradient : null, // No gradient when disabled

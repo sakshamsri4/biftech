@@ -497,7 +497,8 @@ class _HomePageState extends State<HomePage> {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      "Discussions haven't started for any videos. Watch a video and be the first!",
+                      "Discussions haven't started for any videos. "
+                      'Watch a video and be the first!',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Colors.white.withAlpha((0.7 * 255).round()),
                           ),

@@ -32,7 +32,8 @@ class BaseButton extends StatefulWidget {
   final bool useOpacityAnimation;
 
   // Builder function to construct the specific button appearance
-  final Widget Function(BuildContext context, bool isPressed) builder;
+  final Widget Function(BuildContext context, {required bool isPressed})
+      builder;
 
   @override
   State<BaseButton> createState() => BaseButtonState(); // Renamed state class
@@ -131,8 +132,10 @@ class BaseButtonState extends State<BaseButton> // Renamed from _BaseButtonState
         opacity: _isEnabled ? 1.0 : 0.5, // Dim button when disabled
         child: SizedBox(
           height: widget.height,
-          child:
-              widget.builder(context, _isPressed), // Use builder for appearance
+          child: widget.builder(
+            context,
+            isPressed: _isPressed,
+          ), // Use builder for appearance
         ),
       ),
     );

@@ -300,6 +300,14 @@ class _UploadVideoViewState extends State<UploadVideoView> {
     );
   }
 
+  // Format duration as MM:SS
+  String _formatDuration() {
+    if (_videoDuration == null) return '0:00';
+    final minutes = _videoDuration!.inMinutes;
+    final seconds = (_videoDuration!.inSeconds % 60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
+  }
+
   Future<void> _submitForm() async {
     if (_formKey.currentState?.validate() != true) {
       return;
@@ -697,8 +705,8 @@ class _UploadVideoViewState extends State<UploadVideoView> {
                               Padding(
                                 padding: const EdgeInsets.only(top: 4),
                                 child: Text(
-                                  'Duration: ${_videoDuration!.inMinutes}:'
-                                  '${(_videoDuration!.inSeconds % 60).toString().padLeft(2, '0')}',
+                                  // Format duration as MM:SS
+                                  'Duration: ${_formatDuration()}',
                                   style: const TextStyle(
                                     color: Colors.white70,
                                     fontSize: 12,

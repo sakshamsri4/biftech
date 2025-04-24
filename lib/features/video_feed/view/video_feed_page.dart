@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:biftech/features/video_feed/cubit/cubit.dart';
 import 'package:biftech/features/video_feed/model/models.dart';
 import 'package:biftech/features/video_feed/view/upload_video_page.dart';
@@ -186,8 +188,10 @@ class _VideoFeedViewState extends State<VideoFeedView>
                 color: const Color(0xFF9B51E0),
                 backgroundColor: const Color(0xFF1A1A1A),
                 onRefresh: () async {
-                  await HapticFeedback.mediumImpact();
-                  await context.read<VideoFeedCubit>().loadVideos();
+                  unawaited(HapticFeedback.mediumImpact());
+                  // Store the cubit reference before the async gap
+                  final cubit = context.read<VideoFeedCubit>();
+                  await cubit.loadVideos();
                 },
                 child: _VideoList(videos: state.videos),
               );

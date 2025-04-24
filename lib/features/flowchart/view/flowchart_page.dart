@@ -271,7 +271,8 @@ class _FlowchartViewState extends State<FlowchartView> {
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          "Be the first to add a point to this video's discussion!",
+                          "Be the first to add a point to this video's "
+                          'discussion!',
                           style: Theme.of(context)
                               .textTheme
                               .bodyMedium
@@ -749,7 +750,8 @@ class NodeWidget extends StatelessWidget {
 
             // Action Buttons (Comment/Donate/Challenge)
             Row(
-              // Use spaceBetween for better control and wrap buttons with Flexible
+              // Use spaceBetween for better control and wrap buttons with
+              // Flexible
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 // Comment Button - Wrap with Flexible

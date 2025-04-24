@@ -58,7 +58,7 @@ class SecondaryButton extends StatelessWidget {
       height: height,
       borderRadius: borderRadius,
       padding: padding,
-      builder: (context, bool isPressed) {
+      builder: (context, {required bool isPressed}) {
         // Explicitly type isPressed
         // Adjust border color when pressed or disabled
         final currentBorderColor = !_isEnabled
