@@ -90,8 +90,8 @@ class _CredBottomNavBarState extends State<CredBottomNavBar>
           child: Container(
             height: 65, // Adjust height as needed
             decoration: BoxDecoration(
-              color: Colors.black
-                  .withOpacity(0.75), // Dark semi-transparent background
+              color: Colors.black.withAlpha(
+                  (0.75 * 255).round()), // Dark semi-transparent background
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
@@ -111,8 +111,8 @@ class _CredBottomNavBarState extends State<CredBottomNavBar>
                 final isSelected = index == widget.currentIndex;
                 final color = isSelected
                     ? theme.colorScheme.primary // Use theme's primary color
-                    : theme.colorScheme.onSurface
-                        .withOpacity(0.7); // Use theme color with opacity
+                    : theme.colorScheme.onSurface.withAlpha(
+                        (0.7 * 255).round()); // Use theme color with alpha
 
                 return Expanded(
                   child: GestureDetector(

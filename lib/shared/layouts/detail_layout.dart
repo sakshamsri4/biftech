@@ -51,8 +51,10 @@ class DetailLayout extends StatelessWidget {
         // so content doesn't hide behind them.
         if (stickyBottomActions != null)
           const SliverPadding(
-              padding: EdgeInsets.only(
-                  bottom: 80)), // Adjust height based on actions
+            padding: EdgeInsets.only(
+              bottom: 80,
+            ),
+          ), // Adjust height based on actions
       ],
     );
 
@@ -69,8 +71,8 @@ class DetailLayout extends StatelessWidget {
               right: 0,
               child: Container(
                 // Add background/padding for actions if needed
-                color:
-                    theme.canvasColor.withOpacity(0.95), // Slight transparency
+                color: theme.canvasColor
+                    .withAlpha((0.95 * 255).round()), // Use withAlpha
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: SafeArea(

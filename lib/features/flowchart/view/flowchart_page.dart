@@ -4,6 +4,7 @@ import 'package:biftech/features/flowchart/repository/flowchart_repository.dart'
 import 'package:biftech/features/flowchart/view/widgets/widgets.dart';
 import 'package:biftech/features/winner/winner.dart';
 import 'package:biftech/shared/animations/animations.dart';
+import 'package:biftech/shared/theme/dimens.dart';
 import 'package:biftech/shared/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -188,7 +189,7 @@ class _FlowchartViewState extends State<FlowchartView> {
                         Colors.purpleAccent,
                       ),
                     ),
-                    SizedBox(height: 20),
+                    SizedBox(height: AppDimens.spaceL),
                     Text(
                       'Loading Flowchart...',
                       style: TextStyle(color: Colors.white70, fontSize: 16),
@@ -209,7 +210,7 @@ class _FlowchartViewState extends State<FlowchartView> {
                         size: 60,
                         color: Colors.red.shade300,
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: AppDimens.spaceM),
                       Text(
                         'Oops! Failed to load flowchart.',
                         style: Theme.of(context)
@@ -218,7 +219,7 @@ class _FlowchartViewState extends State<FlowchartView> {
                             ?.copyWith(color: Colors.white),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppDimens.spaceXS),
                       Text(
                         'Something went wrong. Please check your connection and try again.',
                         style: Theme.of(context)
@@ -227,7 +228,7 @@ class _FlowchartViewState extends State<FlowchartView> {
                             ?.copyWith(color: Colors.white70),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: AppDimens.spaceXL),
                       // Use GradientButton for retry
                       GradientButton(
                         onPressed: () {
@@ -253,7 +254,7 @@ class _FlowchartViewState extends State<FlowchartView> {
                           size: 80,
                           color: Colors.purple.shade200,
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: AppDimens.spaceL),
                         Text(
                           'Discussion Not Started',
                           style:
@@ -341,7 +342,7 @@ class _FlowchartViewState extends State<FlowchartView> {
       height: MediaQuery.of(context).size.height * 0.8,
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
       ),
       child: InteractiveViewer(
         key: _graphKey,
@@ -371,7 +372,7 @@ class _FlowchartViewState extends State<FlowchartView> {
             TreeEdgeRenderer(builder),
           ),
           paint: Paint()
-            ..color = Colors.purpleAccent.withOpacity(0.5)
+            ..color = Colors.purpleAccent.withAlpha((0.5 * 255).round())
             ..strokeWidth = 1.5
             ..style = PaintingStyle.stroke,
           builder: (Node node) {
@@ -577,9 +578,9 @@ class NodeWidget extends StatelessWidget {
     // Theme elements
     const signaturePurple = Colors.deepPurpleAccent; // Adjusted purple
     const cardDarkBg = Color(0xFF2A2A3E); // Slightly lighter dark for card
-    const borderRadius = BorderRadius.all(Radius.circular(16));
-    final shadowColor = Colors.black.withOpacity(0.4);
-    const shadowBlurRadius = 12.0;
+    const borderRadius = BorderRadius.all(Radius.circular(AppDimens.radiusXL));
+    final shadowColor = Colors.black.withAlpha((0.4 * 255).round());
+    const shadowBlurRadius = AppDimens.spaceS;
     const shadowOffset = Offset(0, 6);
     final titleStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.bold,
@@ -587,11 +588,11 @@ class NodeWidget extends StatelessWidget {
           height: 1.3,
         );
     final bodyStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
-          color: Colors.white.withOpacity(0.85),
+          color: Colors.white.withAlpha((0.85 * 255).round()),
           height: 1.4,
         );
     final smallTextStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: Colors.white.withOpacity(0.7),
+          color: Colors.white.withAlpha((0.7 * 255).round()),
         );
 
     // Determine node type
@@ -601,10 +602,10 @@ class NodeWidget extends StatelessWidget {
     // Define border based on selection
     final border = isSelected
         ? Border.all(color: signaturePurple, width: 2.5)
-        : Border.all(color: Colors.white.withOpacity(0.15));
+        : Border.all(color: Colors.white.withAlpha((0.15 * 255).round()));
 
     return Container(
-      margin: const EdgeInsets.all(10), // Margin for shadow
+      margin: const EdgeInsets.all(10),
       constraints: const BoxConstraints(
         minWidth: 180,
         maxWidth: 240,
@@ -622,7 +623,7 @@ class NodeWidget extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppDimens.spaceM),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -630,11 +631,15 @@ class NodeWidget extends StatelessWidget {
             // Root node indicator
             if (isRoot)
               Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.only(bottom: AppDimens.spaceXS),
                 child: Row(
                   children: [
-                    Icon(Icons.star, color: Colors.amber.shade300, size: 16),
-                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.star,
+                      color: Colors.amber.shade300,
+                      size: AppDimens.spaceM,
+                    ),
+                    const SizedBox(width: AppDimens.spaceXXS),
                     Text(
                       'Starting Point',
                       style: smallTextStyle?.copyWith(
@@ -674,23 +679,27 @@ class NodeWidget extends StatelessWidget {
 
             // Comments Section (if any)
             if (nodeModel.comments.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Divider(color: Colors.white.withOpacity(0.1)),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppDimens.spaceS),
+              Divider(color: Colors.white.withAlpha((0.1 * 255).round())),
+              const SizedBox(height: AppDimens.spaceXS),
               InkWell(
                 // Make the whole comment section tappable
                 onTap: () {
                   HapticFeedback.lightImpact();
                   _showCommentsPopup(context);
                 },
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppDimens.radiusM),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: AppDimens.spaceXXS),
                   child: Row(
                     children: [
-                      const Icon(Icons.comment_outlined,
-                          color: Colors.white70, size: 16),
-                      const SizedBox(width: 8),
+                      const Icon(
+                        Icons.comment_outlined,
+                        color: Colors.white70,
+                        size: AppDimens.spaceM,
+                      ),
+                      const SizedBox(width: AppDimens.spaceXS),
                       Expanded(
                         child: Text(
                           nodeModel.comments.first,
@@ -699,12 +708,14 @@ class NodeWidget extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppDimens.spaceXS),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
-                          color: signaturePurple.withOpacity(0.8),
+                          color: signaturePurple.withAlpha((0.8 * 255).round()),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
@@ -723,9 +734,9 @@ class NodeWidget extends StatelessWidget {
             ],
 
             // Action Buttons Divider (always show for spacing)
-            const SizedBox(height: 8),
-            Divider(color: Colors.white.withOpacity(0.1)),
-            const SizedBox(height: 4),
+            const SizedBox(height: AppDimens.spaceXS),
+            Divider(color: Colors.white.withAlpha((0.1 * 255).round())),
+            const SizedBox(height: AppDimens.spaceXXS),
 
             // Action Buttons (Comment/Challenge)
             Row(
@@ -773,7 +784,9 @@ class NodeWidget extends StatelessWidget {
         // Reduce horizontal padding further
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
         foregroundColor: color,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimens.radiusXXL),
+        ),
         // Allow button to shrink
         minimumSize: Size.zero,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -804,7 +817,7 @@ class NodeWidget extends StatelessWidget {
     showDialog<void>(
       context: context,
       // Use a custom barrier color for dark theme
-      barrierColor: Colors.black.withOpacity(0.6),
+      barrierColor: Colors.black.withAlpha((0.6 * 255).round()),
       builder: (dialogContext) {
         return CommentsPopup(
           nodeModel: nodeModel,
@@ -821,9 +834,10 @@ class NodeWidget extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: const Color(0xFF1F1F2E), // Darker modal background
-      barrierColor: Colors.black.withOpacity(0.6),
+      barrierColor: Colors.black.withAlpha((0.6 * 255).round()),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppDimens.radiusXXL)),
       ),
       builder: (modalContext) {
         // Provide cubit to the modal
@@ -843,9 +857,10 @@ class NodeWidget extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: const Color(0xFF1F1F2E), // Darker modal background
-      barrierColor: Colors.black.withOpacity(0.6),
+      barrierColor: Colors.black.withAlpha((0.6 * 255).round()),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppDimens.radiusXXL)),
       ),
       builder: (modalContext) {
         // Provide cubit to the modal

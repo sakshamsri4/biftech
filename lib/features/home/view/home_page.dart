@@ -7,6 +7,7 @@ import 'package:biftech/features/flowchart/repository/flowchart_repository.dart'
 import 'package:biftech/features/video_feed/service/video_feed_service.dart';
 import 'package:biftech/features/video_feed/video_feed.dart';
 import 'package:biftech/shared/animations/animations.dart';
+import 'package:biftech/shared/theme/dimens.dart';
 import 'package:biftech/shared/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -99,7 +100,7 @@ class _HomePageState extends State<HomePage> {
                   icon: const Icon(Icons.logout),
                   onPressed: _logout,
                   tooltip: 'Logout',
-                  color: Colors.white70,
+                  color: Colors.white.withAlpha((0.7 * 255).round()),
                 ),
               ),
             ),
@@ -129,9 +130,10 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
             currentIndex: _selectedIndex,
-            backgroundColor: const Color(0xFF16213E).withOpacity(0.8),
+            backgroundColor:
+                const Color(0xFF16213E).withAlpha((0.8 * 255).round()),
             selectedItemColor: Colors.white,
-            unselectedItemColor: Colors.white54,
+            unselectedItemColor: Colors.white.withAlpha((0.54 * 255).round()),
             type: BottomNavigationBarType.fixed,
             elevation: 0,
             onTap: _onItemTapped,
@@ -163,7 +165,10 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildHomeTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppDimens.spaceL,
+        vertical: AppDimens.spaceM,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -171,17 +176,17 @@ class _HomePageState extends State<HomePage> {
             delay: _staggerDelay * 2,
             child: _buildWelcomeSection(),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: AppDimens.spaceXXL),
           EntranceAnimation(
             delay: _staggerDelay * 3,
             child: _buildFeaturedSection(),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: AppDimens.spaceXXL),
           EntranceAnimation(
             delay: _staggerDelay * 4,
             child: _buildRecentActivitySection(),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppDimens.spaceL),
         ],
       ),
     );
@@ -196,7 +201,7 @@ class _HomePageState extends State<HomePage> {
         Text(
           'Welcome back,',
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: Colors.white70,
+                color: Colors.white.withAlpha((0.7 * 255).round()),
                 fontWeight: FontWeight.w300,
               ),
         ),
@@ -209,31 +214,31 @@ class _HomePageState extends State<HomePage> {
               ),
           overflow: TextOverflow.ellipsis,
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppDimens.spaceXL),
         Text(
           'Your progress this week:',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
-            color: Colors.white.withOpacity(0.8),
+            color: Colors.white.withAlpha((0.8 * 255).round()),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppDimens.spaceS),
         GradientProgressIndicator(
           value: 0.7,
           gradient: const LinearGradient(
             colors: [Color(0xFFE94560), Color(0xFF0F3460)],
           ),
-          backgroundColor: Colors.white.withOpacity(0.1),
+          backgroundColor: Colors.white.withAlpha((0.1 * 255).round()),
           height: 10,
           borderRadius: BorderRadius.circular(5),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppDimens.spaceXS),
         Text(
           '70% complete',
           style: TextStyle(
             fontSize: 14,
-            color: Colors.white.withOpacity(0.6),
+            color: Colors.white.withAlpha((0.6 * 255).round()),
           ),
         ),
       ],
@@ -251,7 +256,7 @@ class _HomePageState extends State<HomePage> {
                 color: Colors.white,
               ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppDimens.spaceM),
         SizedBox(
           height: 220,
           child: ListView.builder(
@@ -261,7 +266,7 @@ class _HomePageState extends State<HomePage> {
             itemBuilder: (context, index) {
               return EntranceAnimation(
                 delay: _staggerDelay * (index * 0.5),
-                offset: const Offset(20, 0),
+                offset: const Offset(AppDimens.spaceL, 0),
                 child: PressableScale(
                   child: _buildPremiumCard(index),
                 ),
@@ -276,9 +281,9 @@ class _HomePageState extends State<HomePage> {
   Widget _buildPremiumCard(int index) {
     return Container(
       width: 280,
-      margin: const EdgeInsets.only(right: 20),
+      margin: const EdgeInsets.only(right: AppDimens.spaceL),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppDimens.radiusXXL),
         image: DecorationImage(
           image: NetworkImage(
             'https://picsum.photos/seed/${index + 1}/560/440',
@@ -287,7 +292,7 @@ class _HomePageState extends State<HomePage> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
+            color: Colors.black.withAlpha((0.4 * 255).round()),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -295,11 +300,11 @@ class _HomePageState extends State<HomePage> {
       ),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppDimens.radiusXXL),
           gradient: LinearGradient(
             colors: [
-              Colors.black.withOpacity(0),
-              Colors.black.withOpacity(0.8),
+              Colors.black.withAlpha(0 * 255),
+              Colors.black.withAlpha((0.8 * 255).round()),
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -309,7 +314,7 @@ class _HomePageState extends State<HomePage> {
         child: Align(
           alignment: Alignment.bottomLeft,
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppDimens.spaceM),
             child: Text(
               'Featured Item ${index + 1}',
               style: const TextStyle(
@@ -335,13 +340,13 @@ class _HomePageState extends State<HomePage> {
                 color: Colors.white,
               ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppDimens.spaceM),
         ListView.separated(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: 5,
           separatorBuilder: (context, index) => Divider(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withAlpha((0.1 * 255).round()),
             height: 1,
           ),
           itemBuilder: (context, index) {
@@ -349,12 +354,14 @@ class _HomePageState extends State<HomePage> {
               delay: _staggerDelay * (index * 0.5),
               child: PressableScale(
                 child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                  contentPadding:
+                      const EdgeInsets.symmetric(vertical: AppDimens.spaceXS),
                   leading: CircleAvatar(
-                    backgroundColor: Colors.white.withOpacity(0.1),
+                    backgroundColor:
+                        Colors.white.withAlpha((0.1 * 255).round()),
                     child: Icon(
                       _getActivityIcon(index),
-                      color: Colors.white70,
+                      color: Colors.white.withAlpha((0.7 * 255).round()),
                     ),
                   ),
                   title: Text(
@@ -363,12 +370,14 @@ class _HomePageState extends State<HomePage> {
                   ),
                   subtitle: Text(
                     'Description for activity ${index + 1}',
-                    style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                    style: TextStyle(
+                      color: Colors.white.withAlpha((0.7 * 255).round()),
+                    ),
                   ),
                   trailing: Text(
                     '${index + 1}h ago',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.5),
+                      color: Colors.white.withAlpha((0.5 * 255).round()),
                       fontSize: 12,
                     ),
                   ),
@@ -407,18 +416,21 @@ class _HomePageState extends State<HomePage> {
         future: VideoFeedService.instance.getVideos(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircularProgressIndicator(
+                  const CircularProgressIndicator(
                     valueColor:
                         AlwaysStoppedAnimation<Color>(Colors.purpleAccent),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: AppDimens.spaceL),
                   Text(
                     'Loading Flowcharts...',
-                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                    style: TextStyle(
+                      color: Colors.white.withAlpha((0.7 * 255).round()),
+                      fontSize: 16,
+                    ),
                   ),
                 ],
               ),
@@ -435,9 +447,9 @@ class _HomePageState extends State<HomePage> {
                     Icon(
                       Icons.error_outline,
                       size: 60,
-                      color: Colors.red.shade300,
+                      color: Colors.red.withAlpha((0.3 * 255).round()),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppDimens.spaceM),
                     Text(
                       'Oops! Something went wrong.',
                       style: Theme.of(context)
@@ -446,13 +458,12 @@ class _HomePageState extends State<HomePage> {
                           ?.copyWith(color: Colors.white),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppDimens.spaceXS),
                     Text(
                       'Failed to load flowchart data. Please try again later.',
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(color: Colors.white70),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Colors.white.withAlpha((0.7 * 255).round()),
+                          ),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -473,9 +484,9 @@ class _HomePageState extends State<HomePage> {
                     Icon(
                       Icons.account_tree_outlined,
                       size: 80,
-                      color: Colors.purple.shade200,
+                      color: Colors.purple.withAlpha((0.2 * 255).round()),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: AppDimens.spaceL),
                     Text(
                       'No Flowcharts Yet',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -487,10 +498,9 @@ class _HomePageState extends State<HomePage> {
                     const SizedBox(height: 10),
                     Text(
                       "Discussions haven't started for any videos. Watch a video and be the first!",
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(color: Colors.white70),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Colors.white.withAlpha((0.7 * 255).round()),
+                          ),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -500,7 +510,7 @@ class _HomePageState extends State<HomePage> {
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppDimens.spaceM),
             itemCount: videos.length,
             itemBuilder: (context, index) {
               final video = videos[index];
@@ -536,8 +546,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildFlowchartCard(VideoModel video) {
-    const cardInnerPadding = EdgeInsets.all(16);
-    const cardMargin = EdgeInsets.only(bottom: 20);
+    const cardInnerPadding = EdgeInsets.all(AppDimens.spaceM);
+    const cardMargin = EdgeInsets.only(bottom: AppDimens.spaceL);
     final cardBorderRadius = BorderRadius.circular(18);
     final cardShape = RoundedRectangleBorder(borderRadius: cardBorderRadius);
 
@@ -551,14 +561,14 @@ class _HomePageState extends State<HomePage> {
     const statusActiveGradient = LinearGradient(
       colors: [Colors.purpleAccent, Colors.deepPurpleAccent],
     );
-    const statusInactiveColor = Colors.white24;
+    final statusInactiveColor = Colors.white.withAlpha((0.24 * 255).round());
 
     return Card(
       margin: cardMargin,
-      elevation: 8,
+      elevation: AppDimens.spaceXS,
       shape: cardShape,
       clipBehavior: Clip.antiAlias,
-      shadowColor: Colors.black.withOpacity(0.5),
+      shadowColor: Colors.black.withAlpha((0.5 * 255).round()),
       child: InkWell(
         onTap: () {
           HapticFeedback.lightImpact();
@@ -585,7 +595,7 @@ class _HomePageState extends State<HomePage> {
                       borderRadius: BorderRadius.circular(10),
                       child: _buildThumbnail(video.thumbnailUrl),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppDimens.spaceS),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -603,7 +613,8 @@ class _HomePageState extends State<HomePage> {
                               shadows: [
                                 Shadow(
                                   blurRadius: 2,
-                                  color: Colors.black.withOpacity(0.5),
+                                  color: Colors.black
+                                      .withAlpha((0.5 * 255).round()),
                                   offset: const Offset(1, 1),
                                 ),
                               ],
@@ -616,11 +627,13 @@ class _HomePageState extends State<HomePage> {
                             'by ${video.creator}',
                             style:
                                 Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Colors.white.withOpacity(0.85),
+                              color:
+                                  Colors.white.withAlpha((0.85 * 255).round()),
                               shadows: [
                                 Shadow(
                                   blurRadius: 1,
-                                  color: Colors.black.withOpacity(0.5),
+                                  color: Colors.black
+                                      .withAlpha((0.5 * 255).round()),
                                   offset: const Offset(0.5, 0.5),
                                 ),
                               ],
@@ -631,14 +644,14 @@ class _HomePageState extends State<HomePage> {
                     ),
                     Icon(
                       Icons.chevron_right,
-                      color: Colors.purpleAccent.withOpacity(0.8),
-                      size: 24,
+                      color: Colors.purpleAccent.withAlpha((0.8 * 255).round()),
+                      size: AppDimens.spaceXL,
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppDimens.spaceM),
                 Wrap(
-                  spacing: 12,
+                  spacing: AppDimens.spaceS,
                   runSpacing: 10,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
@@ -653,9 +666,9 @@ class _HomePageState extends State<HomePage> {
                     ),
                     _buildMetaInfo(
                       icon: Icons.remove_red_eye_outlined,
-                      iconColor: Colors.white.withOpacity(0.7),
+                      iconColor: Colors.white.withAlpha((0.7 * 255).round()),
                       text: '${video.views} views',
-                      textColor: Colors.white.withOpacity(0.85),
+                      textColor: Colors.white.withAlpha((0.85 * 255).round()),
                     ),
                   ],
                 ),
@@ -680,7 +693,7 @@ class _HomePageState extends State<HomePage> {
     bool isStatusBadge = false,
   }) {
     Widget contentWidget;
-    final defaultTextColor = Colors.white.withOpacity(0.85);
+    final defaultTextColor = Colors.white.withAlpha((0.85 * 255).round());
 
     if (isStatusBadge &&
         future != null &&
@@ -693,19 +706,25 @@ class _HomePageState extends State<HomePage> {
           final statusText = isActive ? trueText : falseText;
           final badgeColor = isActive ? null : inactiveColor;
           final badgeGradient = isActive ? activeGradient : null;
-          final statusTextColor = isActive ? Colors.white : Colors.white70;
+          final statusTextColor = isActive
+              ? Colors.white
+              : Colors.white.withAlpha((0.7 * 255).round());
 
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
               color: badgeColor,
               gradient: badgeGradient,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppDimens.radiusL),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(icon, size: 14, color: statusTextColor.withOpacity(0.8)),
+                Icon(
+                  icon,
+                  size: 14,
+                  color: statusTextColor.withAlpha((0.8 * 255).round()),
+                ),
                 const SizedBox(width: 5),
                 Text(
                   statusText,
@@ -726,10 +745,10 @@ class _HomePageState extends State<HomePage> {
         children: [
           Icon(
             icon,
-            size: 16,
-            color: iconColor ?? Colors.white.withOpacity(0.7),
+            size: AppDimens.spaceM,
+            color: iconColor ?? Colors.white.withAlpha((0.7 * 255).round()),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: AppDimens.spaceXXS),
           Text(
             text,
             style: Theme.of(context)

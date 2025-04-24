@@ -3,6 +3,7 @@ import 'package:biftech/features/video_feed/cubit/cubit.dart';
 import 'package:biftech/features/video_feed/model/models.dart';
 import 'package:biftech/features/video_feed/view/widgets/placeholder_thumbnail.dart';
 import 'package:biftech/features/video_feed/view/widgets/shimmer_loading.dart';
+import 'package:biftech/shared/theme/dimens.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -181,7 +182,7 @@ class _VideoCardState extends State<VideoCard>
         setState(() {
           _isPlaying = isPlaying;
           if (_isPlaying) {
-            Future.delayed(const Duration(seconds: 2), () {
+            Future.delayed(const Duration(seconds: 3), () {
               if (mounted && _isPlaying) {
                 setState(() {
                   _showControls = false;
@@ -241,9 +242,10 @@ class _VideoCardState extends State<VideoCard>
           _isNetworkError = false;
         });
         scaffoldMessenger.showSnackBar(
-          const SnackBar(
-            content: Text('Failed to load video. Please try again later.'),
-            backgroundColor: Colors.redAccent,
+          SnackBar(
+            content:
+                const Text('Failed to load video. Please try again later.'),
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -257,9 +259,9 @@ class _VideoCardState extends State<VideoCard>
         _isNetworkError = false;
       });
       scaffoldMessenger.showSnackBar(
-        const SnackBar(
-          content: Text('Failed to load video. Please try again later.'),
-          backgroundColor: Colors.redAccent,
+        SnackBar(
+          content: const Text('Failed to load video. Please try again later.'),
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
@@ -304,7 +306,7 @@ class _VideoCardState extends State<VideoCard>
           await cubit.pauseAllVideos();
           if (mounted && _controller != null) {
             await _controller!.play();
-            Future.delayed(const Duration(seconds: 2), () {
+            Future.delayed(const Duration(seconds: 3), () {
               if (mounted && _isPlaying) {
                 setState(() {
                   _showControls = false;
@@ -320,9 +322,9 @@ class _VideoCardState extends State<VideoCard>
             _isNetworkError = false;
           });
           scaffoldMessenger.showSnackBar(
-            const SnackBar(
-              content: Text('Failed to play video. Please try again.'),
-              backgroundColor: Colors.redAccent,
+            SnackBar(
+              content: const Text('Failed to play video. Please try again.'),
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
         }
@@ -338,9 +340,9 @@ class _VideoCardState extends State<VideoCard>
           _isNetworkError = false;
         });
         scaffoldMessenger.showSnackBar(
-          const SnackBar(
-            content: Text('Failed to play video. Please try again.'),
-            backgroundColor: Colors.redAccent,
+          SnackBar(
+            content: const Text('Failed to play video. Please try again.'),
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -360,7 +362,7 @@ class _VideoCardState extends State<VideoCard>
             _isPlaying = true;
             _showControls = true;
             _controlsAnimationController.forward();
-            Future.delayed(const Duration(seconds: 2), () {
+            Future.delayed(const Duration(seconds: 3), () {
               if (mounted && _isPlaying) {
                 setState(() {
                   _showControls = false;
@@ -405,16 +407,20 @@ class _VideoCardState extends State<VideoCard>
     const purpleAccent = Color(0xFF9B51E0);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppDimens.spaceM,
+        vertical: AppDimens.spaceS,
+      ),
       child: Container(
         decoration: BoxDecoration(
           color: const Color(0xFF1A1A1A),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppDimens.radiusXL),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color:
+                  Colors.black.withAlpha((0.3 * 255).round()), // Use withAlpha
               blurRadius: 10,
-              offset: const Offset(0, 4),
+              offset: const Offset(0, AppDimens.spaceXXS),
             ),
           ],
         ),
@@ -423,8 +429,8 @@ class _VideoCardState extends State<VideoCard>
           children: [
             ClipRRect(
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
+                topLeft: Radius.circular(AppDimens.radiusXL),
+                topRight: Radius.circular(AppDimens.radiusXL),
               ),
               child: AspectRatio(
                 aspectRatio: 16 / 9,
@@ -453,7 +459,8 @@ class _VideoCardState extends State<VideoCard>
                           child: FadeTransition(
                             opacity: _controlsOpacity,
                             child: ColoredBox(
-                              color: Colors.black.withOpacity(0.4),
+                              color: Colors.black.withAlpha(
+                                  (0.4 * 255).round()), // Use withAlpha
                               child: Center(
                                 child: IconButton(
                                   icon: Icon(
@@ -464,8 +471,8 @@ class _VideoCardState extends State<VideoCard>
                                     size: 50,
                                   ),
                                   style: IconButton.styleFrom(
-                                    backgroundColor:
-                                        purpleAccent.withOpacity(0.8),
+                                    backgroundColor: purpleAccent.withAlpha(
+                                        (0.8 * 255).round()), // Use withAlpha
                                     padding: const EdgeInsets.all(10),
                                   ),
                                   onPressed: _togglePlayPause,
@@ -487,16 +494,18 @@ class _VideoCardState extends State<VideoCard>
                         !_isLoading &&
                         !_hasError)
                       Positioned(
-                        bottom: 8,
-                        right: 8,
+                        bottom: AppDimens.spaceXS,
+                        right: AppDimens.spaceXS,
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
+                            horizontal: AppDimens.spaceXS,
+                            vertical: AppDimens.spaceXXS,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.7),
-                            borderRadius: BorderRadius.circular(4),
+                            color: Colors.black.withAlpha(
+                                (0.7 * 255).round()), // Use withAlpha
+                            borderRadius:
+                                BorderRadius.circular(AppDimens.radiusS),
                           ),
                           child: Text(
                             widget.video.duration,
@@ -513,44 +522,39 @@ class _VideoCardState extends State<VideoCard>
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppDimens.spaceM),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     widget.video.title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                      height: 1.3,
-                    ),
+                    style: Theme.of(context).textTheme.titleLarge,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppDimens.spaceXS),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         widget.video.creator,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: purpleAccent.withOpacity(0.8),
-                        ),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w500,
+                              color: purpleAccent.withAlpha(
+                                  (0.8 * 255).round()), // Use withAlpha
+                            ),
                       ),
                       Text(
                         '${_formatViews(widget.video.views)} views',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white70,
-                        ),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontSize: 13,
+                              color:
+                                  Theme.of(context).textTheme.bodyMedium?.color,
+                            ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppDimens.spaceM),
                   Row(
                     children: [
                       Expanded(
@@ -561,22 +565,32 @@ class _VideoCardState extends State<VideoCard>
                             HapticFeedback.lightImpact();
                             widget.onTap();
                           },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: purpleAccent,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            textStyle: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.8,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
+                          style: Theme.of(context)
+                              .elevatedButtonTheme
+                              .style
+                              ?.copyWith(
+                                backgroundColor:
+                                    WidgetStateProperty.all(purpleAccent),
+                                foregroundColor:
+                                    WidgetStateProperty.all(Colors.white),
+                                padding: WidgetStateProperty.all(
+                                  const EdgeInsets.symmetric(
+                                    vertical: AppDimens.spaceS,
+                                  ),
+                                ),
+                                textStyle: WidgetStateProperty.resolveWith(
+                                  (states) => Theme.of(context)
+                                      .elevatedButtonTheme
+                                      .style
+                                      ?.textStyle
+                                      ?.resolve(states)
+                                      ?.copyWith(letterSpacing: 0.8),
+                                ),
+                              ),
                         ),
                       ),
                       if (widget.onDelete != null) ...[
-                        const SizedBox(width: 12),
+                        const SizedBox(width: AppDimens.spaceS),
                         IconButton(
                           icon: const Icon(Icons.delete_outline),
                           onPressed: () {
@@ -584,11 +598,17 @@ class _VideoCardState extends State<VideoCard>
                             _showDeleteConfirmation(context, purpleAccent);
                           },
                           style: IconButton.styleFrom(
-                            backgroundColor: Colors.redAccent.withOpacity(0.15),
-                            foregroundColor: Colors.redAccent,
-                            padding: const EdgeInsets.all(12),
+                            backgroundColor: Theme.of(context)
+                                .colorScheme
+                                .error
+                                .withAlpha(
+                                    (0.15 * 255).round()), // Use withAlpha
+                            foregroundColor:
+                                Theme.of(context).colorScheme.error,
+                            padding: const EdgeInsets.all(AppDimens.spaceS),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius:
+                                  BorderRadius.circular(AppDimens.radiusM),
                             ),
                           ),
                         ),
@@ -634,12 +654,12 @@ class _VideoCardState extends State<VideoCard>
       width: 60,
       height: 60,
       decoration: BoxDecoration(
-        color: accentColor.withOpacity(0.9),
+        color: accentColor.withAlpha((0.9 * 255).round()), // Use withAlpha
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 8,
+            color: Colors.black.withAlpha((0.3 * 255).round()), // Use withAlpha
+            blurRadius: AppDimens.spaceXS,
             offset: const Offset(0, 2),
           ),
         ],
@@ -663,25 +683,24 @@ class _VideoCardState extends State<VideoCard>
               _isNetworkError
                   ? Icons.wifi_off_rounded
                   : Icons.error_outline_rounded,
-              color: Colors.redAccent,
-              size: 48,
+              color: Theme.of(context).colorScheme.error,
+              size: AppDimens.spaceXXXXL,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppDimens.spaceS),
             Text(
               _isNetworkError ? 'Network Error' : 'Failed to Load Video',
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyLarge
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 4),
-            const Text(
+            const SizedBox(height: AppDimens.spaceXXS),
+            Text(
               'Please try again',
-              style: TextStyle(color: Colors.white70, fontSize: 12),
+              style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppDimens.spaceM),
             ElevatedButton.icon(
               icon: const Icon(Icons.refresh_rounded, size: 18),
               label: const Text('RETRY'),
@@ -689,11 +708,13 @@ class _VideoCardState extends State<VideoCard>
               style: ElevatedButton.styleFrom(
                 backgroundColor: accentColor,
                 foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimens.spaceM,
+                  vertical: AppDimens.spaceXS,
+                ),
                 textStyle: const TextStyle(fontWeight: FontWeight.bold),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppDimens.radiusM),
                 ),
               ),
             ),
@@ -721,25 +742,22 @@ class _VideoCardState extends State<VideoCard>
       builder: (dialogContext) => AlertDialog(
         backgroundColor: const Color(0xFF2A2A2A),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
+        title: Text(
           'Delete Video',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: Theme.of(context).dialogTheme.titleTextStyle,
         ),
-        content: const Text(
+        content: Text(
           'Are you sure you want to delete this video? This action cannot be undone.',
-          style: TextStyle(color: Colors.white70),
+          style: Theme.of(context).dialogTheme.contentTextStyle,
         ),
-        actionsPadding: const EdgeInsets.all(16),
+        actionsPadding: const EdgeInsets.all(AppDimens.spaceM),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(
-              'CANCEL',
-              style: TextStyle(
-                color: accentColor,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            style: Theme.of(context).textButtonTheme.style?.copyWith(
+                  foregroundColor: WidgetStateProperty.all(accentColor),
+                ),
+            child: const Text('CANCEL'),
           ),
           ElevatedButton(
             onPressed: () {
@@ -747,7 +765,7 @@ class _VideoCardState extends State<VideoCard>
               Navigator.of(dialogContext).pop(true);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
+              backgroundColor: Theme.of(context).colorScheme.error,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -774,7 +792,7 @@ class _VideoCardState extends State<VideoCard>
                         color: Colors.white,
                       ),
                     ),
-                    SizedBox(width: 16),
+                    SizedBox(width: AppDimens.spaceM),
                     Text('Deleting video...'),
                   ],
                 ),
@@ -799,7 +817,8 @@ class _VideoCardState extends State<VideoCard>
             content: Text(
               success ? 'Video deleted successfully' : 'Failed to delete video',
             ),
-            backgroundColor: success ? Colors.green : Colors.redAccent,
+            backgroundColor:
+                success ? Colors.green : Theme.of(context).colorScheme.error,
           ),
         );
     } catch (e) {
@@ -809,9 +828,9 @@ class _VideoCardState extends State<VideoCard>
       scaffoldMessenger
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            content: Text('An error occurred while deleting the video'),
-            backgroundColor: Colors.redAccent,
+          SnackBar(
+            content: const Text('An error occurred while deleting the video'),
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
     }

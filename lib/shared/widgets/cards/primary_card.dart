@@ -1,3 +1,4 @@
+import 'package:biftech/shared/theme/dimens.dart'; // Added import
 import 'package:biftech/shared/widgets/cards/_base_card.dart';
 import 'package:flutter/material.dart';
 
@@ -23,9 +24,9 @@ class _PrimaryCardState extends State<PrimaryCard> {
 
   @override
   Widget build(BuildContext context) {
-    const borderRadiusValue = 16.0;
+    const borderRadiusValue = AppDimens.radiusXL; // Was 16.0
     final borderRadius = BorderRadius.circular(borderRadiusValue);
-    const padding = EdgeInsets.all(20);
+    const padding = EdgeInsets.all(AppDimens.spaceL); // Was 20
     final shadowColor =
         Colors.black.withAlpha((0.3 * 255).round()); // 30% opacity
     final borderColor =
@@ -52,8 +53,8 @@ class _PrimaryCardState extends State<PrimaryCard> {
             boxShadow: [
               BoxShadow(
                 color: shadowColor,
-                blurRadius: 8, // Corresponds to elevation
-                offset: const Offset(0, 4), // Standard shadow offset
+                blurRadius: AppDimens.spaceXS, // Was 8
+                offset: const Offset(0, AppDimens.spaceXXS), // Was 4
               ),
             ],
           ),

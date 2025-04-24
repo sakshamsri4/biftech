@@ -22,6 +22,8 @@ void main() {
           home: Scaffold(
             body: DonationModal(
               nodeId: 'test_node_id',
+              nodeText: 'Test node text', // Added required argument
+              currentDonation: 0, // Added required argument
               onDonationComplete: (_) {},
             ),
           ),
@@ -45,6 +47,8 @@ void main() {
           home: Scaffold(
             body: DonationModal(
               nodeId: 'test_node_id',
+              nodeText: 'Test node text', // Added required argument
+              currentDonation: 0, // Added required argument
               onDonationComplete: (_) {},
             ),
           ),
@@ -78,6 +82,8 @@ void main() {
               value: mockDonationCubit,
               child: DonationModal(
                 nodeId: 'test_node_id',
+                nodeText: 'Test node text', // Added required argument
+                currentDonation: 0, // Added required argument
                 onDonationComplete: (_) {},
               ),
             ),
@@ -123,6 +129,8 @@ void main() {
               value: mockDonationCubit,
               child: DonationModal(
                 nodeId: 'test_node_id',
+                nodeText: 'Test node text', // Added required argument
+                currentDonation: 0, // Added required argument
                 onDonationComplete: (amount) {
                   donationCompleted = true;
                   donationAmount = amount;

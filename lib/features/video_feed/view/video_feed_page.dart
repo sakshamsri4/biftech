@@ -1,12 +1,12 @@
 import 'package:biftech/features/video_feed/cubit/cubit.dart';
 import 'package:biftech/features/video_feed/model/models.dart';
 import 'package:biftech/features/video_feed/view/upload_video_page.dart';
+import 'package:biftech/features/video_feed/view/widgets/shimmer_loading.dart';
 import 'package:biftech/features/video_feed/view/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:neopop/neopop.dart';
-import 'package:biftech/features/video_feed/view/widgets/shimmer_loading.dart';
 
 /// {@template video_feed_page}
 /// Page that displays a feed of videos.
@@ -186,7 +186,7 @@ class _VideoFeedViewState extends State<VideoFeedView>
                 color: const Color(0xFF9B51E0),
                 backgroundColor: const Color(0xFF1A1A1A),
                 onRefresh: () async {
-                  HapticFeedback.mediumImpact();
+                  await HapticFeedback.mediumImpact();
                   await context.read<VideoFeedCubit>().loadVideos();
                 },
                 child: _VideoList(videos: state.videos),

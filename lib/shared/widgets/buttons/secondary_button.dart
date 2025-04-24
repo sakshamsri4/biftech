@@ -1,4 +1,5 @@
 import 'package:biftech/shared/theme/colors.dart';
+import 'package:biftech/shared/theme/dimens.dart'; // Added import
 import 'package:biftech/shared/widgets/buttons/_base_button.dart'; // Use package import
 import 'package:flutter/material.dart';
 
@@ -18,21 +19,22 @@ class SecondaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const height = 48.0;
-    final borderRadius = BorderRadius.circular(12);
-    const padding = EdgeInsets.symmetric(horizontal: 24);
+    const height = AppDimens.spaceXXXXL; // Was 48.0
+    final borderRadius = BorderRadius.circular(AppDimens.radiusL); // Was 12
+    const padding =
+        EdgeInsets.symmetric(horizontal: AppDimens.spaceXL); // Was 24
     const borderColor = accentPrimary; // Use primary accent for border
 
     // Text Style from Theme
     final textStyle = Theme.of(context).textTheme.labelLarge?.copyWith(
               fontWeight: FontWeight.w500, // Medium weight
-              fontSize: 16,
+              fontSize: 16, // Keep 16
               color: accentPrimary, // Text color matches border
             ) ??
         const TextStyle(
           // Fallback style
           fontWeight: FontWeight.w500,
-          fontSize: 16,
+          fontSize: 16, // Keep 16
           color: accentPrimary,
         );
 
@@ -42,8 +44,8 @@ class SecondaryButton extends StatelessWidget {
       buttonChild = Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: accentPrimary, size: 20),
-          const SizedBox(width: 8),
+          Icon(icon, color: accentPrimary, size: AppDimens.spaceL), // Was 20
+          const SizedBox(width: AppDimens.spaceXS), // Was 8
           Text(label, style: textStyle),
         ],
       );
@@ -78,9 +80,9 @@ class SecondaryButton extends StatelessWidget {
               Icon(
                 icon,
                 color: currentTextStyle.color,
-                size: 20,
+                size: AppDimens.spaceL, // Was 20
               ), // Use text color for icon
-              const SizedBox(width: 8),
+              const SizedBox(width: AppDimens.spaceXS), // Was 8
               Text(label, style: currentTextStyle),
             ],
           );
@@ -100,10 +102,10 @@ class SecondaryButton extends StatelessWidget {
           child: isLoading
               ? const SizedBox(
                   // Use accent color for loader
-                  width: 20,
-                  height: 20,
+                  width: AppDimens.spaceL, // Was 20
+                  height: AppDimens.spaceL, // Was 20
                   child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
+                    strokeWidth: 2.5, // Keep 2.5
                     valueColor: AlwaysStoppedAnimation<Color>(accentPrimary),
                   ),
                 )

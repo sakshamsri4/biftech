@@ -1,0 +1,2 @@
+/Users/sakshamsrivastava/biftech/android/app/.cxx/Debug/5h2h6449/arm64-v8a/CMakeFiles/edit_cache.dir
+/Users/sakshamsrivastava/biftech/android/app/.cxx/Debug/5h2h6449/arm64-v8a/CMakeFiles/rebuild_cache.dir

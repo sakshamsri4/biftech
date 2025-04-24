@@ -1,4 +1,5 @@
 import 'package:biftech/shared/theme/colors.dart';
+import 'package:biftech/shared/theme/dimens.dart'; // Added import
 import 'package:biftech/shared/widgets/buttons/_base_button.dart'; // Use package import
 import 'package:flutter/material.dart';
 
@@ -18,9 +19,10 @@ class TertiaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const height = 40.0; // Specific height for tertiary
-    final borderRadius = BorderRadius.circular(8); // Smaller radius
-    const padding = EdgeInsets.symmetric(horizontal: 12); // Less padding
+    const height = AppDimens.spaceXXXL; // Was 40.0
+    final borderRadius = BorderRadius.circular(AppDimens.radiusM); // Was 8
+    const padding =
+        EdgeInsets.symmetric(horizontal: AppDimens.spaceS); // Was 12
 
     // Text Style from Theme
     final textStyle = Theme.of(context).textTheme.labelMedium?.copyWith(

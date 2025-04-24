@@ -72,7 +72,7 @@ class PrimaryButton extends StatelessWidget {
                 ? null // No shadow when disabled or pressed
                 : [
                     BoxShadow(
-                      color: accentPrimary.withOpacity(0.3),
+                      color: accentPrimary.withAlpha((0.3 * 255).round()),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),

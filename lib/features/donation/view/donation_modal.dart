@@ -201,7 +201,8 @@ class _DonationModalState extends State<DonationModal> {
           selected: isSelected,
           onSelected: (_) => _selectQuickAmount(amount),
           backgroundColor: Colors.grey[800],
-          selectedColor: Colors.greenAccent.shade400.withOpacity(0.8),
+          selectedColor:
+              Colors.greenAccent.shade400.withAlpha((0.8 * 255).round()),
           labelStyle: TextStyle(
             color: isSelected ? Colors.black87 : Colors.grey[300],
             fontWeight: FontWeight.bold,
@@ -253,8 +254,8 @@ class _DonationModalState extends State<DonationModal> {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: key == 'DEL'
-                    ? Colors.red.withOpacity(0.15)
-                    : Colors.grey[800]?.withOpacity(0.5),
+                    ? Colors.red.withAlpha((0.15 * 255).round())
+                    : Colors.grey[800]?.withAlpha((0.5 * 255).round()),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: key == 'DEL'
@@ -328,7 +329,7 @@ class _DonationModalState extends State<DonationModal> {
               borderRadius: BorderRadius.circular(30),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withAlpha((0.2 * 255).round()),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
