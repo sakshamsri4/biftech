@@ -3,15 +3,16 @@ import 'package:biftech/features/donation/view/donation_modal.dart';
 import 'package:biftech/features/flowchart/cubit/cubit.dart';
 import 'package:biftech/features/flowchart/model/models.dart';
 import 'package:biftech/features/flowchart/repository/flowchart_repository.dart';
+import 'package:biftech/features/flowchart/view/widgets/widgets.dart';
 import 'package:biftech/features/winner/winner.dart';
 import 'package:biftech/shared/animations/animations.dart';
+import 'package:biftech/shared/theme/colors.dart';
 import 'package:biftech/shared/theme/dimens.dart';
 import 'package:biftech/shared/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-// TODO(graphview): Uncomment when graphview package is properly installed
-// import 'package:graphview/graphview.dart';
+import 'package:graphview/graphview.dart';
 
 /// Page for displaying and interacting with a flowchart
 class FlowchartPage extends StatelessWidget {
@@ -70,9 +71,15 @@ class FlowchartView extends StatefulWidget {
 }
 
 class _FlowchartViewState extends State<FlowchartView> {
+  final Graph graph = Graph()..isTree = true;
+  BuchheimWalkerConfiguration builder = BuchheimWalkerConfiguration();
+
   // Controller for the InteractiveViewer to programmatically control zoom/pan
   final TransformationController _transformationController =
       TransformationController();
+
+  // Key for the InteractiveViewer to force rebuild when needed
+  final GlobalKey _graphKey = GlobalKey();
 
   // Key to track the root node widget
   final GlobalKey _rootNodeKey = GlobalKey();
@@ -83,6 +90,13 @@ class _FlowchartViewState extends State<FlowchartView> {
   @override
   void initState() {
     super.initState();
+    // Configure the layout algorithm
+    builder
+      ..siblingSeparation = 100
+      ..levelSeparation = 150
+      ..subtreeSeparation = 150
+      ..orientation = BuchheimWalkerConfiguration.ORIENTATION_TOP_BOTTOM;
+
     // Add a listener to focus on the root node when the flowchart is loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -278,6 +292,32 @@ class _FlowchartViewState extends State<FlowchartView> {
   }
 
   Widget _buildFlowchart(BuildContext context, FlowchartState state) {
+    // Clear the graph and rebuild it
+    graph.nodes.clear();
+    graph.edges.clear();
+
+    // Build the graph from the NodeModel tree
+    _buildGraphFromTree(state.rootNode!, null);
+
+    // Debug the selected node
+    if (state.selectedNodeId != null) {
+      debugPrint('Selected node: ${state.selectedNodeId}');
+    }
+
+    // Debug info
+    debugPrint('Built graph with ${graph.nodes.length} nodes and '
+        '${graph.edges.length} edges');
+
+    // Print details about each node and edge
+    for (final node in graph.nodes) {
+      debugPrint('Node: ${node.key?.value}');
+    }
+    for (final edge in graph.edges) {
+      debugPrint(
+        'Edge: ${edge.source.key?.value} -> ${edge.destination.key?.value}',
+      );
+    }
+
     // If this is the first load, ensure we focus on the root node
     // after the graph is built
     if (_isFirstLoad) {
@@ -303,7 +343,6 @@ class _FlowchartViewState extends State<FlowchartView> {
       });
     }
 
-    // Temporary implementation until graphview package is properly installed
     return Container(
       width: MediaQuery.of(context).size.width,
       height: MediaQuery.of(context).size.height * 0.8,
@@ -311,42 +350,111 @@ class _FlowchartViewState extends State<FlowchartView> {
         border: Border.all(color: Colors.grey.shade300),
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
       ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.account_tree,
-              size: 80,
-              color: Colors.purple.shade300,
-            ),
-            const SizedBox(height: AppDimens.spaceL),
-            Text(
-              'Flowchart Visualization',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(height: AppDimens.spaceM),
-            Text(
-              'Graphview package integration pending',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(color: Colors.white70),
-            ),
-            const SizedBox(height: AppDimens.spaceXL),
-            if (state.rootNode != null)
-              NodeWidget(
-                key: _rootNodeKey,
-                nodeModel: state.rootNode!,
-                isSelected: state.selectedNodeId == state.rootNode!.id,
+      child: InteractiveViewer(
+        key: _graphKey,
+        transformationController: _transformationController,
+        constrained: false,
+        boundaryMargin: const EdgeInsets.all(1000),
+        minScale: 0.1,
+        maxScale: 2,
+        onInteractionEnd: (details) {
+          // Debug the current transformation
+          final matrix = _transformationController.value;
+          debugPrint('Current transformation matrix: $matrix');
+
+          // Log the scale factor (useful for debugging zoom issues)
+          final scale = matrix.getMaxScaleOnAxis();
+          debugPrint('Current scale factor: $scale');
+
+          // Log translation values (useful for debugging position issues)
+          final translationX = matrix.getTranslation().x;
+          final translationY = matrix.getTranslation().y;
+          debugPrint('Current translation: ($translationX, $translationY)');
+        },
+        child: GraphView(
+          graph: graph,
+          algorithm: BuchheimWalkerAlgorithm(
+            builder,
+            TreeEdgeRenderer(builder),
+          ),
+          paint: Paint()
+            ..color = Colors.purpleAccent
+                .withValues(red: 186, green: 85, blue: 211, alpha: 128)
+            ..strokeWidth = 1.5
+            ..style = PaintingStyle.stroke,
+          builder: (Node node) {
+            // Get the NodeModel from the node's key
+            final nodeId = node.key?.value as String;
+            // Find the NodeModel in the tree
+            final nodeModel = _findNodeModelById(state.rootNode!, nodeId);
+            final isSelected = state.selectedNodeId == nodeId;
+            final isRootNode = nodeModel.id == state.rootNode!.id;
+
+            // Use the root node key for the root node
+            final key = isRootNode ? _rootNodeKey : null;
+
+            return GestureDetector(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                context.read<FlowchartCubit>().selectNode(nodeModel.id);
+              },
+              child: NodeWidget(
+                key: key,
+                nodeModel: nodeModel,
+                isSelected: isSelected,
               ),
-          ],
+            );
+          },
         ),
       ),
     );
+  }
+
+  void _buildGraphFromTree(NodeModel nodeModel, Node? parentNode) {
+    // Create a node for the current NodeModel
+    final node = Node.Id(nodeModel.id);
+
+    // Add the node to the graph
+    graph.addNode(node);
+
+    // If there's a parent node, add an edge
+    if (parentNode != null) {
+      graph.addEdge(parentNode, node);
+    }
+
+    // Recursively add all challenge nodes
+    for (final challenge in nodeModel.challenges) {
+      _buildGraphFromTree(challenge, node);
+    }
+  }
+
+  /// Find a NodeModel by its ID in the tree
+  NodeModel _findNodeModelById(NodeModel rootNode, String nodeId) {
+    // Create a map of all nodes for faster lookup
+    final nodeMap = <String, NodeModel>{};
+    _buildNodeMap(rootNode, nodeMap);
+
+    // Look up the node by ID
+    final node = nodeMap[nodeId];
+    if (node != null) {
+      return node;
+    }
+
+    // If node not found, log the error and return the root node as fallback
+    debugPrint('Node not found: $nodeId, using root node as fallback');
+    debugPrint('Available nodes: ${nodeMap.keys.join(', ')}');
+    return rootNode;
+  }
+
+  /// Build a map of all nodes in the tree for faster lookup
+  void _buildNodeMap(NodeModel node, Map<String, NodeModel> nodeMap) {
+    // Add this node to the map
+    nodeMap[node.id] = node;
+
+    // Recursively add all challenge nodes
+    for (final challenge in node.challenges) {
+      _buildNodeMap(challenge, nodeMap);
+    }
   }
 
   /// Reset the view to focus on the root node
@@ -360,9 +468,100 @@ class _FlowchartViewState extends State<FlowchartView> {
     // Select the root node to highlight it
     context.read<FlowchartCubit>().selectNode(rootNodeId);
 
+    // Force a rebuild of the graph
+    setState(() {
+      // Clear and rebuild the graph
+      graph.nodes.clear();
+      graph.edges.clear();
+      _buildGraphFromTree(state.rootNode!, null);
+    });
+
     // Ensure the root node is visible by first resetting to identity
     // This helps prevent issues with previous transformations
     _transformationController.value = Matrix4.identity();
+
+    // Use a longer delay to ensure the graph is fully built and laid out
+    // This is critical for reliable focusing on the first node
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (!mounted) return;
+
+      try {
+        // Find the actual position of the root node using its key
+        final rootNodeBox =
+            _rootNodeKey.currentContext?.findRenderObject() as RenderBox?;
+
+        if (rootNodeBox != null) {
+          // Get the position of the root node in the global coordinate system
+          final rootNodePosition = rootNodeBox.localToGlobal(Offset.zero);
+
+          // Get the size of the root node
+          final rootNodeSize = rootNodeBox.size;
+
+          // Get the container size
+          final containerWidth = MediaQuery.of(context).size.width;
+          final containerHeight = MediaQuery.of(context).size.height * 0.8;
+
+          // Calculate the center of the container
+          final containerCenterX = containerWidth / 2;
+          final containerCenterY = containerHeight / 2;
+
+          // Calculate the offset needed to center the root node
+          final offsetX =
+              containerCenterX - rootNodePosition.dx - (rootNodeSize.width / 2);
+          final offsetY = containerCenterY -
+              rootNodePosition.dy -
+              (rootNodeSize.height / 2);
+
+          // Create a transformation matrix that centers the root node
+          final matrix = Matrix4.identity()..translate(offsetX, offsetY);
+
+          // Apply the transformation
+          _transformationController.value = matrix;
+
+          // Debug print to help diagnose issues
+          debugPrint('Reset view to focus on root node: $rootNodeId');
+          debugPrint(
+            'Root node position: $rootNodePosition, size: $rootNodeSize',
+          );
+          debugPrint(
+            'Container center: ($containerCenterX, $containerCenterY)',
+          );
+          debugPrint('Applied offset: ($offsetX, $offsetY)');
+          debugPrint('Applied transformation: $matrix');
+
+          // Show a snackbar to provide feedback to the user
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('View recentered'),
+                duration: const Duration(seconds: 1),
+                backgroundColor: Colors.grey.shade800, // Dark snackbar
+                behavior: SnackBarBehavior.floating, // Optional: floating style
+              ),
+            );
+          }
+        } else {
+          debugPrint('Root node not found in render tree, using fallback');
+          // Fallback if the root node is not found
+          final containerWidth = MediaQuery.of(context).size.width;
+          final matrix = Matrix4.identity()..translate(containerWidth / 2, 100);
+          _transformationController.value = matrix;
+        }
+      } catch (e) {
+        debugPrint('Error resetting view: $e');
+        // Try again with a longer delay if there was an error
+        if (mounted) {
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted) {
+              // Fallback to a simpler transformation
+              // if the first attempt failed
+              final matrix = Matrix4.identity()..translate(100.0, 100);
+              _transformationController.value = matrix;
+            }
+          });
+        }
+      }
+    });
   }
 }
 
@@ -371,114 +570,220 @@ class NodeWidget extends StatelessWidget {
   /// Constructor
   const NodeWidget({
     required this.nodeModel,
-    required this.isSelected,
+    this.isSelected = false,
     super.key,
   });
 
-  /// The node model to display
+  /// Node model to display
   final NodeModel nodeModel;
 
-  /// Whether this node is currently selected
+  /// Whether this node is selected
   final bool isSelected;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        // Show the node details in a modal
-        showModalBottomSheet<void>(
-          context: context,
-          backgroundColor: Colors.transparent,
-          isScrollControlled: true,
-          builder: (context) => NodeDetailsModal(nodeModel: nodeModel),
+    // Theme elements
+    const signaturePurple = Colors.deepPurpleAccent; // Adjusted purple
+    const cardDarkBg = Color(0xFF2A2A3E); // Slightly lighter dark for card
+    const borderRadius = BorderRadius.all(Radius.circular(AppDimens.radiusXL));
+    final shadowColor = Colors.black.withAlpha((0.4 * 255).round());
+    const shadowBlurRadius = AppDimens.spaceS;
+    const shadowOffset = Offset(0, 6);
+    final titleStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+          height: 1.3,
         );
-      },
-      child: Container(
-        width: 200,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? Colors.purpleAccent
-                  .withValues(red: 186, green: 85, blue: 211, alpha: 51)
-              : Colors.black.withValues(red: 0, green: 0, blue: 0, alpha: 128),
-          borderRadius: BorderRadius.circular(AppDimens.radiusM),
-          border: Border.all(
-            color: isSelected ? Colors.purpleAccent : Colors.grey.shade700,
-            width: isSelected ? 2 : 1,
+    final bodyStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: Colors.white.withAlpha((0.85 * 255).round()),
+          height: 1.4,
+        );
+    final smallTextStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: Colors.white.withAlpha((0.7 * 255).round()),
+        );
+
+    // Determine node type
+    final isRoot = nodeModel.id.startsWith('root_');
+    // final isChallenge = nodeModel.id.startsWith('challenge_');
+
+    // Define border based on selection
+    final border = isSelected
+        ? Border.all(color: signaturePurple, width: 2.5)
+        : Border.all(color: Colors.white.withAlpha((0.15 * 255).round()));
+
+    return Container(
+      margin: const EdgeInsets.all(10),
+      constraints: const BoxConstraints(
+        minWidth: 180,
+        maxWidth: 240,
+      ),
+      decoration: BoxDecoration(
+        color: cardDarkBg,
+        borderRadius: borderRadius,
+        border: border,
+        boxShadow: [
+          BoxShadow(
+            color: shadowColor,
+            blurRadius: shadowBlurRadius,
+            offset: shadowOffset,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: isSelected
-                  ? Colors.purpleAccent
-                      .withValues(red: 186, green: 85, blue: 211, alpha: 77)
-                  : Colors.black
-                      .withValues(red: 0, green: 0, blue: 0, alpha: 51),
-              blurRadius: 10,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppDimens.spaceM),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              nodeModel.text,
-              style: TextStyle(
-                color: isSelected
-                    ? Colors.white
-                    : Colors.white.withValues(
-                        red: 255,
-                        green: 255,
-                        blue: 255,
-                        alpha: 230,
-                      ),
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                fontSize: 14,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: AppDimens.spaceS),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Comments count
-                Row(
+            // Root node indicator
+            if (isRoot)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppDimens.spaceXS),
+                child: Row(
                   children: [
                     Icon(
-                      Icons.comment,
-                      size: 14,
-                      color: Colors.grey.shade400,
+                      Icons.star,
+                      color: Colors.amber.shade300,
+                      size: AppDimens.spaceM,
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: AppDimens.spaceXXS),
                     Text(
-                      '${nodeModel.comments.length}',
-                      style: TextStyle(
-                        color: Colors.grey.shade400,
-                        fontSize: 12,
+                      'Starting Point',
+                      style: smallTextStyle?.copyWith(
+                        color: Colors.amber.shade300,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(width: AppDimens.spaceM),
-                // Donation amount
-                Row(
-                  children: [
-                    Icon(
-                      Icons.monetization_on,
-                      size: 14,
-                      color: Colors.grey.shade400,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '₹${nodeModel.donation.toStringAsFixed(1)}',
-                      style: TextStyle(
-                        color: Colors.grey.shade400,
-                        fontSize: 12,
+              ),
+
+            // Node Text (Title)
+            Text(nodeModel.text, style: titleStyle),
+
+            // Donation Info
+            // - Always show, but with different styling based on amount
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Icon(
+                  Icons.monetization_on,
+                  color: nodeModel.donation > 0
+                      ? Colors.greenAccent.shade400
+                      : const Color.fromARGB(128, 128, 128, 128),
+                  size: 18,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  nodeModel.donation > 0
+                      ? '₹${nodeModel.donation.toStringAsFixed(0)}'
+                      : 'No donations yet',
+                  style: bodyStyle?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: nodeModel.donation > 0
+                        ? Colors.greenAccent.shade400
+                        : const Color.fromARGB(128, 128, 128, 128),
+                  ),
+                ),
+              ],
+            ),
+
+            // Comments Section (if any)
+            if (nodeModel.comments.isNotEmpty) ...[
+              const SizedBox(height: AppDimens.spaceS),
+              Divider(color: Colors.white.withAlpha((0.1 * 255).round())),
+              const SizedBox(height: AppDimens.spaceXS),
+              InkWell(
+                // Make the whole comment section tappable
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  _showCommentsPopup(context);
+                },
+                borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: AppDimens.spaceXXS),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.comment_outlined,
+                        color: Colors.white70,
+                        size: AppDimens.spaceM,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: AppDimens.spaceXS),
+                      Expanded(
+                        child: Text(
+                          nodeModel.comments.first,
+                          style: smallTextStyle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: AppDimens.spaceXS),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: signaturePurple.withAlpha((0.8 * 255).round()),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${nodeModel.comments.length}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+
+            // Action Buttons Divider (always show for spacing)
+            const SizedBox(height: AppDimens.spaceXS),
+            Divider(color: Colors.white.withAlpha((0.1 * 255).round())),
+            const SizedBox(height: AppDimens.spaceXXS),
+
+            // Action Buttons (Comment/Donate/Challenge)
+            Row(
+              // Use spaceBetween for better control and wrap buttons with
+              // Flexible
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Comment Button - Wrap with Flexible
+                Flexible(
+                  child: _buildActionButton(
+                    context: context,
+                    icon: Icons.add_comment_outlined,
+                    label: 'Comment',
+                    onPressed: () => _showCommentModal(context),
+                    color: Colors.white70,
+                  ),
+                ),
+                // Donate Button - Wrap with Flexible
+                Flexible(
+                  child: _buildActionButton(
+                    context: context,
+                    icon: Icons.monetization_on_outlined,
+                    label: 'Donate',
+                    onPressed: () => _showDonationModal(context),
+                    color: Colors.greenAccent.shade400,
+                  ),
+                ),
+                // Challenge Button - Wrap with Flexible
+                Flexible(
+                  child: _buildActionButton(
+                    context: context,
+                    icon: Icons.flash_on_outlined,
+                    label: 'Challenge',
+                    onPressed: () => _showChallengeModal(context),
+                    color: Colors.purpleAccent, // Use purple accent
+                  ),
                 ),
               ],
             ),
@@ -487,312 +792,190 @@ class NodeWidget extends StatelessWidget {
       ),
     );
   }
-}
 
-/// Modal for displaying node details
-class NodeDetailsModal extends StatelessWidget {
-  /// Constructor
-  const NodeDetailsModal({
-    required this.nodeModel,
-    super.key,
-  });
-
-  /// The node model to display details for
-  final NodeModel nodeModel;
-
-  @override
-  Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.7,
-      minChildSize: 0.5,
-      maxChildSize: 0.95,
-      builder: (context, scrollController) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Color(0xFF1A1A2E),
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(AppDimens.radiusL),
-              topRight: Radius.circular(AppDimens.radiusL),
+  // Helper widget for action buttons (redesigned)
+  Widget _buildActionButton({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+    required Color color,
+  }) {
+    return TextButton.icon(
+      style: TextButton.styleFrom(
+        // Reduce horizontal padding further
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+        foregroundColor: color,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimens.radiusXXL),
+        ),
+        // Allow button to shrink
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      icon: Icon(icon, size: 18),
+      label: Text(
+        label,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: color,
             ),
-          ),
-          child: Column(
-            children: [
-              // Handle bar
-              Container(
-                margin: const EdgeInsets.only(top: AppDimens.spaceM),
-                width: 40,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade600,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              // Title
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  'Node Details',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-              ),
-              // Content
-              Expanded(
-                child: ListView(
-                  controller: scrollController,
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    // Node text
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.black
-                            .withValues(red: 0, green: 0, blue: 0, alpha: 77),
-                        borderRadius: BorderRadius.circular(AppDimens.radiusM),
-                        border: Border.all(
-                          color: Colors.grey.shade800,
-                        ),
-                      ),
-                      child: Text(
-                        nodeModel.text,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: AppDimens.spaceL),
-                    // Stats
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _buildStatItem(
-                          context,
-                          Icons.comment,
-                          '${nodeModel.comments.length}',
-                          'Comments',
-                        ),
-                        _buildStatItem(
-                          context,
-                          Icons.monetization_on,
-                          '₹${nodeModel.donation.toStringAsFixed(1)}',
-                          'Donations',
-                        ),
-                        _buildStatItem(
-                          context,
-                          Icons.account_tree,
-                          '${nodeModel.challenges.length}',
-                          'Challenges',
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppDimens.spaceL),
-                    // Comments section
-                    Text(
-                      'Comments',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    const SizedBox(height: AppDimens.spaceM),
-                    // Comments list
-                    if (nodeModel.comments.isEmpty)
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Text(
-                            'No comments yet. Be the first to comment!',
-                            style: TextStyle(
-                              color: Colors.grey.shade400,
-                              fontStyle: FontStyle.italic,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      )
-                    else
-                      ...nodeModel.comments.map(
-                        (comment) => Padding(
-                          padding: const EdgeInsets.only(
-                            bottom: AppDimens.spaceM,
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(
-                                red: 0,
-                                green: 0,
-                                blue: 0,
-                                alpha: 51,
-                              ),
-                              borderRadius:
-                                  BorderRadius.circular(AppDimens.radiusM),
-                              border: Border.all(
-                                color: Colors.grey.shade800,
-                              ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    const CircleAvatar(
-                                      radius: 12,
-                                      backgroundColor: Colors.purpleAccent,
-                                      child: Icon(
-                                        Icons.person,
-                                        size: 16,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    const SizedBox(width: AppDimens.spaceXS),
-                                    Text(
-                                      'User${comment.hashCode % 1000}',
-                                      style: const TextStyle(
-                                        color: Colors.white70,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    Text(
-                                      _formatDate(DateTime.now()),
-                                      style: TextStyle(
-                                        color: Colors.grey.shade500,
-                                        fontSize: 10,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: AppDimens.spaceXS),
-                                const Text(
-                                  'Sample comment text',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    const SizedBox(height: AppDimens.spaceL),
-                    // Action buttons
-                    Row(
-                      children: [
-                        Expanded(
-                          child: GradientButton(
-                            onPressed: () {
-                              // Show donation modal
-                              showModalBottomSheet<void>(
-                                context: context,
-                                backgroundColor: Colors.transparent,
-                                isScrollControlled: true,
-                                builder: (context) => BlocProvider(
-                                  create: (context) => DonationCubit(),
-                                  child: DonationModal(
-                                    nodeId: nodeModel.id,
-                                    onDonationComplete: (amount) {
-                                      // Handle donation completion
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'Donated ₹$amount successfully!',
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              );
-                            },
-                            child: const Text('Donate'),
-                          ),
-                        ),
-                        const SizedBox(width: AppDimens.spaceM),
-                        Expanded(
-                          child: GradientButton(
-                            onPressed: () {
-                              // Show challenge modal
-                              // This would be implemented in a real app
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Challenge feature coming soon!',
-                                  ),
-                                ),
-                              );
-                            },
-                            child: const Text('Challenge'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
+        // Prevent wrapping and use ellipsis if text is too long
+        softWrap: false,
+        overflow: TextOverflow.ellipsis,
+      ),
+      onPressed: () {
+        HapticFeedback.lightImpact();
+        onPressed();
+      },
+    );
+  }
+
+  // --- Modal Launchers --- (Add Haptic Feedback & Dark Theme Styling)
+
+  void _showCommentsPopup(BuildContext context) {
+    final cubit = context.read<FlowchartCubit>();
+    showDialog<void>(
+      context: context,
+      // Use a custom barrier color for dark theme
+      barrierColor: Colors.black.withAlpha((0.7 * 255).round()),
+      builder: (dialogContext) {
+        return CommentsPopup(
+          nodeModel: nodeModel,
+          cubit: cubit,
+          onAddCommentPressed: () {
+            // Show the comment modal after the popup is closed
+            // Use a slight delay to ensure the popup is fully closed
+            Future.delayed(const Duration(milliseconds: 300), () {
+              if (context.mounted) {
+                _showCommentModal(context);
+              }
+            });
+          },
+        );
+      },
+    );
+  }
+
+  void _showCommentModal(BuildContext context) {
+    // Store the FlowchartCubit before showing the modal
+    final flowchartCubit = context.read<FlowchartCubit>();
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: secondaryBackground, // Use theme color
+      barrierColor: Colors.black.withAlpha((0.7 * 255).round()),
+      shape: const RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppDimens.radiusXXL)),
+      ),
+      builder: (modalContext) {
+        // Provide cubit to the modal using BlocProvider.value
+        return BlocProvider<FlowchartCubit>.value(
+          value: flowchartCubit,
+          child: Builder(
+            builder: (providerContext) {
+              // Use the new context that has access to the provider
+              return CommentModal(
+                nodeId: nodeModel.id,
+                cubit: flowchartCubit,
+              );
+            },
           ),
         );
       },
     );
   }
 
-  Widget _buildStatItem(
-    BuildContext context,
-    IconData icon,
-    String value,
-    String label,
-  ) {
-    return Column(
-      children: [
-        Icon(
-          icon,
-          color: Colors.purpleAccent,
-          size: 24,
-        ),
-        const SizedBox(height: AppDimens.spaceXS),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
+  void _showChallengeModal(BuildContext context) {
+    // Store the FlowchartCubit before showing the modal
+    final flowchartCubit = context.read<FlowchartCubit>();
+
+    // Update ChallengeModal design for dark theme
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: secondaryBackground, // Use theme color
+      barrierColor: Colors.black.withAlpha((0.7 * 255).round()),
+      shape: const RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppDimens.radiusXXL)),
+      ),
+      builder: (modalContext) {
+        // Provide cubit to the modal using BlocProvider.value
+        return BlocProvider<FlowchartCubit>.value(
+          value: flowchartCubit,
+          child: Builder(
+            builder: (providerContext) {
+              // Use the new context that has access to the provider
+              return ChallengeModal(
+                parentNodeId: nodeModel.id,
+                cubit: flowchartCubit,
+              );
+            },
           ),
-        ),
-        const SizedBox(height: AppDimens.spaceXXS),
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.grey.shade400,
-            fontSize: 12,
-          ),
-        ),
-      ],
+        );
+      },
     );
   }
 
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
+  void _showDonationModal(BuildContext context) {
+    // Store the FlowchartCubit before showing the modal
+    // This ensures we're getting it from the correct context
+    final flowchartCubit = context.read<FlowchartCubit>();
 
-    if (difference.inDays > 365) {
-      return '${(difference.inDays / 365).floor()}y ago';
-    } else if (difference.inDays > 30) {
-      return '${(difference.inDays / 30).floor()}mo ago';
-    } else if (difference.inDays > 0) {
-      return '${difference.inDays}d ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours}h ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m ago';
-    } else {
-      return 'Just now';
-    }
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: secondaryBackground,
+      barrierColor: Colors.black.withAlpha((0.7 * 255).round()),
+      shape: const RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppDimens.radiusXXL)),
+      ),
+      builder: (modalContext) {
+        // Create a MultiBlocProvider to provide both cubits
+        return MultiBlocProvider(
+          providers: [
+            // Provide the existing FlowchartCubit using BlocProvider.value
+            BlocProvider<FlowchartCubit>.value(
+              value: flowchartCubit,
+            ),
+            // Create a new DonationCubit with the FlowchartCubit
+            BlocProvider<DonationCubit>(
+              create: (context) =>
+                  DonationCubit(flowchartCubit: flowchartCubit),
+            ),
+          ],
+          child: Builder(
+            builder: (providerContext) {
+              // Use the new context that has access to both providers
+              return DonationModal(
+                nodeId: nodeModel.id,
+                nodeText: nodeModel.text,
+                currentDonation: nodeModel.donation,
+                onDonationComplete: (double amount) {
+                  // The donation is handled by the DonationCubit
+                  // which will update the FlowchartCubit
+                  Navigator.of(modalContext).pop();
+
+                  // Show a success message
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Donation of ₹$amount successful!'),
+                        backgroundColor: Colors.green,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                },
+              );
+            },
+          ),
+        );
+      },
+    );
   }
 }
