@@ -1,3 +1,5 @@
+import 'package:biftech/features/donation/cubit/donation_cubit.dart';
+import 'package:biftech/features/donation/view/donation_modal.dart';
 import 'package:biftech/features/flowchart/cubit/cubit.dart';
 import 'package:biftech/features/flowchart/model/models.dart';
 import 'package:biftech/features/flowchart/repository/flowchart_repository.dart';
@@ -655,28 +657,31 @@ class NodeWidget extends StatelessWidget {
             // Node Text (Title)
             Text(nodeModel.text, style: titleStyle),
 
-            // Donation Info
-            if (nodeModel.donation > 0) ...[
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Icon(
-                    Icons.monetization_on,
-                    color:
-                        Colors.greenAccent.shade400, // Use a different accent
-                    size: 18,
+            // Donation Info - Always show, but with different styling based on amount
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Icon(
+                  Icons.monetization_on,
+                  color: nodeModel.donation > 0
+                      ? Colors.greenAccent.shade400
+                      : const Color.fromARGB(128, 128, 128, 128),
+                  size: 18,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  nodeModel.donation > 0
+                      ? '₹${nodeModel.donation.toStringAsFixed(0)}'
+                      : 'No donations yet',
+                  style: bodyStyle?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: nodeModel.donation > 0
+                        ? Colors.greenAccent.shade400
+                        : const Color.fromARGB(128, 128, 128, 128),
                   ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '₹${nodeModel.donation.toStringAsFixed(0)}', // No decimals for donation
-                    style: bodyStyle?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.greenAccent.shade400,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
 
             // Comments Section (if any)
             if (nodeModel.comments.isNotEmpty) ...[
@@ -739,7 +744,7 @@ class NodeWidget extends StatelessWidget {
             Divider(color: Colors.white.withAlpha((0.1 * 255).round())),
             const SizedBox(height: AppDimens.spaceXXS),
 
-            // Action Buttons (Comment/Challenge)
+            // Action Buttons (Comment/Donate/Challenge)
             Row(
               // Use spaceBetween for better control and wrap buttons with Flexible
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -752,6 +757,16 @@ class NodeWidget extends StatelessWidget {
                     label: 'Comment',
                     onPressed: () => _showCommentModal(context),
                     color: Colors.white70,
+                  ),
+                ),
+                // Donate Button - Wrap with Flexible
+                Flexible(
+                  child: _buildActionButton(
+                    context: context,
+                    icon: Icons.monetization_on_outlined,
+                    label: 'Donate',
+                    onPressed: () => _showDonationModal(context),
+                    color: Colors.greenAccent.shade400,
                   ),
                 ),
                 // Challenge Button - Wrap with Flexible
@@ -822,13 +837,24 @@ class NodeWidget extends StatelessWidget {
         return CommentsPopup(
           nodeModel: nodeModel,
           cubit: cubit,
+          onAddCommentPressed: () {
+            // Show the comment modal after the popup is closed
+            // Use a slight delay to ensure the popup is fully closed
+            Future.delayed(const Duration(milliseconds: 300), () {
+              if (context.mounted) {
+                _showCommentModal(context);
+              }
+            });
+          },
         );
       },
     );
   }
 
   void _showCommentModal(BuildContext context) {
-    final cubit = context.read<FlowchartCubit>();
+    // Store the FlowchartCubit before showing the modal
+    final flowchartCubit = context.read<FlowchartCubit>();
+
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -839,18 +865,27 @@ class NodeWidget extends StatelessWidget {
             BorderRadius.vertical(top: Radius.circular(AppDimens.radiusXXL)),
       ),
       builder: (modalContext) {
-        // Provide cubit to the modal
-        return BlocProvider.value(
-          value: cubit,
-          // Pass the cubit instance here
-          child: CommentModal(nodeId: nodeModel.id, cubit: cubit),
+        // Provide cubit to the modal using BlocProvider.value
+        return BlocProvider<FlowchartCubit>.value(
+          value: flowchartCubit,
+          child: Builder(
+            builder: (providerContext) {
+              // Use the new context that has access to the provider
+              return CommentModal(
+                nodeId: nodeModel.id,
+                cubit: flowchartCubit,
+              );
+            },
+          ),
         );
       },
     );
   }
 
   void _showChallengeModal(BuildContext context) {
-    final cubit = context.read<FlowchartCubit>();
+    // Store the FlowchartCubit before showing the modal
+    final flowchartCubit = context.read<FlowchartCubit>();
+
     // Update ChallengeModal design for dark theme
     showModalBottomSheet<void>(
       context: context,
@@ -862,11 +897,77 @@ class NodeWidget extends StatelessWidget {
             BorderRadius.vertical(top: Radius.circular(AppDimens.radiusXXL)),
       ),
       builder: (modalContext) {
-        // Provide cubit to the modal
-        return BlocProvider.value(
-          value: cubit,
-          // Pass the cubit instance here
-          child: ChallengeModal(parentNodeId: nodeModel.id, cubit: cubit),
+        // Provide cubit to the modal using BlocProvider.value
+        return BlocProvider<FlowchartCubit>.value(
+          value: flowchartCubit,
+          child: Builder(
+            builder: (providerContext) {
+              // Use the new context that has access to the provider
+              return ChallengeModal(
+                parentNodeId: nodeModel.id,
+                cubit: flowchartCubit,
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  void _showDonationModal(BuildContext context) {
+    // Store the FlowchartCubit before showing the modal
+    // This ensures we're getting it from the correct context
+    final flowchartCubit = context.read<FlowchartCubit>();
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: secondaryBackground,
+      barrierColor: Colors.black.withAlpha((0.7 * 255).round()),
+      shape: const RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppDimens.radiusXXL)),
+      ),
+      builder: (modalContext) {
+        // Create a MultiBlocProvider to provide both cubits
+        return MultiBlocProvider(
+          providers: [
+            // Provide the existing FlowchartCubit using BlocProvider.value
+            BlocProvider<FlowchartCubit>.value(
+              value: flowchartCubit,
+            ),
+            // Create a new DonationCubit with the FlowchartCubit
+            BlocProvider<DonationCubit>(
+              create: (context) =>
+                  DonationCubit(flowchartCubit: flowchartCubit),
+            ),
+          ],
+          child: Builder(
+            builder: (providerContext) {
+              // Use the new context that has access to both providers
+              return DonationModal(
+                nodeId: nodeModel.id,
+                nodeText: nodeModel.text,
+                currentDonation: nodeModel.donation,
+                onDonationComplete: (double amount) {
+                  // The donation is handled by the DonationCubit
+                  // which will update the FlowchartCubit
+                  Navigator.of(modalContext).pop();
+
+                  // Show a success message
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Donation of ₹$amount successful!'),
+                        backgroundColor: Colors.green,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                },
+              );
+            },
+          ),
         );
       },
     );

@@ -326,6 +326,30 @@ class FlowchartCubit extends Cubit<FlowchartState> {
     return null;
   }
 
+  /// Find a node by its ID
+  NodeModel? findNodeById(String nodeId) {
+    if (state.rootNode == null) return null;
+    return _findNodeInTree(state.rootNode!, nodeId);
+  }
+
+  /// Helper method to find a node in the tree by its ID
+  NodeModel? _findNodeInTree(NodeModel node, String nodeId) {
+    // If this is the node we're looking for, return it
+    if (node.id == nodeId) {
+      return node;
+    }
+
+    // Otherwise, recursively search the challenges
+    for (final challenge in node.challenges) {
+      final foundNode = _findNodeInTree(challenge, nodeId);
+      if (foundNode != null) {
+        return foundNode;
+      }
+    }
+
+    return null;
+  }
+
   /// Helper method to find the node with the highest score
   NodeModel _findNodeWithHighestScore(NodeModel node) {
     var highestNode = node;

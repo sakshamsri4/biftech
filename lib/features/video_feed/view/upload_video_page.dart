@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:neopop/neopop.dart';
+import 'package:video_player/video_player.dart';
 
 /// {@template upload_video_page}
 /// Page for uploading a new video.
@@ -53,12 +54,12 @@ class _UploadVideoViewState extends State<UploadVideoView> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _creatorController = TextEditingController();
-  final _durationController = TextEditingController();
   final _descriptionController = TextEditingController();
 
   // Use dynamic type to handle both File and XFile (for web)
   dynamic _thumbnailFile;
   dynamic _videoFile;
+  Duration? _videoDuration; // Add state variable for duration
   bool _isUploading = false;
   String? _thumbnailError;
   String? _videoError;
@@ -69,7 +70,6 @@ class _UploadVideoViewState extends State<UploadVideoView> {
   void dispose() {
     _titleController.dispose();
     _creatorController.dispose();
-    _durationController.dispose();
     _descriptionController.dispose();
     super.dispose();
   }
@@ -170,6 +170,7 @@ class _UploadVideoViewState extends State<UploadVideoView> {
   }
 
   Future<void> _pickVideo() async {
+    VideoPlayerController? videoController;
     try {
       // Show a dialog to choose between camera and gallery
       final source = await _showImageSourceDialog();
@@ -181,15 +182,39 @@ class _UploadVideoViewState extends State<UploadVideoView> {
       );
 
       if (pickedFile != null) {
+        dynamic tempVideoFile;
+        // Handle platform differences
+        if (kIsWeb) {
+          // On web, we keep the XFile directly
+          tempVideoFile = pickedFile;
+          // Create controller for web
+          videoController = VideoPlayerController.networkUrl(
+            Uri.parse(pickedFile.path),
+          );
+        } else {
+          // On mobile, convert to File
+          tempVideoFile = File(pickedFile.path);
+          // Create controller for mobile
+          videoController = VideoPlayerController.file(
+            tempVideoFile as File,
+          );
+        }
+
+        // Initialize controller to get duration
+        await videoController.initialize();
+        final duration = videoController.value.duration;
+        await videoController.dispose(); // Dispose controller after use
+
         setState(() {
-          // Handle platform differences
-          if (kIsWeb) {
-            // On web, we keep the XFile directly
-            _videoFile = pickedFile;
-          } else {
-            // On mobile, convert to File
-            _videoFile = File(pickedFile.path);
-          }
+          _videoFile = tempVideoFile;
+          _videoDuration = duration;
+          _videoError = null;
+        });
+      } else {
+        // User cancelled picker
+        setState(() {
+          _videoFile = null;
+          _videoDuration = null;
           _videoError = null;
         });
       }
@@ -200,11 +225,14 @@ class _UploadVideoViewState extends State<UploadVideoView> {
         stackTrace: stackTrace,
         context: 'UploadVideoPage._pickVideo',
       );
-
+      if (videoController != null) {
+        await videoController.dispose(); // Ensure disposal on error
+      }
       setState(() {
-        _videoError = 'Failed to select video';
+        _videoFile = null;
+        _videoDuration = null;
+        _videoError = 'Failed to select or process video';
       });
-      // Show a more user-friendly error message
       _showPermissionErrorDialog('video', errorMessage: e.toString());
     }
   }
@@ -278,9 +306,11 @@ class _UploadVideoViewState extends State<UploadVideoView> {
     }
 
     // Video is required
-    if (_videoFile == null) {
+    if (_videoFile == null || _videoDuration == null) {
       setState(() {
-        _videoError = 'Please select a video';
+        _videoError = _videoFile == null
+            ? 'Please select a video'
+            : 'Could not determine video duration';
       });
       return;
     }
@@ -310,15 +340,29 @@ class _UploadVideoViewState extends State<UploadVideoView> {
       final String thumbnailPath;
       final String videoPath;
 
-      // Use the File path for the selected video
-      videoPath = (_videoFile as File).path;
-
-      // For thumbnail
-      if (_thumbnailFile == null) {
-        thumbnailPath = repository.getDefaultThumbnailUrl();
+      if (kIsWeb) {
+        videoPath = (_videoFile as XFile).path; // Use path from XFile for web
+        if (_thumbnailFile == null) {
+          thumbnailPath = repository.getDefaultThumbnailUrl();
+        } else {
+          thumbnailPath =
+              (_thumbnailFile as XFile).path; // Use path from XFile for web
+        }
       } else {
-        thumbnailPath = (_thumbnailFile as File).path;
+        videoPath = (_videoFile as File).path; // Use path from File for mobile
+        if (_thumbnailFile == null) {
+          thumbnailPath = repository.getDefaultThumbnailUrl();
+        } else {
+          thumbnailPath =
+              (_thumbnailFile as File).path; // Use path from File for mobile
+        }
       }
+
+      // Format the duration (e.g., mm:ss)
+      final minutes = _videoDuration!.inMinutes.remainder(60).toString();
+      final seconds =
+          _videoDuration!.inSeconds.remainder(60).toString().padLeft(2, '0');
+      final formattedDuration = '$minutes:$seconds';
 
       // Create a new video model
       final newVideo = VideoModel(
@@ -329,7 +373,7 @@ class _UploadVideoViewState extends State<UploadVideoView> {
         thumbnailUrl: thumbnailPath,
         videoUrl: videoPath,
         description: _descriptionController.text,
-        duration: _durationController.text,
+        duration: formattedDuration, // Use formatted duration
         publishedAt: DateTime.now().toIso8601String(),
       );
 
@@ -553,41 +597,6 @@ class _UploadVideoViewState extends State<UploadVideoView> {
               ),
               const SizedBox(height: 16),
 
-              // Duration input
-              TextFormField(
-                controller: _durationController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'DURATION',
-                  labelStyle: TextStyle(
-                    color: Color(0xFF6C63FF),
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1,
-                  ),
-                  hintText: 'e.g., 2:30',
-                  hintStyle: TextStyle(color: Colors.white54),
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF6C63FF)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF6C63FF), width: 2),
-                  ),
-                  filled: true,
-                  fillColor: Color(0xFF1E1E1E),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter the duration';
-                  }
-                  // Optional: Add regex validation for duration format
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
               // Description input
               TextFormField(
                 controller: _descriptionController,
@@ -684,6 +693,17 @@ class _UploadVideoViewState extends State<UploadVideoView> {
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
+                            if (_videoDuration != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  'Duration: ${_videoDuration!.inMinutes}:${(_videoDuration!.inSeconds % 60).toString().padLeft(2, '0')}',
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
                           ],
                         )
                       : const Column(

@@ -1,6 +1,7 @@
 import 'package:biftech/core/services/error_logging_service.dart';
 import 'package:biftech/features/donation/cubit/donation_cubit.dart';
 import 'package:biftech/features/donation/cubit/donation_state.dart';
+import 'package:biftech/shared/theme/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,10 +10,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class DonationModal extends StatefulWidget {
   /// Constructor
   const DonationModal({
-    required this.nodeId,
-    required this.nodeText,
-    required this.currentDonation,
     required this.onDonationComplete,
+    this.nodeId = '',
+    this.nodeText = 'Support this argument with a donation',
+    this.currentDonation = 0.0,
     super.key,
   });
 
@@ -87,12 +88,31 @@ class _DonationModalState extends State<DonationModal> {
     return BlocListener<DonationCubit, DonationState>(
       listener: (context, state) {
         if (state.status == DonationStatus.success) {
+          // Call the onDonationComplete callback with the donation amount
+          widget.onDonationComplete(state.amount);
+
+          // Close the modal
           Navigator.of(context).pop();
+
+          // Show a success message
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Donation of ₹${state.amount} successful!'),
+                backgroundColor: success,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                margin: const EdgeInsets.all(10),
+              ),
+            );
+          }
         } else if (state.status == DonationStatus.failure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.errorMessage ?? 'Failed to process donation'),
-              backgroundColor: Colors.redAccent,
+              backgroundColor: error,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -110,7 +130,7 @@ class _DonationModalState extends State<DonationModal> {
           bottom: 16,
         ),
         decoration: BoxDecoration(
-          color: const Color(0xFF1F1F1F),
+          color: secondaryBackground,
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(24),
             topRight: Radius.circular(24),
@@ -377,7 +397,7 @@ class _DonationModalState extends State<DonationModal> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Please enter a valid donation amount.'),
-            backgroundColor: Colors.orangeAccent,
+            backgroundColor: warning,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -391,7 +411,7 @@ class _DonationModalState extends State<DonationModal> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Minimum donation amount is ₹1.0'),
-            backgroundColor: Colors.orangeAccent,
+            backgroundColor: warning,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -405,7 +425,7 @@ class _DonationModalState extends State<DonationModal> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Maximum donation amount is ₹5000.0'),
-            backgroundColor: Colors.orangeAccent,
+            backgroundColor: warning,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -416,10 +436,17 @@ class _DonationModalState extends State<DonationModal> {
         return;
       }
 
-      BlocProvider.of<DonationCubit>(context).processDonation(
-        nodeId: widget.nodeId,
-        amount: donation,
-      );
+      // If we have a nodeId, process through the cubit
+      if (widget.nodeId.isNotEmpty) {
+        BlocProvider.of<DonationCubit>(context).processDonation(
+          nodeId: widget.nodeId,
+          amount: donation,
+        );
+      } else {
+        // Otherwise, just call the callback directly
+        widget.onDonationComplete(donation);
+        Navigator.of(context).pop();
+      }
     } catch (e, stackTrace) {
       ErrorLoggingService.instance.logError(
         e,
@@ -430,7 +457,7 @@ class _DonationModalState extends State<DonationModal> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Failed to process donation. Please try again.'),
-          backgroundColor: Colors.redAccent,
+          backgroundColor: error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),

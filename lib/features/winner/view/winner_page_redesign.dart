@@ -13,9 +13,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Page for declaring a winner and showing the distribution
-class WinnerPage extends StatelessWidget {
+class WinnerPageRedesign extends StatelessWidget {
   /// Constructor
-  const WinnerPage({
+  const WinnerPageRedesign({
     required this.videoId,
     required this.flowchartCubit,
     super.key,
@@ -36,15 +36,15 @@ class WinnerPage extends StatelessWidget {
           flowchartCubit: flowchartCubit,
         );
       },
-      child: const WinnerView(),
+      child: const WinnerViewRedesign(),
     );
   }
 }
 
 /// Main view for the winner page
-class WinnerView extends StatelessWidget {
+class WinnerViewRedesign extends StatelessWidget {
   /// Constructor
-  const WinnerView({super.key});
+  const WinnerViewRedesign({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -236,21 +236,21 @@ class WinnerView extends StatelessWidget {
                 ),
           ),
           const SizedBox(height: 16),
-          _buildDistributionRowLabel(
+          _buildDistributionRow(
             context,
             'Winner',
             '60%',
             success,
           ),
           const SizedBox(height: 12),
-          _buildDistributionRowLabel(
+          _buildDistributionRow(
             context,
             'App Contribution',
             '20%',
             accentPrimary,
           ),
           const SizedBox(height: 12),
-          _buildDistributionRowLabel(
+          _buildDistributionRow(
             context,
             'Platform Margin',
             '20%',
@@ -261,7 +261,7 @@ class WinnerView extends StatelessWidget {
     );
   }
 
-  Widget _buildDistributionRowLabel(
+  Widget _buildDistributionRow(
     BuildContext context,
     String label,
     String percentage,
@@ -360,8 +360,7 @@ class WinnerView extends StatelessWidget {
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: const Color(
-                        0x4D8A84FF,
-                      ), // accentSecondary with 30% opacity
+                          0x4D8A84FF), // accentSecondary with 30% opacity
                       width: 2,
                     ),
                   ),
@@ -390,8 +389,7 @@ class WinnerView extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: const Color(
-                        0x4D8A84FF,
-                      ), // accentSecondary with 30% opacity
+                          0x4D8A84FF), // accentSecondary with 30% opacity
                     ),
                   ),
                   child: Text(
@@ -448,6 +446,7 @@ class WinnerView extends StatelessWidget {
                     HapticFeedback.mediumImpact();
                     context.read<WinnerCubit>().cancelEvaluation();
                   },
+                  icon: Icons.close_rounded,
                 ),
               ),
               const SizedBox(width: 16),
@@ -458,74 +457,12 @@ class WinnerView extends StatelessWidget {
                     HapticFeedback.mediumImpact();
                     context.read<WinnerCubit>().speedUpTimer();
                   },
+                  icon: Icons.fast_forward_rounded,
                 ),
               ),
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildArgumentCard(BuildContext context, NodeModel winningNode) {
-    return Container(
-      decoration: BoxDecoration(
-        color: secondaryBackground,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFF2A2A2A),
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x33000000), // Black with 20% opacity
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              winningNode.text,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: textWhite,
-                    fontWeight: FontWeight.w600,
-                    height: 1.4,
-                  ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                _buildStatBadge(
-                  context,
-                  Icons.volunteer_activism,
-                  '${winningNode.donation.toInt()}',
-                  const Color(0x2600B07C), // success with 15% opacity
-                  success,
-                ),
-                const SizedBox(width: 12),
-                _buildStatBadge(
-                  context,
-                  Icons.comment,
-                  '${winningNode.comments.length}',
-                  const Color(0x26FFC043), // warning with 15% opacity
-                  warning,
-                ),
-                const SizedBox(width: 12),
-                _buildStatBadge(
-                  context,
-                  Icons.score,
-                  '${winningNode.score}',
-                  const Color(0x266C63FF), // accentPrimary with 15% opacity
-                  accentPrimary,
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -638,6 +575,69 @@ class WinnerView extends StatelessWidget {
     );
   }
 
+  Widget _buildArgumentCard(BuildContext context, NodeModel winningNode) {
+    return Container(
+      decoration: BoxDecoration(
+        color: secondaryBackground,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFF2A2A2A),
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x33000000), // Black with 20% opacity
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              winningNode.text,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: textWhite,
+                    fontWeight: FontWeight.w600,
+                    height: 1.4,
+                  ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                _buildStatBadge(
+                  context,
+                  Icons.volunteer_activism,
+                  '${winningNode.donation.toInt()}',
+                  const Color(0x2600B07C), // success with 15% opacity
+                  success,
+                ),
+                const SizedBox(width: 12),
+                _buildStatBadge(
+                  context,
+                  Icons.comment,
+                  '${winningNode.comments.length}',
+                  const Color(0x26FFC043), // warning with 15% opacity
+                  warning,
+                ),
+                const SizedBox(width: 12),
+                _buildStatBadge(
+                  context,
+                  Icons.score,
+                  '${winningNode.score}',
+                  const Color(0x266C63FF), // accentPrimary with 15% opacity
+                  accentPrimary,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildStatBadge(
     BuildContext context,
     IconData icon,
@@ -655,10 +655,10 @@ class WinnerView extends StatelessWidget {
         );
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         children: [
@@ -667,7 +667,7 @@ class WinnerView extends StatelessWidget {
             size: 16,
             color: textColor,
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 6),
           Text(
             value,
             style: textStyle,

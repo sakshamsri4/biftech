@@ -64,7 +64,9 @@ class _CommentModalState extends State<CommentModal> {
               controller: _commentController,
               decoration: InputDecoration(
                 labelText: 'Your Comment',
-                labelStyle: const TextStyle(color: Colors.white),
+                labelStyle: const TextStyle(color: textWhite70),
+                hintText: 'Share your thoughts...',
+                hintStyle: const TextStyle(color: textWhite50),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppDimens.radiusM),
                 ),
@@ -76,8 +78,12 @@ class _CommentModalState extends State<CommentModal> {
                   borderRadius: BorderRadius.circular(AppDimens.radiusM),
                   borderSide: const BorderSide(color: accentPrimary),
                 ),
+                filled: true,
+                fillColor: primaryBackground,
               ),
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: textWhite, // Explicitly set text color to white
+                  ),
               maxLines: 3,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {

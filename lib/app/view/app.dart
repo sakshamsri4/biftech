@@ -1,12 +1,14 @@
-import 'package:biftech/features/auth/auth.dart';
 import 'package:biftech/features/auth/service/auth_service.dart';
+import 'package:biftech/features/auth/view/auth_page_redesign.dart';
 import 'package:biftech/features/donation/view/donation_page.dart';
 import 'package:biftech/features/flowchart/flowchart.dart';
 import 'package:biftech/features/home/home.dart';
 import 'package:biftech/features/video_feed/service/video_feed_service.dart';
 import 'package:biftech/features/video_feed/video_feed.dart';
-import 'package:biftech/features/winner/winner.dart';
+import 'package:biftech/features/winner/view/winner_page_redesign.dart';
 import 'package:biftech/l10n/l10n.dart';
+import 'package:biftech/shared/theme/colors.dart';
+import 'package:biftech/shared/theme/theme.dart';
 import 'package:flutter/material.dart';
 
 class App extends StatefulWidget {
@@ -71,7 +73,7 @@ class _AppState extends State<App> {
       case '/login':
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => const AuthPage(),
+          builder: (context) => const AuthPageRedesign(),
         );
       case '/home':
         return MaterialPageRoute(
@@ -110,7 +112,7 @@ class _AppState extends State<App> {
 
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => WinnerPage(
+            builder: (context) => WinnerPageRedesign(
               videoId: id,
               flowchartCubit: flowchartCubit,
             ),
@@ -156,11 +158,15 @@ class _AppState extends State<App> {
   Widget build(BuildContext context) {
     // Show loading indicator while initializing
     if (!_isInitialized) {
-      return const MaterialApp(
+      return MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: Scaffold(
+        theme: credTheme,
+        home: const Scaffold(
+          backgroundColor: primaryBackground,
           body: Center(
-            child: CircularProgressIndicator(),
+            child: CircularProgressIndicator(
+              color: accentPrimary,
+            ),
           ),
         ),
       );
@@ -168,12 +174,7 @@ class _AppState extends State<App> {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        appBarTheme: AppBarTheme(
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        ),
-        useMaterial3: true,
-      ),
+      theme: credTheme,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       initialRoute: _initialRoute,

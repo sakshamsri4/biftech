@@ -15,6 +15,7 @@ const Color textWhite = Colors.white;
 const Color textWhite85 = Color(0xD9FFFFFF); // White 85%
 const Color textWhite70 = Color(0xB3FFFFFF); // White 70%
 const Color textWhite50 = Color(0x80FFFFFF); // White 50%
+const Color textWhite30 = Color(0x4DFFFFFF); // White 30%
 
 // Semantic Colors
 const Color success = Color(0xFF00B07C); // Deep teal
@@ -39,6 +40,7 @@ extension CredColorScheme on ColorScheme {
   Color get credTextWhite85 => textWhite85;
   Color get credTextWhite70 => textWhite70;
   Color get credTextWhite50 => textWhite50;
+  Color get credTextWhite30 => textWhite30;
 
   // Semantics
   Color get credSuccess => success;

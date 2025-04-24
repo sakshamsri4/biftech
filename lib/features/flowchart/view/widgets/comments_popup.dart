@@ -10,8 +10,12 @@ class CommentsPopup extends StatelessWidget {
   const CommentsPopup({
     required this.nodeModel,
     required this.cubit,
+    this.onAddCommentPressed,
     super.key,
   });
+
+  /// Callback when the Add Comment button is pressed
+  final VoidCallback? onAddCommentPressed;
 
   /// The node model containing the comments
   final NodeModel nodeModel;
@@ -116,21 +120,74 @@ class CommentsPopup extends StatelessWidget {
                   ),
                 ],
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: accentPrimary,
-                  borderRadius: BorderRadius.circular(AppDimens.radiusL),
-                ),
-                child: Text(
-                  '${nodeModel.comments.length}',
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+              Row(
+                children: [
+                  // Add Comment Button
+                  GestureDetector(
+                    onTap: () {
+                      // First close this dialog
+                      Navigator.of(context).pop();
+
+                      // Show the comment modal after dialog is closed
+                      // The parent widget will handle showing the comment modal
+                      onAddCommentPressed?.call();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
                       ),
-                ),
+                      decoration: BoxDecoration(
+                        color: accentPrimary,
+                        borderRadius: BorderRadius.circular(AppDimens.radiusL),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.add_comment,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Add',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Comment Count Badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(
+                        51,
+                        128,
+                        128,
+                        128,
+                      ), // Grey with 20% opacity,
+                      borderRadius: BorderRadius.circular(AppDimens.radiusL),
+                    ),
+                    child: Text(
+                      '${nodeModel.comments.length}',
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: textWhite70,
+                          ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
