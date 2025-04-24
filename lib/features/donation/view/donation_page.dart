@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui'; // Import for ImageFilter
 
 import 'package:biftech/features/donation/donation.dart';
 import 'package:biftech/features/flowchart/cubit/cubit.dart';
@@ -8,8 +9,8 @@ import 'package:biftech/features/flowchart/repository/flowchart_repository.dart'
 import 'package:biftech/features/video_feed/model/video_model.dart';
 import 'package:biftech/features/video_feed/service/video_feed_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Import for HapticFeedback
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:neopop/neopop.dart';
 
 /// {@template donation_page}
 /// The main donation page of the application.
@@ -28,8 +29,6 @@ class _DonationPageState extends State<DonationPage> {
   late StreamController<Map<String, NodeModel?>> _flowchartsController;
   late Stream<Map<String, NodeModel?>> _flowchartsStream;
   Timer? _refreshTimer;
-
-  // Map to store FlowchartCubit instances for each video
   final Map<String, FlowchartCubit> _flowchartCubits = {};
 
   @override
@@ -42,13 +41,10 @@ class _DonationPageState extends State<DonationPage> {
   void dispose() {
     _flowchartsController.close();
     _refreshTimer?.cancel();
-
-    // Close all FlowchartCubit instances
     for (final cubit in _flowchartCubits.values) {
       cubit.close();
     }
     _flowchartCubits.clear();
-
     super.dispose();
   }
 
@@ -58,11 +54,8 @@ class _DonationPageState extends State<DonationPage> {
     });
 
     try {
-      // Load videos
       final videos = await VideoFeedService.instance.getVideos();
       _videos = videos;
-
-      // Create a stream that will emit updated flowchart data
       _setupFlowchartsStream(videos);
     } catch (e) {
       debugPrint('Error loading data: $e');
@@ -76,93 +69,69 @@ class _DonationPageState extends State<DonationPage> {
   }
 
   void _setupFlowchartsStream(List<VideoModel> videos) {
-    // Create a stream controller that will emit flowchart data
     _flowchartsController =
         StreamController<Map<String, NodeModel?>>.broadcast();
     _flowchartsStream = _flowchartsController.stream;
 
-    // Function to load all flowcharts and emit the result
     Future<void> loadFlowcharts() async {
       final flowcharts = <String, NodeModel?>{};
-
-      for (final video in videos) {
-        try {
-          // Create or get a FlowchartCubit for this video
-          if (!_flowchartCubits.containsKey(video.id)) {
-            final cubit = FlowchartCubit(
-              repository: FlowchartRepository.instance,
-              videoId: video.id,
-            );
-
-            // Listen for comment changes
-            cubit.commentStream.listen((_) {
-              // Refresh data when comments change
-              loadFlowcharts();
-            });
-
-            // Store the cubit
-            _flowchartCubits[video.id] = cubit;
-
-            // Load the flowchart
-            await cubit.loadFlowchart();
+      await Future.wait(
+        videos.map((video) async {
+          try {
+            if (!_flowchartCubits.containsKey(video.id)) {
+              final cubit = FlowchartCubit(
+                repository: FlowchartRepository.instance,
+                videoId: video.id,
+              );
+              cubit.commentStream.listen((_) {
+                loadFlowcharts();
+              });
+              _flowchartCubits[video.id] = cubit;
+              await cubit.loadFlowchart();
+            }
+            final flowchart = await FlowchartRepository.instance
+                .getFlowchartForVideo(video.id);
+            flowcharts[video.id] = flowchart;
+          } catch (e) {
+            debugPrint('Error loading flowchart for video ${video.id}: $e');
+            flowcharts[video.id] = null;
           }
+        }),
+      );
 
-          // Get the flowchart from the repository
-          final flowchart =
-              await FlowchartRepository.instance.getFlowchartForVideo(video.id);
-          flowcharts[video.id] = flowchart;
-        } catch (e) {
-          debugPrint('Error loading flowchart for video ${video.id}: $e');
-          flowcharts[video.id] = null;
-        }
-      }
-
-      // Emit the flowcharts data
       if (!_flowchartsController.isClosed) {
         _flowchartsController.add(flowcharts);
       }
     }
 
-    // Load flowcharts immediately
     loadFlowcharts();
 
-    // Set up a periodic timer to refresh the data
-    _refreshTimer = Timer.periodic(const Duration(seconds: 2), (_) {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 5), (_) {
       loadFlowcharts();
     });
   }
 
-  // Method to manually refresh the data
   Future<void> _refreshData() async {
-    // Load videos
-    final videos = await VideoFeedService.instance.getVideos();
-    _videos = videos;
-
-    // Function to load all flowcharts and emit the result
-    final flowcharts = <String, NodeModel?>{};
-
-    for (final video in videos) {
-      try {
-        final flowchart =
-            await FlowchartRepository.instance.getFlowchartForVideo(video.id);
-        flowcharts[video.id] = flowchart;
-      } catch (e) {
-        debugPrint('Error loading flowchart for video ${video.id}: $e');
-        flowcharts[video.id] = null;
-      }
-    }
-
-    // Emit the flowcharts data
-    if (!_flowchartsController.isClosed) {
-      _flowchartsController.add(flowcharts);
-    }
+    await _initializeData();
   }
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF1A1A1A),
+      body: RefreshIndicator(
+        onRefresh: _refreshData,
+        color: Colors.white,
+        backgroundColor: Colors.grey[800],
+        child: _buildBody(),
+      ),
+    );
+  }
+
+  Widget _buildBody() {
     if (_isLoading) {
       return const Center(
-        child: CircularProgressIndicator(),
+        child: CircularProgressIndicator(color: Colors.white),
       );
     }
 
@@ -172,19 +141,23 @@ class _DonationPageState extends State<DonationPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.volunteer_activism,
+              Icons.movie_filter_outlined,
               size: 80,
-              color: Colors.blue.shade200,
+              color: Colors.grey[700],
             ),
             const SizedBox(height: 16),
             Text(
-              'No Videos Available',
-              style: Theme.of(context).textTheme.titleLarge,
+              'No Discussions Yet',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Watch videos to participate in discussions and donations',
+            Text(
+              'Engage with videos to start or join discussions.',
               textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey[400]),
             ),
           ],
         ),
@@ -194,106 +167,66 @@ class _DonationPageState extends State<DonationPage> {
     return StreamBuilder<Map<String, NodeModel?>>(
       stream: _flowchartsStream,
       builder: (context, snapshot) {
-        // Show loading indicator while waiting for the first data
-        if (!snapshot.hasData) {
+        if (!snapshot.hasData && !_isLoading) {
           return const Center(
-            child: CircularProgressIndicator(),
+            child: CircularProgressIndicator(color: Colors.white),
+          );
+        }
+        if (!snapshot.hasData && _isLoading) {
+          return const Center(
+            child: CircularProgressIndicator(color: Colors.white),
           );
         }
 
-        // Get the flowcharts data
-        final flowcharts = snapshot.data!;
+        final flowcharts = snapshot.data ?? {};
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(),
-              const SizedBox(height: 24),
-              _buildDonationStats(flowcharts),
-              const SizedBox(height: 24),
-              _buildDonationList(flowcharts),
-            ],
-          ),
+        return CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.all(20),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate(
+                  [
+                    _buildHeader(),
+                    const SizedBox(height: 30),
+                    _buildDonationStats(flowcharts),
+                    const SizedBox(height: 30),
+                    _buildDonationList(flowcharts),
+                  ],
+                ),
+              ),
+            ),
+          ],
         );
       },
     );
   }
 
   Widget _buildHeader() {
-    return Card(
-      elevation: 8,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey.shade200),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(24), // More generous padding
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                NeoPopShimmer(
-                  shimmerColor: Colors.green.shade300,
-                  child: CircleAvatar(
-                    radius: 32,
-                    backgroundColor: Colors.green.shade100,
-                    child: const Icon(
-                      Icons.volunteer_activism,
-                      size: 32,
-                      color: Color(0xFF00A86B), // Vibrant green
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Donation Center',
-                        style:
-                            Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.w800, // Bolder
-                                  letterSpacing:
-                                      -0.5, // CRED-style tight letter spacing
-                                  color: Colors.black87,
-                                ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Support arguments you believe in',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black54,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24), // More spacing
-            const Text(
-              'Your donations help strengthen arguments in discussions\n'
-              'and reward the best contributors.',
-              style: TextStyle(
-                fontSize: 16,
-                height: 1.5,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Donation Hub',
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                letterSpacing: -0.5,
               ),
-            ),
-          ],
         ),
-      ),
+        const SizedBox(height: 8),
+        Text(
+          'Amplify the arguments you believe in.',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[400],
+              ),
+        ),
+      ],
     );
   }
 
   Widget _buildDonationStats(Map<String, NodeModel?> flowcharts) {
-    // Calculate total donations
     var totalDonations = 0.0;
     var totalFlowcharts = 0;
 
@@ -303,87 +236,90 @@ class _DonationPageState extends State<DonationPage> {
         totalDonations += _calculateTotalDonations(flowchart);
       }
     }
-
-    // Format the donation amount to ensure it fits
     final formattedDonation = _formatCurrency(totalDonations);
 
-    return Card(
-      elevation: 6,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade200),
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.grey[900]?.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey[800]!),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(24), // More generous padding
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Donation Statistics',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
-                    color: Colors.black87,
-                  ),
-            ),
-            const SizedBox(height: 24), // More spacing
-            // Use a more responsive layout for the stats
-            LayoutBuilder(
-              builder: (context, constraints) {
-                // If we have enough width, use a row layout
-                if (constraints.maxWidth > 400) {
-                  return Row(
-                    children: [
-                      Expanded(
-                        child: _buildNeoPOPStatCard(
-                          'Total',
-                          formattedDonation,
-                          Icons.monetization_on,
-                          const Color(0xFFFF9A3D), // More vibrant amber
-                        ),
-                      ),
-                      const SizedBox(width: 20),
-                      Expanded(
-                        child: _buildNeoPOPStatCard(
-                          'Discussions',
-                          totalFlowcharts.toString(),
-                          Icons.account_tree,
-                          const Color(0xFF4D7CFE), // More vibrant blue
-                        ),
-                      ),
-                    ],
-                  );
-                } else {
-                  // For smaller screens, use a column layout
-                  return Column(
-                    children: [
-                      _buildNeoPOPStatCard(
-                        'Total Donations',
-                        formattedDonation,
-                        Icons.monetization_on,
-                        const Color(0xFFFF9A3D),
-                      ),
-                      const SizedBox(height: 20),
-                      _buildNeoPOPStatCard(
-                        'Active Discussions',
-                        totalFlowcharts.toString(),
-                        Icons.account_tree,
-                        const Color(0xFF4D7CFE),
-                      ),
-                    ],
-                  );
-                }
-              },
-            ),
-          ],
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Impact Overview',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatItem(
+                  'Total Raised',
+                  formattedDonation,
+                  Icons.show_chart_rounded,
+                  Colors.greenAccent.shade400,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildStatItem(
+                  'Active Discussions',
+                  totalFlowcharts.toString(),
+                  Icons.forum_outlined,
+                  Colors.blueAccent.shade400,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  /// Format currency value to ensure it fits in the UI
+  Widget _buildStatItem(
+    String label,
+    String value,
+    IconData icon,
+    Color iconColor,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, color: iconColor, size: 16),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.grey[400],
+                  ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Text(
+          value,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+
   String _formatCurrency(double value) {
-    if (value >= 100000) {
+    if (value >= 10000000) {
+      return '₹${(value / 10000000).toStringAsFixed(1)}Cr';
+    } else if (value >= 100000) {
       return '₹${(value / 100000).toStringAsFixed(1)}L';
     } else if (value >= 1000) {
       return '₹${(value / 1000).toStringAsFixed(1)}K';
@@ -392,96 +328,45 @@ class _DonationPageState extends State<DonationPage> {
     }
   }
 
-  Widget _buildNeoPOPStatCard(
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
-    return Transform.rotate(
-      angle: 0.02, // Slight tilt for 3D effect (about 1 degree)
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: color.withAlpha(25),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withAlpha(100), width: 2),
-          boxShadow: [
-            BoxShadow(
-              color: color.withAlpha(40),
-              blurRadius: 8,
-              offset: const Offset(2, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, color: color, size: 20),
-                const SizedBox(width: 10),
-                Flexible(
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: color.withAlpha(220),
-                      fontSize: 16,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(
-                value,
-                style: TextStyle(
-                  fontSize: 28, // Larger for emphasis
-                  fontWeight: FontWeight.w800,
-                  color: color,
-                  letterSpacing: -0.5,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildDonationList(Map<String, NodeModel?> flowcharts) {
-    // Filter videos with flowcharts
     final videosWithFlowcharts = _videos.where((video) {
-      return flowcharts[video.id] != null;
+      return flowcharts.containsKey(video.id) && flowcharts[video.id] != null;
     }).toList();
+
+    videosWithFlowcharts.sort((a, b) {
+      final donationA = _calculateTotalDonations(flowcharts[a.id]!);
+      final donationB = _calculateTotalDonations(flowcharts[b.id]!);
+      return donationB.compareTo(donationA);
+    });
 
     if (videosWithFlowcharts.isEmpty) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.account_tree,
-              size: 60,
-              color: Colors.blue.shade200,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No Active Discussions',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Watch videos to start discussions',
-              textAlign: TextAlign.center,
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 40),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.forum_outlined,
+                size: 60,
+                color: Colors.grey[700],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'No Active Discussions Found',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(color: Colors.white),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Start by watching videos and sharing your views.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey[400]),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -489,11 +374,16 @@ class _DonationPageState extends State<DonationPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Discussions to Support',
-          style: Theme.of(context).textTheme.titleLarge,
+        Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Text(
+            'Support a Discussion',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
         ),
-        const SizedBox(height: 16),
         ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -502,22 +392,22 @@ class _DonationPageState extends State<DonationPage> {
             final video = videosWithFlowcharts[index];
             final flowchart = flowcharts[video.id];
 
-            if (flowchart == null) {
-              return const SizedBox.shrink();
-            }
+            if (flowchart == null) return const SizedBox.shrink();
 
             final totalDonations = _calculateTotalDonations(flowchart);
             final winningNode = _findWinningNode(flowchart);
 
             return Card(
-              margin: const EdgeInsets.only(bottom: 24),
-              elevation: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              elevation: 0,
+              color: Colors.grey[900]?.withOpacity(0.6),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: Colors.grey.shade200),
+                side: BorderSide(color: Colors.grey[800]!),
               ),
               child: InkWell(
                 onTap: () {
+                  HapticFeedback.lightImpact();
                   Navigator.pushNamed(
                     context,
                     '/flowchart/${video.id}',
@@ -525,7 +415,7 @@ class _DonationPageState extends State<DonationPage> {
                 },
                 borderRadius: BorderRadius.circular(16),
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -533,27 +423,30 @@ class _DonationPageState extends State<DonationPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(8),
                             child: Image.asset(
                               video.thumbnailUrl,
-                              width: 120,
-                              height: 70,
+                              width: 100,
+                              height: 60,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
                                 return Container(
-                                  width: 120,
-                                  height: 70,
-                                  color: Colors.grey.shade200,
+                                  width: 100,
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[800],
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
                                   child: Icon(
-                                    Icons.image_not_supported,
-                                    color: Colors.grey.shade400,
-                                    size: 32,
+                                    Icons.videocam_off_outlined,
+                                    color: Colors.grey[600],
+                                    size: 28,
                                   ),
                                 );
                               },
                             ),
                           ),
-                          const SizedBox(width: 20),
+                          const SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -564,14 +457,14 @@ class _DonationPageState extends State<DonationPage> {
                                       .textTheme
                                       .titleMedium
                                       ?.copyWith(
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: -0.5,
-                                        color: Colors.black87,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                        height: 1.3,
                                       ),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                const SizedBox(height: 6),
+                                const SizedBox(height: 4),
                                 Text(
                                   'by ${video.creator}',
                                   style: Theme.of(context)
@@ -579,7 +472,7 @@ class _DonationPageState extends State<DonationPage> {
                                       .bodySmall
                                       ?.copyWith(
                                         fontWeight: FontWeight.w500,
-                                        color: Colors.black54,
+                                        color: Colors.grey[500],
                                       ),
                                 ),
                               ],
@@ -587,176 +480,53 @@ class _DonationPageState extends State<DonationPage> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 20),
+                      _buildWinningArgumentSection(winningNode),
+                      const SizedBox(height: 20),
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Total Donations',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.black87,
-                                      ),
-                                ),
-                                const SizedBox(height: 6),
-                                FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    '₹${_formatCurrency(totalDonations)}',
-                                    style: const TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.w800,
-                                      color: Color(0xFF00A86B),
-                                      letterSpacing: -0.5,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          NeoPopButton(
-                            color: const Color(0xFF00A86B),
-                            onTapUp: () {
-                              _showDonationModal(context, flowchart);
-                            },
-                            onTapDown: () {},
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.volunteer_activism,
-                                    color: Colors.white,
-                                    size: 18,
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    'Donate',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      ...[
-                        const Divider(height: 32),
-                        const Text(
-                          'Current Winning Argument:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
-                            color: Colors.black87,
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF5F9FF),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: const Color(0xFF4D7CFE).withAlpha(50),
-                            ),
-                          ),
-                          child: Column(
+                          Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                winningNode.text,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  height: 1.4,
-                                  color: Colors.black87,
+                                'Total Raised',
+                                style: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          const Color(0xFF4D7CFE).withAlpha(20),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      'Score: ${winningNode.score}',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFF4D7CFE),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          const Color(0xFF00A86B).withAlpha(20),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      '₹${_formatCurrency(
-                                        winningNode.donation,
-                                      )}',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFF00A86B),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          const Color(0xFFFF9A3D).withAlpha(20),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      '${winningNode.comments.length} comments',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFFFF9A3D),
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                              const SizedBox(height: 4),
+                              Text(
+                                _formatCurrency(totalDonations),
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.greenAccent,
+                                  letterSpacing: -0.5,
+                                ),
                               ),
                             ],
                           ),
-                        ),
-                      ],
+                          _buildGradientButton(
+                            text: 'Support',
+                            icon: Icons.favorite_border,
+                            onTap: () {
+                              HapticFeedback.mediumImpact();
+                              _showDonationModal(context, flowchart);
+                            },
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.greenAccent.shade400,
+                                Colors.tealAccent.shade400,
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -768,150 +538,250 @@ class _DonationPageState extends State<DonationPage> {
     );
   }
 
+  Widget _buildWinningArgumentSection(NodeModel winningNode) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[800]!, width: 0.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.emoji_events_outlined,
+                color: Colors.amber.shade300,
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Leading Argument',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: Colors.amber.shade300,
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            winningNode.text,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 15,
+              height: 1.4,
+              color: Colors.grey[300],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _buildInfoChip(
+                'Score: ${winningNode.score}',
+                Colors.blueAccent.withOpacity(0.2),
+                Colors.blueAccent.shade100,
+              ),
+              const SizedBox(width: 8),
+              _buildInfoChip(
+                '₹${_formatCurrency(winningNode.donation)}',
+                Colors.greenAccent.withOpacity(0.2),
+                Colors.greenAccent.shade100,
+              ),
+              const SizedBox(width: 8),
+              _buildInfoChip(
+                '${winningNode.comments.length} comments',
+                Colors.purpleAccent.withOpacity(0.2),
+                Colors.purpleAccent.shade100,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoChip(String label, Color backgroundColor, Color textColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: textColor,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGradientButton({
+    required String text,
+    required IconData icon,
+    required VoidCallback onTap,
+    required Gradient gradient,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(30),
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: gradient,
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: Colors.black87, size: 16),
+              const SizedBox(width: 8),
+              Text(
+                text,
+                style: const TextStyle(
+                  color: Colors.black87,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _showDonationModal(
     BuildContext context,
     NodeModel rootNode,
   ) async {
-    // Find the winning node to donate to
     final winningNode = _findWinningNode(rootNode);
-    // Use the winning node ID
     final nodeId = winningNode.id;
-    // Get the video ID from the root node ID
     final videoId = rootNode.id.replaceFirst('root_', '');
 
-    // Show a loading indicator
-    final loadingOverlay = _showLoadingOverlay(context);
-
     try {
-      // Get the current donation amount for the node
       final currentDonation = winningNode.donation;
-
-      // Get or create a FlowchartCubit instance
       final flowchartCubit = _flowchartCubits[videoId] ??
           FlowchartCubit(
             repository: FlowchartRepository.instance,
             videoId: videoId,
           );
 
-      // If this is a new cubit, store it and load the flowchart
       if (!_flowchartCubits.containsKey(videoId)) {
         _flowchartCubits[videoId] = flowchartCubit;
-
-        // Listen for comment changes
         flowchartCubit.commentStream.listen((_) {
-          // Refresh data when comments change
           _refreshData();
         });
-
-        // Wait for the flowchart to load
         await flowchartCubit.loadFlowchart();
       }
 
-      // Hide the loading indicator
-      loadingOverlay.remove();
-
       if (!context.mounted) return;
 
-      // Show the donation modal
       await showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
+        backgroundColor: Colors.transparent,
         builder: (context) {
-          // Provide both FlowchartCubit and DonationCubit
-          return MultiBlocProvider(
-            providers: [
-              BlocProvider<FlowchartCubit>.value(
-                value: flowchartCubit,
-              ),
-              BlocProvider<DonationCubit>(
-                create: (context) => DonationCubit(),
-              ),
-            ],
-            child: DonationModal(
-              nodeId: nodeId,
-              onDonationComplete: (amount) async {
-                // Show a loading indicator
-                final updateLoadingOverlay = _showLoadingOverlay(context);
-
-                try {
-                  // Update the node with the donation amount
-                  // (add to existing donation)
-                  final newAmount = currentDonation + amount;
-                  await flowchartCubit.updateNodeDonation(nodeId, newAmount);
-
-                  // Refresh the data after donation
-                  await _refreshData();
-
-                  // Hide the loading indicator
-                  updateLoadingOverlay.remove();
-
-                  if (!context.mounted) return;
-
-                  // Show success message
+          return BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+            child: MultiBlocProvider(
+              providers: [
+                BlocProvider<FlowchartCubit>.value(value: flowchartCubit),
+                BlocProvider<DonationCubit>(
+                    create: (context) => DonationCubit()),
+              ],
+              child: DonationModal(
+                nodeId: nodeId,
+                nodeText: winningNode.text,
+                currentDonation: currentDonation,
+                onDonationComplete: (amount) async {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        'Successfully donated ₹${amount.toStringAsFixed(2)}',
+                        '✨ Donation of ₹${amount.toStringAsFixed(1)} received!',
+                        style: const TextStyle(color: Colors.black87),
                       ),
-                      backgroundColor: Colors.green,
+                      backgroundColor: Colors.greenAccent.shade400,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      margin: const EdgeInsets.all(10),
                     ),
                   );
-                } catch (e) {
-                  // Hide the loading indicator
-                  updateLoadingOverlay.remove();
 
-                  if (!context.mounted) return;
-
-                  // Show error message
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Failed to update donation: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              },
+                  final updateLoadingOverlay =
+                      _showLoadingOverlay(context, isModal: true);
+                  try {
+                    final newAmount = currentDonation + amount;
+                    await flowchartCubit.updateNodeDonation(nodeId, newAmount);
+                    await _refreshData();
+                  } catch (e) {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to update donation: $e'),
+                        backgroundColor: Colors.redAccent,
+                      ),
+                    );
+                  } finally {
+                    updateLoadingOverlay.remove();
+                  }
+                },
+              ),
             ),
           );
         },
       );
     } catch (e) {
-      // Hide the loading indicator
-      loadingOverlay.remove();
-
       if (!context.mounted) return;
-
-      // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to load flowchart: $e'),
-          backgroundColor: Colors.red,
+          content: Text('Error preparing donation: $e'),
+          backgroundColor: Colors.redAccent,
         ),
       );
     }
   }
 
-  OverlayEntry _showLoadingOverlay(BuildContext context) {
+  OverlayEntry _showLoadingOverlay(BuildContext context,
+      {bool isModal = false}) {
     final overlay = OverlayEntry(
       builder: (context) => ColoredBox(
-        color: Colors.black.withAlpha(128),
+        color: isModal
+            ? Colors.black.withOpacity(0.5)
+            : Colors.black.withOpacity(0.7),
         child: const Center(
-          child: CircularProgressIndicator(),
+          child: CircularProgressIndicator(color: Colors.white),
         ),
       ),
     );
-
     Overlay.of(context).insert(overlay);
     return overlay;
   }
 
   double _calculateTotalDonations(NodeModel node) {
     var total = node.donation;
-
     for (final challenge in node.challenges) {
       total += _calculateTotalDonations(challenge);
     }
-
     return total;
   }
 
@@ -925,13 +795,14 @@ class _DonationPageState extends State<DonationPage> {
         highestNode = winningNode;
         highestScore = winningNode.score;
       } else if (winningNode.score == highestScore) {
-        // Tiebreaker: earlier creation time wins
-        if (winningNode.createdAt.isBefore(highestNode.createdAt)) {
+        if (winningNode.donation > highestNode.donation) {
+          highestNode = winningNode;
+        } else if (winningNode.donation == highestNode.donation &&
+            winningNode.createdAt.isBefore(highestNode.createdAt)) {
           highestNode = winningNode;
         }
       }
     }
-
     return highestNode;
   }
 }

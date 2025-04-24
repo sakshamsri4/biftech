@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:neopop/neopop.dart';
+import 'package:biftech/features/video_feed/view/widgets/shimmer_loading.dart';
 
 /// {@template video_feed_page}
 /// Page that displays a feed of videos.
@@ -73,9 +74,9 @@ class _VideoFeedViewState extends State<VideoFeedView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0A),
+      backgroundColor: const Color(0xFF000000),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF121212),
+        backgroundColor: const Color(0xFF1A1A1A),
         title: const Text(
           'VIDEO FEED',
           style: TextStyle(
@@ -88,7 +89,7 @@ class _VideoFeedViewState extends State<VideoFeedView>
       ),
       floatingActionButton: Builder(
         builder: (innerContext) => NeoPopButton(
-          color: const Color(0xFF6C63FF),
+          color: const Color(0xFF9B51E0),
           onTapUp: () {
             HapticFeedback.mediumImpact();
             // Get the cubit from the correct context
@@ -104,7 +105,7 @@ class _VideoFeedViewState extends State<VideoFeedView>
             );
           },
           onTapDown: HapticFeedback.lightImpact,
-          parentColor: const Color(0xFF0A0A0A),
+          parentColor: const Color(0xFF000000),
           depth: 10,
           child: const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -132,13 +133,7 @@ class _VideoFeedViewState extends State<VideoFeedView>
             case VideoFeedStatus.initial:
             case VideoFeedStatus.loading:
               if (state.videos.isEmpty) {
-                return const Center(
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Color(0xFF6C63FF),
-                    ),
-                  ),
-                );
+                return const VideoListShimmer();
               }
               // If we have videos but are refreshing,
               // show the list with a loading indicator
@@ -157,13 +152,13 @@ class _VideoFeedViewState extends State<VideoFeedView>
                         width: 120,
                         height: 120,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1E1E1E),
+                          color: const Color(0xFF1A1A1A),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: const Icon(
                           Icons.videocam_off_rounded,
                           size: 60,
-                          color: Color(0xFF6C63FF),
+                          color: Color(0xFF9B51E0),
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -187,7 +182,15 @@ class _VideoFeedViewState extends State<VideoFeedView>
                   ),
                 );
               }
-              return _VideoList(videos: state.videos);
+              return RefreshIndicator(
+                color: const Color(0xFF9B51E0),
+                backgroundColor: const Color(0xFF1A1A1A),
+                onRefresh: () async {
+                  HapticFeedback.mediumImpact();
+                  await context.read<VideoFeedCubit>().loadVideos();
+                },
+                child: _VideoList(videos: state.videos),
+              );
 
             case VideoFeedStatus.failure:
               return Center(
@@ -198,13 +201,13 @@ class _VideoFeedViewState extends State<VideoFeedView>
                       width: 120,
                       height: 120,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E1E1E),
+                        color: const Color(0xFF1A1A1A),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: const Icon(
                         Icons.error_outline_rounded,
                         size: 60,
-                        color: Colors.red,
+                        color: Colors.redAccent,
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -219,13 +222,13 @@ class _VideoFeedViewState extends State<VideoFeedView>
                     ),
                     const SizedBox(height: 24),
                     NeoPopButton(
-                      color: const Color(0xFF6C63FF),
+                      color: const Color(0xFF9B51E0),
                       onTapUp: () {
                         HapticFeedback.mediumImpact();
                         context.read<VideoFeedCubit>().loadVideos();
                       },
                       onTapDown: HapticFeedback.lightImpact,
-                      parentColor: const Color(0xFF0A0A0A),
+                      parentColor: const Color(0xFF000000),
                       depth: 8,
                       child: const Padding(
                         padding: EdgeInsets.symmetric(
@@ -255,7 +258,7 @@ class _VideoFeedViewState extends State<VideoFeedView>
 /// {@template video_list}
 /// Widget that displays a list of videos with pull-to-refresh functionality.
 /// {@endtemplate}
-class _VideoList extends StatefulWidget {
+class _VideoList extends StatelessWidget {
   /// {@macro video_list}
   const _VideoList({
     required this.videos,
@@ -263,115 +266,41 @@ class _VideoList extends StatefulWidget {
   });
 
   /// List of videos to display
-  final List<dynamic> videos;
+  final List<VideoModel> videos;
 
   /// Whether the list is currently refreshing
   final bool isRefreshing;
 
   @override
-  State<_VideoList> createState() => _VideoListState();
-}
-
-class _VideoListState extends State<_VideoList>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        RefreshIndicator(
-          onRefresh: () async {
-            await context.read<VideoFeedCubit>().refreshVideos();
+    return ListView.builder(
+      padding: const EdgeInsets.only(bottom: 16),
+      itemCount: videos.length,
+      itemBuilder: (context, index) {
+        final video = videos[index];
+
+        return VideoCard(
+          key: ValueKey(video.id),
+          video: video,
+          onTap: () {
+            // Pause all videos before navigating
+            context.read<VideoFeedCubit>().pauseAllVideos();
+
+            // Add haptic feedback
+            HapticFeedback.mediumImpact();
+
+            // Navigate to flowchart page with video ID
+            Navigator.pushNamed(
+              context,
+              '/flowchart/${video.id}',
+            );
           },
-          child: ListView.builder(
-            padding: const EdgeInsets.only(bottom: 16),
-            itemCount: widget.videos.length,
-            itemBuilder: (context, index) {
-              final video = widget.videos[index] as VideoModel;
-
-              // Create a staggered animation for each item
-              final itemAnimation = Tween<double>(
-                begin: 0,
-                end: 1,
-              ).animate(
-                CurvedAnimation(
-                  parent: _controller,
-                  curve: Interval(
-                    index * 0.05, // Stagger based on index
-                    1,
-                    curve: Curves.easeOut,
-                  ),
-                ),
-              );
-              return FadeTransition(
-                opacity: itemAnimation,
-                child: VideoCard(
-                  video: video,
-                  onTap: () {
-                    // Pause all videos before navigating
-                    context.read<VideoFeedCubit>().pauseAllVideos();
-
-                    // Add haptic feedback
-                    HapticFeedback.mediumImpact();
-
-                    // Navigate to flowchart page with video ID
-                    Navigator.pushNamed(
-                      context,
-                      '/flowchart/${video.id}',
-                    );
-                  },
-                  onDelete: (videoId) async {
-                    // Call the delete method in the cubit
-                    return context.read<VideoFeedCubit>().deleteVideo(videoId);
-                  },
-                ),
-              );
-            },
-          ),
-        ),
-        if (widget.isRefreshing)
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: 3,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [
-                    Color(0xFF6C63FF),
-                    Color(0xFFFF6584),
-                    Color(0xFF6C63FF),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(1),
-              ),
-              child: const LinearProgressIndicator(
-                backgroundColor: Colors.transparent,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  Colors.transparent,
-                ),
-              ),
-            ),
-          ),
-      ],
+          onDelete: (videoId) async {
+            // Call the delete method in the cubit
+            return context.read<VideoFeedCubit>().deleteVideo(videoId);
+          },
+        );
+      },
     );
   }
 }

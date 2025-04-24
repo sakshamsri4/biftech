@@ -43,9 +43,11 @@ class FlowchartCubit extends Cubit<FlowchartState> {
   /// Load the flowchart for the current video
   Future<void> loadFlowchart() async {
     try {
+      if (isClosed) return;
       emit(state.copyWith(status: FlowchartStatus.loading));
 
       final rootNode = await repository.getFlowchartForVideo(videoId);
+      if (isClosed) return;
 
       if (rootNode == null) {
         // Create a new root node if none exists with some initial comments
@@ -75,6 +77,7 @@ class FlowchartCubit extends Cubit<FlowchartState> {
 
         // Save the flowchart with the root and challenge nodes
         await repository.saveFlowchart(videoId, rootWithChallenge);
+        if (isClosed) return;
 
         emit(
           state.copyWith(
@@ -99,6 +102,7 @@ class FlowchartCubit extends Cubit<FlowchartState> {
         stackTrace: stackTrace,
         context: 'FlowchartCubit.loadFlowchart',
       );
+      if (isClosed) return;
       emit(
         state.copyWith(
           status: FlowchartStatus.failure,
@@ -127,6 +131,7 @@ class FlowchartCubit extends Cubit<FlowchartState> {
   /// Add a comment to a node
   Future<void> addComment(String nodeId, String comment) async {
     try {
+      if (isClosed) return;
       if (state.rootNode == null) return;
 
       // Find the node and add the comment
@@ -139,6 +144,7 @@ class FlowchartCubit extends Cubit<FlowchartState> {
       if (updatedRootNode != null) {
         // Save the updated flowchart
         await repository.saveFlowchart(videoId, updatedRootNode);
+        if (isClosed) return;
 
         // Update the state
         emit(state.copyWith(rootNode: updatedRootNode));
@@ -152,6 +158,7 @@ class FlowchartCubit extends Cubit<FlowchartState> {
         stackTrace: stackTrace,
         context: 'FlowchartCubit.addComment',
       );
+      if (isClosed) return;
       emit(
         state.copyWith(
           status: FlowchartStatus.failure,
@@ -169,6 +176,7 @@ class FlowchartCubit extends Cubit<FlowchartState> {
     double donation,
   ) async {
     try {
+      if (isClosed) throw Exception('Cubit is closed');
       if (state.rootNode == null) {
         throw Exception('Root node is null');
       }
@@ -190,6 +198,7 @@ class FlowchartCubit extends Cubit<FlowchartState> {
       if (updatedRootNode != null) {
         // Save the updated flowchart
         await repository.saveFlowchart(videoId, updatedRootNode);
+        if (isClosed) throw Exception('Cubit closed during save');
 
         // Update the state and expand the parent node
         final expandedNodeIds = Set<String>.from(state.expandedNodeIds)
@@ -213,14 +222,15 @@ class FlowchartCubit extends Cubit<FlowchartState> {
         stackTrace: stackTrace,
         context: 'FlowchartCubit.addChallenge',
       );
-      emit(
-        state.copyWith(
-          status: FlowchartStatus.failure,
-          error: 'Failed to add challenge: $e',
-        ),
-      );
-      // Re-throw the exception to ensure the method doesn't return null
-      throw Exception('Failed to add challenge: $e');
+      if (!isClosed) {
+        emit(
+          state.copyWith(
+            status: FlowchartStatus.failure,
+            error: 'Failed to add challenge: $e',
+          ),
+        );
+      }
+      throw Exception('Failed to add challenge: ${e.toString()}');
     }
   }
 
@@ -242,6 +252,7 @@ class FlowchartCubit extends Cubit<FlowchartState> {
   /// Update the donation amount for a node
   Future<void> updateNodeDonation(String nodeId, double amount) async {
     try {
+      if (isClosed) return;
       if (state.rootNode == null) return;
 
       // Find the node and update its donation amount
@@ -254,6 +265,7 @@ class FlowchartCubit extends Cubit<FlowchartState> {
       if (updatedRootNode != null) {
         // Save the updated flowchart
         await repository.saveFlowchart(videoId, updatedRootNode);
+        if (isClosed) return;
 
         // Update the state
         emit(state.copyWith(rootNode: updatedRootNode));
@@ -264,6 +276,7 @@ class FlowchartCubit extends Cubit<FlowchartState> {
         stackTrace: stackTrace,
         context: 'FlowchartCubit.updateNodeDonation',
       );
+      if (isClosed) return;
       emit(
         state.copyWith(
           status: FlowchartStatus.failure,
