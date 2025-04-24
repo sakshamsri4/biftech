@@ -141,7 +141,7 @@ class _CredTextFieldState extends State<CredTextField> {
         boxShadow: _isFocused
             ? [
                 BoxShadow(
-                  color: accentPrimary.withOpacity(0.1),
+                  color: accentPrimary.withAlpha(26), // 0.1 opacity
                   blurRadius: 8,
                   spreadRadius: 1,
                 ),

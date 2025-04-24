@@ -35,7 +35,7 @@ class GradientButton extends StatelessWidget {
           padding: EdgeInsets.zero, // Remove default padding
           shape: RoundedRectangleBorder(borderRadius: borderRadius),
           elevation: 5, // Add some elevation
-          shadowColor: Colors.black.withOpacity(0.4),
+          shadowColor: Colors.black.withAlpha(102), // 0.4 opacity
         ),
         child: Ink(
           decoration: BoxDecoration(

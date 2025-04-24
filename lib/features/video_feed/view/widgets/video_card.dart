@@ -123,7 +123,8 @@ class _VideoCardState extends State<VideoCard>
             });
             _controller!.addListener(_videoListener);
             debugPrint(
-              'Successfully initialized controller for video: ${widget.video.id}',
+              'Successfully initialized controller for video:'
+              ' ${widget.video.id}',
             );
           } else {
             if (mounted) {
@@ -460,7 +461,8 @@ class _VideoCardState extends State<VideoCard>
                             opacity: _controlsOpacity,
                             child: ColoredBox(
                               color: Colors.black.withAlpha(
-                                  (0.4 * 255).round()), // Use withAlpha
+                                (0.4 * 255).round(),
+                              ), // Use withAlpha
                               child: Center(
                                 child: IconButton(
                                   icon: Icon(
@@ -472,7 +474,8 @@ class _VideoCardState extends State<VideoCard>
                                   ),
                                   style: IconButton.styleFrom(
                                     backgroundColor: purpleAccent.withAlpha(
-                                        (0.8 * 255).round()), // Use withAlpha
+                                      (0.8 * 255).round(),
+                                    ), // Use withAlpha
                                     padding: const EdgeInsets.all(10),
                                   ),
                                   onPressed: _togglePlayPause,
@@ -503,7 +506,8 @@ class _VideoCardState extends State<VideoCard>
                           ),
                           decoration: BoxDecoration(
                             color: Colors.black.withAlpha(
-                                (0.7 * 255).round()), // Use withAlpha
+                              (0.7 * 255).round(),
+                            ), // Use withAlpha
                             borderRadius:
                                 BorderRadius.circular(AppDimens.radiusS),
                           ),
@@ -541,7 +545,8 @@ class _VideoCardState extends State<VideoCard>
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.w500,
                               color: purpleAccent.withAlpha(
-                                  (0.8 * 255).round()), // Use withAlpha
+                                (0.8 * 255).round(),
+                              ), // Use withAlpha
                             ),
                       ),
                       Text(
@@ -598,11 +603,10 @@ class _VideoCardState extends State<VideoCard>
                             _showDeleteConfirmation(context, purpleAccent);
                           },
                           style: IconButton.styleFrom(
-                            backgroundColor: Theme.of(context)
-                                .colorScheme
-                                .error
-                                .withAlpha(
-                                    (0.15 * 255).round()), // Use withAlpha
+                            backgroundColor:
+                                Theme.of(context).colorScheme.error.withAlpha(
+                                      (0.15 * 255).round(),
+                                    ), // Use withAlpha
                             foregroundColor:
                                 Theme.of(context).colorScheme.error,
                             padding: const EdgeInsets.all(AppDimens.spaceS),

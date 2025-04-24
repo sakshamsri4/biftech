@@ -205,7 +205,7 @@ class _WelcomeHeader extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: const Color(
-                        0x4D6C63FF), // accentPrimary with 30% opacity
+                        0x4D6C63FF,), // accentPrimary with 30% opacity
                     width: 2,
                   ),
                   boxShadow: const [
@@ -318,7 +318,7 @@ class _AnimatedRingState extends State<_AnimatedRing>
                       boxShadow: [
                         BoxShadow(
                           color: Color(
-                              0x806C63FF), // accentPrimary with 50% opacity
+                              0x806C63FF,), // accentPrimary with 50% opacity
                           blurRadius: 8,
                           spreadRadius: 1,
                         ),

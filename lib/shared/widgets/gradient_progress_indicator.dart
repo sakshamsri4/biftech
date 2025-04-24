@@ -39,13 +39,18 @@ class GradientProgressIndicator extends StatelessWidget {
                       // Ensure the gradient covers the full potential width
                       return gradient.createShader(
                         Rect.fromLTWH(
-                            0, 0, constraints.maxWidth, bounds.height),
+                          0,
+                          0,
+                          constraints.maxWidth,
+                          bounds.height,
+                        ),
                       );
                     },
                     child: Container(
                       width: progressWidth,
                       decoration: BoxDecoration(
-                        // This color is arbitrary, the ShaderMask provides the gradient
+                        // This color is arbitrary,
+                        //the ShaderMask provides the gradient
                         color: Colors.white,
                         borderRadius: borderRadius,
                       ),
@@ -59,8 +64,10 @@ class GradientProgressIndicator extends StatelessWidget {
                   bottom: 0,
                   child: Container(
                     width: progressWidth,
-                    // This container clips the ShaderMask output to the progress value
-                    // It doesn't need its own color or decoration if clipped correctly.
+                    // This container clips
+                    // the ShaderMask output to the progress value
+                    // It doesn't need its
+                    // own color or decoration if clipped correctly.
                   ),
                 ),
               ],

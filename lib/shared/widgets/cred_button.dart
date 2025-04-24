@@ -145,14 +145,14 @@ class _CredButtonState extends State<CredButton>
                       // Main shadow
                       BoxShadow(
                         color: const Color(
-                            0x4D6C63FF), // accentPrimary with 30% opacity
+                            0x4D6C63FF,), // accentPrimary with 30% opacity
                         blurRadius: widget.elevation * 2,
                         offset: Offset(0, widget.elevation),
                       ),
                       // Glow effect
                       BoxShadow(
                         color: const Color(
-                            0x336C63FF), // accentPrimary with 20% opacity
+                            0x336C63FF,), // accentPrimary with 20% opacity
                         blurRadius: widget.elevation * 4,
                         spreadRadius: 1,
                       ),

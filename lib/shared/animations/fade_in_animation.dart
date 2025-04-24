@@ -121,10 +121,12 @@ class _SlideInAnimationState extends State<SlideInAnimation>
     _slideAnimation = Tween<Offset>(
       begin: widget.offset,
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: widget.curve,
-    ));
+    ).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: widget.curve,
+      ),
+    );
 
     if (widget.delay == Duration.zero) {
       _controller.forward();
@@ -205,11 +207,13 @@ class _ScaleInAnimationState extends State<ScaleInAnimation>
     );
     _scaleAnimation = Tween<double>(
       begin: widget.beginScale,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: widget.curve,
-    ));
+      end: 1,
+    ).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: widget.curve,
+      ),
+    );
 
     if (widget.delay == Duration.zero) {
       _controller.forward();

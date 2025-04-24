@@ -64,7 +64,8 @@ class CredCard extends StatefulWidget {
   State<CredCard> createState() => _CredCardState();
 }
 
-class _CredCardState extends State<CredCard> with SingleTickerProviderStateMixin {
+class _CredCardState extends State<CredCard>
+    with SingleTickerProviderStateMixin {
   bool _isHovered = false;
   Offset _mousePosition = Offset.zero;
   late AnimationController _controller;
@@ -77,7 +78,7 @@ class _CredCardState extends State<CredCard> with SingleTickerProviderStateMixin
       vsync: this,
       duration: const Duration(milliseconds: 150),
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.98).animate(
+    _scaleAnimation = Tween<double>(begin: 1, end: 0.98).animate(
       CurvedAnimation(
         parent: _controller,
         curve: Curves.easeOutCubic,
@@ -98,10 +99,10 @@ class _CredCardState extends State<CredCard> with SingleTickerProviderStateMixin
   }
 
   void _onMouseMove(PointerEvent event) {
-    final RenderBox box = context.findRenderObject() as RenderBox;
+    final box = context.findRenderObject()! as RenderBox;
     final size = box.size;
     final offset = box.globalToLocal(event.position);
-    
+
     setState(() {
       _mousePosition = Offset(
         (offset.dx / size.width) * 2 - 1,
@@ -119,9 +120,7 @@ class _CredCardState extends State<CredCard> with SingleTickerProviderStateMixin
 
   void _onTapUp(TapUpDetails details) {
     _controller.reverse();
-    if (widget.onTap != null) {
-      widget.onTap!();
-    }
+    widget.onTap?.call();
   }
 
   void _onTapCancel() {
@@ -130,12 +129,15 @@ class _CredCardState extends State<CredCard> with SingleTickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
-    final defaultBackgroundColor = widget.backgroundColor ?? secondaryBackground;
+    final defaultBackgroundColor =
+        widget.backgroundColor ?? secondaryBackground;
     final defaultShadowColor = widget.shadowColor ?? Colors.black;
 
     // Calculate rotation based on mouse position
-    final double rotateY = _isHovered ? _mousePosition.dx * 5 * widget.tiltSensitivity : 0;
-    final double rotateX = _isHovered ? -_mousePosition.dy * 5 * widget.tiltSensitivity : 0;
+    final rotateY =
+        _isHovered ? _mousePosition.dx * 5 * widget.tiltSensitivity : 0;
+    final rotateX =
+        _isHovered ? -_mousePosition.dy * 5 * widget.tiltSensitivity : 0;
 
     return MouseRegion(
       onEnter: (_) => _onHoverChanged(true),
@@ -165,22 +167,23 @@ class _CredCardState extends State<CredCard> with SingleTickerProviderStateMixin
               border: widget.border ??
                   Border.all(
                     color: _isHovered
-                        ? accentPrimary.withOpacity(0.5)
+                        ? accentPrimary.withAlpha(128) // 0.5 opacity
                         : const Color(0xFF2A2A2A),
                     width: _isHovered ? 1.5 : 1,
                   ),
               boxShadow: [
                 BoxShadow(
-                  color: defaultShadowColor.withOpacity(_isHovered ? 0.3 : 0.2),
+                  color: _isHovered
+                      ? defaultShadowColor.withAlpha(77) // 0.3 opacity
+                      : defaultShadowColor.withAlpha(51), // 0.2 opacity
                   blurRadius: widget.elevation * (_isHovered ? 1.5 : 1),
                   spreadRadius: widget.elevation * 0.2,
                   offset: Offset(0, widget.elevation * 0.5),
                 ),
                 if (_isHovered)
                   BoxShadow(
-                    color: accentPrimary.withOpacity(0.2),
+                    color: accentPrimary.withAlpha(51), // 0.2 opacity
                     blurRadius: widget.elevation * 2,
-                    spreadRadius: 0,
                   ),
               ],
             ),
@@ -241,11 +244,10 @@ class CredGlassCard extends StatelessWidget {
       height: height,
       padding: padding,
       borderRadius: borderRadius,
-      backgroundColor: Colors.white.withOpacity(opacity),
+      backgroundColor: Colors.white.withAlpha((opacity * 255).round()),
       border: border ??
           Border.all(
-            color: Colors.white.withOpacity(0.2),
-            width: 1,
+            color: Colors.white.withAlpha(51), // 0.2 opacity
           ),
       onTap: onTap,
       child: child,

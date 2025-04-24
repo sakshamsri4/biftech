@@ -158,7 +158,7 @@ class _CreateAccountHeader extends StatelessWidget {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: accentPrimary.withOpacity(0.2),
+                color: accentPrimary.withAlpha(51), // 0.2 opacity
                 blurRadius: 16,
                 spreadRadius: 2,
               ),

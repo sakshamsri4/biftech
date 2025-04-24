@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:biftech/shared/theme/colors.dart'; // Assuming theme colors
+import 'package:flutter/material.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   // Pass scroll offset for dynamic effects

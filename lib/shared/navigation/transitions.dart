@@ -60,6 +60,7 @@ class NoTransitionRoute<T> extends PageRouteBuilder<T> {
 //                   It's not a standard Flutter transition.
 
 // Spring Physics: Can be integrated into transitionsBuilder using
-//                 `SpringSimulation` and `AnimationController`, but adds complexity.
+//                 `SpringSimulation` and `AnimationController`,
+// but adds complexity.
 //                 The `Curves.elasticOut` or similar curves can provide a
 //                 spring-like feel with less code.

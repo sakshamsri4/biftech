@@ -360,7 +360,7 @@ class WinnerViewRedesign extends StatelessWidget {
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: const Color(
-                          0x4D8A84FF), // accentSecondary with 30% opacity
+                          0x4D8A84FF,), // accentSecondary with 30% opacity
                       width: 2,
                     ),
                   ),
@@ -389,7 +389,7 @@ class WinnerViewRedesign extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: const Color(
-                          0x4D8A84FF), // accentSecondary with 30% opacity
+                          0x4D8A84FF,), // accentSecondary with 30% opacity
                     ),
                   ),
                   child: Text(

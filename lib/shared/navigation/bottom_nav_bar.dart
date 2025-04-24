@@ -91,7 +91,8 @@ class _CredBottomNavBarState extends State<CredBottomNavBar>
             height: 65, // Adjust height as needed
             decoration: BoxDecoration(
               color: Colors.black.withAlpha(
-                  (0.75 * 255).round()), // Dark semi-transparent background
+                (0.75 * 255).round(),
+              ), // Dark semi-transparent background
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
@@ -112,7 +113,8 @@ class _CredBottomNavBarState extends State<CredBottomNavBar>
                 final color = isSelected
                     ? theme.colorScheme.primary // Use theme's primary color
                     : theme.colorScheme.onSurface.withAlpha(
-                        (0.7 * 255).round()); // Use theme color with alpha
+                        (0.7 * 255).round(),
+                      ); // Use theme color with alpha
 
                 return Expanded(
                   child: GestureDetector(

@@ -697,7 +697,8 @@ class _UploadVideoViewState extends State<UploadVideoView> {
                               Padding(
                                 padding: const EdgeInsets.only(top: 4),
                                 child: Text(
-                                  'Duration: ${_videoDuration!.inMinutes}:${(_videoDuration!.inSeconds % 60).toString().padLeft(2, '0')}',
+                                  'Duration: ${_videoDuration!.inMinutes}:'
+                                  '${(_videoDuration!.inSeconds % 60).toString().padLeft(2, '0')}',
                                   style: const TextStyle(
                                     color: Colors.white70,
                                     fontSize: 12,

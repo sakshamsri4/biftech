@@ -38,10 +38,10 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
     )..repeat();
 
     final defaultColors = [
-      accentPrimary.withOpacity(0.5),
-      accentSecondary.withOpacity(0.5),
-      const Color(0xFF9C27B0).withOpacity(0.5),
-      const Color(0xFF673AB7).withOpacity(0.5),
+      accentPrimary.withAlpha(128), // 0.5 opacity
+      accentSecondary.withAlpha(128), // 0.5 opacity
+      const Color(0xFF9C27B0).withAlpha(128), // 0.5 opacity
+      const Color(0xFF673AB7).withAlpha(128), // 0.5 opacity
     ];
 
     final colors = widget.colors ?? defaultColors;

@@ -241,7 +241,7 @@ class _DonationPageState extends State<DonationPage> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.grey[900]?.withOpacity(0.8),
+        color: Colors.grey[900]?.withAlpha(204), // 0.8 opacity
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.grey[800]!),
       ),
@@ -400,7 +400,7 @@ class _DonationPageState extends State<DonationPage> {
             return Card(
               margin: const EdgeInsets.only(bottom: 20),
               elevation: 0,
-              color: Colors.grey[900]?.withOpacity(0.6),
+              color: Colors.grey[900]?.withAlpha(153), // 0.6 opacity
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
                 side: BorderSide(color: Colors.grey[800]!),
@@ -542,7 +542,7 @@ class _DonationPageState extends State<DonationPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.3),
+        color: Colors.black.withAlpha(77), // 0.3 opacity
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey[800]!, width: 0.5),
       ),
@@ -584,19 +584,19 @@ class _DonationPageState extends State<DonationPage> {
             children: [
               _buildInfoChip(
                 'Score: ${winningNode.score}',
-                Colors.blueAccent.withOpacity(0.2),
+                Colors.blueAccent.withAlpha(51), // 0.2 opacity
                 Colors.blueAccent.shade100,
               ),
               const SizedBox(width: 8),
               _buildInfoChip(
                 '₹${_formatCurrency(winningNode.donation)}',
-                Colors.greenAccent.withOpacity(0.2),
+                Colors.greenAccent.withAlpha(51), // 0.2 opacity
                 Colors.greenAccent.shade100,
               ),
               const SizedBox(width: 8),
               _buildInfoChip(
                 '${winningNode.comments.length} comments',
-                Colors.purpleAccent.withOpacity(0.2),
+                Colors.purpleAccent.withAlpha(51), // 0.2 opacity
                 Colors.purpleAccent.shade100,
               ),
             ],
@@ -641,7 +641,7 @@ class _DonationPageState extends State<DonationPage> {
             borderRadius: BorderRadius.circular(30),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withAlpha(51), // 0.2 opacity
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),
@@ -769,8 +769,8 @@ class _DonationPageState extends State<DonationPage> {
     final overlay = OverlayEntry(
       builder: (context) => ColoredBox(
         color: isModal
-            ? Colors.black.withOpacity(0.5)
-            : Colors.black.withOpacity(0.7),
+            ? Colors.black.withAlpha(128) // 0.5 opacity
+            : Colors.black.withAlpha(179), // 0.7 opacity
         child: const Center(
           child: CircularProgressIndicator(color: Colors.white),
         ),
