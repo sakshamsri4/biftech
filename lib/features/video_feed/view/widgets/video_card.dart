@@ -122,7 +122,8 @@ class _VideoCardState extends State<VideoCard>
             });
             _controller!.addListener(_videoListener);
             debugPrint(
-                'Successfully initialized controller for video: ${widget.video.id}');
+              'Successfully initialized controller for video: ${widget.video.id}',
+            );
           } else {
             if (mounted) {
               setState(() {
@@ -132,10 +133,13 @@ class _VideoCardState extends State<VideoCard>
             }
           }
         } catch (e) {
-          ErrorLoggingService.instance.logError(e,
-              context: 'VideoCard._initializeController.initialize');
+          ErrorLoggingService.instance.logError(
+            e,
+            context: 'VideoCard._initializeController.initialize',
+          );
           debugPrint(
-              'Failed to initialize controller for video: ${widget.video.id}: $e');
+            'Failed to initialize controller for video: ${widget.video.id}: $e',
+          );
           if (mounted) {
             setState(() {
               _isLoading = false;
@@ -228,7 +232,8 @@ class _VideoCardState extends State<VideoCard>
         });
         _controller!.addListener(_videoListener);
         debugPrint(
-            'Successfully reinitialized controller for video: ${widget.video.id}');
+          'Successfully reinitialized controller for video: ${widget.video.id}',
+        );
       } else {
         setState(() {
           _isLoading = false;
@@ -322,8 +327,10 @@ class _VideoCardState extends State<VideoCard>
           );
         }
       } catch (e) {
-        ErrorLoggingService.instance.logError(e,
-            context: 'VideoCard._togglePlayPause.initializeController');
+        ErrorLoggingService.instance.logError(
+          e,
+          context: 'VideoCard._togglePlayPause.initializeController',
+        );
         if (!mounted) return;
         setState(() {
           _isLoading = false;
@@ -442,25 +449,27 @@ class _VideoCardState extends State<VideoCard>
                         _controller!.value.isInitialized)
                       GestureDetector(
                         onTap: _toggleControlsVisibility,
-                        child: FadeTransition(
-                          opacity: _controlsOpacity,
-                          child: ColoredBox(
-                            color: Colors.black.withOpacity(0.4),
-                            child: Center(
-                              child: IconButton(
-                                icon: Icon(
-                                  _isPlaying
-                                      ? Icons.pause_rounded
-                                      : Icons.play_arrow_rounded,
-                                  color: Colors.white,
-                                  size: 50,
+                        child: RepaintBoundary(
+                          child: FadeTransition(
+                            opacity: _controlsOpacity,
+                            child: ColoredBox(
+                              color: Colors.black.withOpacity(0.4),
+                              child: Center(
+                                child: IconButton(
+                                  icon: Icon(
+                                    _isPlaying
+                                        ? Icons.pause_rounded
+                                        : Icons.play_arrow_rounded,
+                                    color: Colors.white,
+                                    size: 50,
+                                  ),
+                                  style: IconButton.styleFrom(
+                                    backgroundColor:
+                                        purpleAccent.withOpacity(0.8),
+                                    padding: const EdgeInsets.all(10),
+                                  ),
+                                  onPressed: _togglePlayPause,
                                 ),
-                                style: IconButton.styleFrom(
-                                  backgroundColor:
-                                      purpleAccent.withOpacity(0.8),
-                                  padding: const EdgeInsets.all(10),
-                                ),
-                                onPressed: _togglePlayPause,
                               ),
                             ),
                           ),
@@ -482,7 +491,9 @@ class _VideoCardState extends State<VideoCard>
                         right: 8,
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.black.withOpacity(0.7),
                             borderRadius: BorderRadius.circular(4),
@@ -759,7 +770,9 @@ class _VideoCardState extends State<VideoCard>
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white),
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
                     ),
                     SizedBox(width: 16),
                     Text('Deleting video...'),

@@ -705,7 +705,8 @@ class _DonationPageState extends State<DonationPage> {
               providers: [
                 BlocProvider<FlowchartCubit>.value(value: flowchartCubit),
                 BlocProvider<DonationCubit>(
-                    create: (context) => DonationCubit()),
+                  create: (context) => DonationCubit(),
+                ),
               ],
               child: DonationModal(
                 nodeId: nodeId,
@@ -761,8 +762,10 @@ class _DonationPageState extends State<DonationPage> {
     }
   }
 
-  OverlayEntry _showLoadingOverlay(BuildContext context,
-      {bool isModal = false}) {
+  OverlayEntry _showLoadingOverlay(
+    BuildContext context, {
+    bool isModal = false,
+  }) {
     final overlay = OverlayEntry(
       builder: (context) => ColoredBox(
         color: isModal

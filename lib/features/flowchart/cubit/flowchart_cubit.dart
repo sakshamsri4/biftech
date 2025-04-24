@@ -230,7 +230,7 @@ class FlowchartCubit extends Cubit<FlowchartState> {
           ),
         );
       }
-      throw Exception('Failed to add challenge: ${e.toString()}');
+      throw Exception('Failed to add challenge: $e');
     }
   }
 
