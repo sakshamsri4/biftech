@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Biftech Logo](https://storage.googleapis.com/cms-storage-bucket/6e19fee6b47b36ca613f.png)
+![Biftech Logo](assets/images/app_icon.png)
 
 [![Flutter Version](https://img.shields.io/badge/Flutter-3.5.0-blue.svg)](https://flutter.dev/)
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
@@ -44,42 +44,57 @@ Biftech is an innovative platform where users can share ideas through interactiv
 <table>
   <tr>
     <td align="center">
-      <img src="https://raw.githubusercontent.com/flutter/website/main/src/assets/images/docs/get-started/ios/starter-app.png" width="200" alt="Authentication Screen"/>
+      <img src="assets/screenshots/Simulator Screenshot - iPhone 16 Pro - 2025-04-24 at 12.31.29.png" width="200" alt="Authentication Screen"/>
       <br />
       <em>Authentication</em>
     </td>
     <td align="center">
-      <img src="https://raw.githubusercontent.com/flutter/website/main/src/assets/images/docs/get-started/ios/starter-app-incremented.png" width="200" alt="Video Feed"/>
+      <img src="assets/screenshots/Simulator Screenshot - iPhone 16 Pro - 2025-04-24 at 12.31.33.png" width="200" alt="Video Feed"/>
       <br />
       <em>Video Feed</em>
     </td>
     <td align="center">
-      <img src="https://docs.flutter.dev/assets/images/docs/ui/layout/lakes.jpg" width="200" alt="Flowchart View"/>
+      <img src="assets/screenshots/Simulator Screenshot - iPhone 16 Pro - 2025-04-24 at 12.31.37.png" width="200" alt="Flowchart View"/>
       <br />
       <em>Flowchart View</em>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <img src="https://docs.flutter.dev/assets/images/docs/ui/layout/card-flutter-gallery.png" width="200" alt="Comments"/>
+      <img src="assets/screenshots/Simulator Screenshot - iPhone 16 Pro - 2025-04-24 at 12.31.42.png" width="200" alt="Comments"/>
       <br />
       <em>Comments</em>
     </td>
     <td align="center">
-      <img src="https://docs.flutter.dev/assets/images/docs/ui/layout/pavlova-large.jpg" width="200" alt="Donation"/>
+      <img src="assets/screenshots/Simulator Screenshot - iPhone 16 Pro - 2025-04-24 at 12.31.48.png" width="200" alt="Donation"/>
       <br />
       <em>Donation</em>
     </td>
     <td align="center">
-      <img src="https://docs.flutter.dev/assets/images/docs/ui/layout/lakes-icons.jpg" width="200" alt="Winner Screen"/>
+      <img src="assets/screenshots/Simulator Screenshot - iPhone 16 Pro - 2025-04-24 at 12.31.51.png" width="200" alt="Winner Screen"/>
       <br />
       <em>Winner Screen</em>
     </td>
   </tr>
+  <tr>
+    <td align="center">
+      <img src="assets/screenshots/Simulator Screenshot - iPhone 16 Pro - 2025-04-24 at 12.31.59.png" width="200" alt="Node Details"/>
+      <br />
+      <em>Node Details</em>
+    </td>
+    <td align="center">
+      <img src="assets/screenshots/Simulator Screenshot - iPhone 16 Pro - 2025-04-24 at 12.32.29.png" width="200" alt="Challenge View"/>
+      <br />
+      <em>Challenge View</em>
+    </td>
+    <td align="center">
+      <img src="assets/screenshots/Simulator Screenshot - iPhone 16 Pro - 2025-04-24 at 12.32.39.png" width="200" alt="Profile Screen"/>
+      <br />
+      <em>Profile Screen</em>
+    </td>
+  </tr>
 </table>
 </div>
-
-> **Note**: These are placeholder screenshots. Replace them with actual screenshots of your app before submitting.
 
 ## Architecture
 
@@ -233,7 +248,7 @@ Text(context.l10n.appTitle)
 
 <div align="center">
 
-**Biftech** • Developed with ❤️ by Your Name
+**Biftech** • Developed with ❤️ by Saksham Srivastava
 
 </div>
 
