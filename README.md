@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Biftech Logo](assets/images/app_icon.png)
+![Biftech Logo](https://storage.googleapis.com/cms-storage-bucket/6e19fee6b47b36ca613f.png)
 
 [![Flutter Version](https://img.shields.io/badge/Flutter-3.5.0-blue.svg)](https://flutter.dev/)
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
@@ -44,40 +44,42 @@ Biftech is an innovative platform where users can share ideas through interactiv
 <table>
   <tr>
     <td align="center">
-      <img src="screenshots/auth.png" width="200" alt="Authentication Screen"/>
+      <img src="https://raw.githubusercontent.com/flutter/website/main/src/assets/images/docs/get-started/ios/starter-app.png" width="200" alt="Authentication Screen"/>
       <br />
       <em>Authentication</em>
     </td>
     <td align="center">
-      <img src="screenshots/video_feed.png" width="200" alt="Video Feed"/>
+      <img src="https://raw.githubusercontent.com/flutter/website/main/src/assets/images/docs/get-started/ios/starter-app-incremented.png" width="200" alt="Video Feed"/>
       <br />
       <em>Video Feed</em>
     </td>
     <td align="center">
-      <img src="screenshots/flowchart.png" width="200" alt="Flowchart View"/>
+      <img src="https://docs.flutter.dev/assets/images/docs/ui/layout/lakes.jpg" width="200" alt="Flowchart View"/>
       <br />
       <em>Flowchart View</em>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <img src="screenshots/comments.png" width="200" alt="Comments"/>
+      <img src="https://docs.flutter.dev/assets/images/docs/ui/layout/card-flutter-gallery.png" width="200" alt="Comments"/>
       <br />
       <em>Comments</em>
     </td>
     <td align="center">
-      <img src="screenshots/donation.png" width="200" alt="Donation"/>
+      <img src="https://docs.flutter.dev/assets/images/docs/ui/layout/pavlova-large.jpg" width="200" alt="Donation"/>
       <br />
       <em>Donation</em>
     </td>
     <td align="center">
-      <img src="screenshots/winner.png" width="200" alt="Winner Screen"/>
+      <img src="https://docs.flutter.dev/assets/images/docs/ui/layout/lakes-icons.jpg" width="200" alt="Winner Screen"/>
       <br />
       <em>Winner Screen</em>
     </td>
   </tr>
 </table>
 </div>
+
+> **Note**: These are placeholder screenshots. Replace them with actual screenshots of your app before submitting.
 
 ## Architecture
 
@@ -116,7 +118,7 @@ lib/
 1. Clone the repository:
 
 ```sh
-git clone https://github.com/yourusername/biftech.git
+git clone https://github.com/sakshamsri4/biftech.git
 cd biftech
 ```
 
@@ -153,8 +155,9 @@ Biftech maintains high code quality with comprehensive test coverage:
 # Run all tests with coverage
 flutter test --coverage --test-randomize-ordering-seed random
 
-# Generate coverage report
-genhtml coverage/lcov.info -o coverage/
+# Generate coverage report (using lcov)
+lcov --summary coverage/lcov.info
+lcov --list coverage/lcov.info
 
 # Open coverage report
 open coverage/index.html
@@ -230,7 +233,7 @@ Text(context.l10n.appTitle)
 
 <div align="center">
 
-**Biftech** • Developed with ❤️ by Saksham Srivastava
+**Biftech** • Developed with ❤️ by Your Name
 
 </div>
 
