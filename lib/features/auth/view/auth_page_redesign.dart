@@ -33,9 +33,17 @@ class _AuthPageRedesignState extends State<AuthPageRedesign>
   @override
   void initState() {
     super.initState();
-    _authCubit = AuthCubit(
-      authRepository: AuthService.getAuthRepository(),
-    );
+    try {
+      _authCubit = AuthCubit(
+        authRepository: AuthService.getAuthRepository(),
+      );
+    } catch (e) {
+      debugPrint('Error initializing AuthCubit: $e');
+      // Create a fallback repository that doesn't persist data
+      _authCubit = AuthCubit(
+        authRepository: AuthService.createInMemoryRepository(),
+      );
+    }
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(_handleTabChange);
   }

@@ -53,11 +53,16 @@ class _AppState extends State<App> {
   }
 
   void _checkLoggedInUser() {
-    final authRepository = AuthService.getAuthRepository();
-    if (authRepository.isLoggedIn()) {
-      setState(() {
-        _initialRoute = '/home';
-      });
+    try {
+      final authRepository = AuthService.getAuthRepository();
+      if (authRepository.isLoggedIn()) {
+        setState(() {
+          _initialRoute = '/home';
+        });
+      }
+    } catch (e) {
+      debugPrint('Error checking logged in user: $e');
+      // Keep default route as login if there's an error
     }
   }
 
@@ -179,8 +184,10 @@ class _AppState extends State<App> {
       supportedLocales: AppLocalizations.supportedLocales,
       initialRoute: _initialRoute,
       onGenerateRoute: _generateRoute,
-      // Add home route as a fallback
-      home: const HomePage(),
+      // Add a fallback home route for safety
+      home: _initialRoute == '/login'
+          ? const AuthPageRedesign()
+          : const HomePage(),
       // Handle unknown routes
       onUnknownRoute: (settings) {
         return MaterialPageRoute(
