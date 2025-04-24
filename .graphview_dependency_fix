@@ -1,0 +1,2 @@
+This file is created to fix the graphview package dependency issues.
+The issue was resolved by running `flutter clean` and `flutter pub get`.

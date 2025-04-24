@@ -378,7 +378,8 @@ class _FlowchartViewState extends State<FlowchartView> {
             TreeEdgeRenderer(builder),
           ),
           paint: Paint()
-            ..color = Colors.purpleAccent.withAlpha((0.5 * 255).round())
+            ..color = Colors.purpleAccent
+                .withValues(red: 186, green: 85, blue: 211, alpha: 128)
             ..strokeWidth = 1.5
             ..style = PaintingStyle.stroke,
           builder: (Node node) {
