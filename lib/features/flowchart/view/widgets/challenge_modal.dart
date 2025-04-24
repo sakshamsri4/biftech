@@ -1,7 +1,9 @@
 import 'package:biftech/core/services/error_logging_service.dart';
+import 'package:biftech/features/donation/donation.dart';
 import 'package:biftech/features/flowchart/cubit/cubit.dart';
+import 'package:biftech/features/flowchart/model/node_model.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:neopop/widgets/buttons/neopop_button/neopop_button.dart';
 
 /// Modal for adding a challenge to a node
@@ -25,15 +27,14 @@ class ChallengeModal extends StatefulWidget {
 
 class _ChallengeModalState extends State<ChallengeModal> {
   final _textController = TextEditingController();
-  final _donationController = TextEditingController(text: '0');
   final _formKey = GlobalKey<FormState>();
   bool _isSubmitting = false;
-  double _donationAmount = 0;
+  bool _showDonationAfterSubmit = false;
+  // We don't need to store the challenge node ID as a field
 
   @override
   void dispose() {
     _textController.dispose();
-    _donationController.dispose();
     super.dispose();
   }
 
@@ -72,69 +73,20 @@ class _ChallengeModalState extends State<ChallengeModal> {
               },
             ),
             const SizedBox(height: 16),
-            Text(
-              'Donation (Optional)',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
             Row(
               children: [
-                Expanded(
-                  child: Slider(
-                    value: _donationAmount,
-                    max: 100,
-                    divisions: 20,
-                    label: '₹${_donationAmount.toStringAsFixed(1)}',
-                    onChanged: (value) {
-                      setState(() {
-                        _donationAmount = value;
-                        _donationController.text = value.toStringAsFixed(1);
-                      });
-                    },
-                  ),
+                Checkbox(
+                  value: _showDonationAfterSubmit,
+                  onChanged: (value) {
+                    setState(() {
+                      _showDonationAfterSubmit = value ?? false;
+                    });
+                  },
                 ),
-                const SizedBox(width: 8),
-                SizedBox(
-                  width: 80,
-                  child: TextFormField(
-                    controller: _donationController,
-                    decoration: const InputDecoration(
-                      labelText: 'Amount',
-                      prefixText: '₹',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                        RegExp(r'^\d+\.?\d{0,1}$'),
-                      ),
-                    ],
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Required';
-                      }
-                      final donation = double.tryParse(value);
-                      if (donation == null) {
-                        return 'Invalid';
-                      }
-                      if (donation < 0) {
-                        return 'Min 0';
-                      }
-                      if (donation > 100) {
-                        return 'Max 100';
-                      }
-                      return null;
-                    },
-                    onChanged: (value) {
-                      final donation = double.tryParse(value) ?? 0;
-                      if (donation >= 0 && donation <= 100) {
-                        setState(() {
-                          _donationAmount = donation;
-                        });
-                      }
-                    },
+                Expanded(
+                  child: Text(
+                    'Add a donation to strengthen your challenge',
+                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ),
               ],
@@ -194,17 +146,24 @@ class _ChallengeModalState extends State<ChallengeModal> {
     });
 
     try {
-      final donation = double.tryParse(_donationController.text) ?? 0;
-
-      await widget.cubit.addChallenge(
+      // First add the challenge with 0 donation
+      final challengeNodeId = await widget.cubit.addChallenge(
         widget.parentNodeId,
         _textController.text.trim(),
-        donation,
+        0, // Initial donation amount is 0
       );
 
       if (!mounted) return;
 
+      // We have the challenge node ID from the cubit
+
+      // Close the challenge modal
       Navigator.of(context).pop();
+
+      // If user wants to add a donation, show the donation modal
+      if (_showDonationAfterSubmit && mounted) {
+        await _showDonationModal(context, challengeNodeId);
+      }
     } catch (e, stackTrace) {
       // Log the error
       ErrorLoggingService.instance.logError(
@@ -229,5 +188,61 @@ class _ChallengeModalState extends State<ChallengeModal> {
         });
       }
     }
+  }
+
+  Future<void> _showDonationModal(BuildContext context, String nodeId) async {
+    // Get the current node to find its donation amount
+    final state = widget.cubit.state;
+    if (state.rootNode == null) return;
+
+    // Find the node in the tree
+    NodeModel? findNode(NodeModel node) {
+      if (node.id == nodeId) return node;
+
+      for (final challenge in node.challenges) {
+        final found = findNode(challenge);
+        if (found != null) return found;
+      }
+
+      return null;
+    }
+
+    final node = findNode(state.rootNode!);
+    if (node == null) return;
+
+    // Get the current donation amount
+    final currentDonation = node.donation;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return BlocProvider(
+          create: (context) => DonationCubit(),
+          child: DonationModal(
+            nodeId: nodeId,
+            onDonationComplete: (amount) async {
+              // Add to the existing donation amount
+              final newAmount = currentDonation + amount;
+
+              // Update the node with the new donation amount
+              await widget.cubit.updateNodeDonation(nodeId, newAmount);
+
+              // Show success message
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Successfully donated ₹${amount.toStringAsFixed(2)}',
+                    ),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
+            },
+          ),
+        );
+      },
+    );
   }
 }

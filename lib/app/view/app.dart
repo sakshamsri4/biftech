@@ -1,9 +1,11 @@
 import 'package:biftech/features/auth/auth.dart';
 import 'package:biftech/features/auth/service/auth_service.dart';
+import 'package:biftech/features/donation/view/donation_page.dart';
 import 'package:biftech/features/flowchart/flowchart.dart';
 import 'package:biftech/features/home/home.dart';
 import 'package:biftech/features/video_feed/service/video_feed_service.dart';
 import 'package:biftech/features/video_feed/video_feed.dart';
+import 'package:biftech/features/winner/winner.dart';
 import 'package:biftech/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 
@@ -81,6 +83,11 @@ class _AppState extends State<App> {
           settings: settings,
           builder: (context) => const VideoFeedPage(),
         );
+      case '/donation':
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const DonationPage(),
+        );
       default:
         // Handle dynamic routes
         if (routeName.startsWith('/flowchart/')) {
@@ -89,6 +96,24 @@ class _AppState extends State<App> {
           return MaterialPageRoute(
             settings: settings,
             builder: (context) => FlowchartPage(videoId: id),
+          );
+        } else if (routeName.startsWith('/winner/')) {
+          // Extract the ID from the route
+          final id = routeName.replaceFirst('/winner/', '');
+
+          // Create a FlowchartCubit for the WinnerPage
+          // and load the flowchart data
+          final flowchartCubit = FlowchartCubit(
+            repository: FlowchartRepository.instance,
+            videoId: id,
+          )..loadFlowchart();
+
+          return MaterialPageRoute(
+            settings: settings,
+            builder: (context) => WinnerPage(
+              videoId: id,
+              flowchartCubit: flowchartCubit,
+            ),
           );
         }
 

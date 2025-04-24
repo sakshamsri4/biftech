@@ -129,7 +129,20 @@ class _CommentModalState extends State<CommentModal> {
 
       if (!mounted) return;
 
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Comment added successfully'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 1),
+        ),
+      );
+
       Navigator.of(context).pop();
+
+      // Notify any listeners that a comment was added
+      // This will help update the donation page
+      widget.cubit.notifyCommentAdded();
     } catch (e, stackTrace) {
       // Log the error
       ErrorLoggingService.instance.logError(

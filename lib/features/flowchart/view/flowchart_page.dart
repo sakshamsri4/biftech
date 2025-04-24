@@ -3,6 +3,7 @@ import 'package:biftech/features/flowchart/model/models.dart';
 import 'package:biftech/features/flowchart/repository/flowchart_repository.dart';
 import 'package:biftech/features/flowchart/view/widgets/challenge_modal.dart';
 import 'package:biftech/features/flowchart/view/widgets/comment_modal.dart';
+import 'package:biftech/features/winner/winner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:graphview/graphview.dart';
@@ -146,8 +147,28 @@ class _FlowchartViewState extends State<FlowchartView> {
           ),
           IconButton(
             icon: const Icon(Icons.emoji_events),
+            tooltip: 'Show winner dialog',
             onPressed: () {
               _showWinnerDialog(context);
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.workspace_premium),
+            tooltip: 'Declare winner',
+            onPressed: () {
+              // Get the FlowchartCubit and videoId
+              final flowchartCubit = context.read<FlowchartCubit>();
+              final videoId = flowchartCubit.videoId;
+
+              // Navigate to the WinnerPage with the FlowchartCubit
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (context) => WinnerPage(
+                    videoId: videoId,
+                    flowchartCubit: flowchartCubit,
+                  ),
+                ),
+              );
             },
           ),
         ],
