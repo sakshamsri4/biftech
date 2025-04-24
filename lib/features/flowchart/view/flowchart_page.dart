@@ -224,7 +224,8 @@ class _FlowchartViewState extends State<FlowchartView> {
                       ),
                       const SizedBox(height: AppDimens.spaceXS),
                       Text(
-                        'Something went wrong. Please check your connection and try again.',
+                        'Something went wrong. '
+                        'Please check your connection and try again.',
                         style: Theme.of(context)
                             .textTheme
                             .bodyMedium
@@ -245,7 +246,8 @@ class _FlowchartViewState extends State<FlowchartView> {
               );
             case FlowchartStatus.success:
               if (state.rootNode == null) {
-                // Custom Empty State (if flowchart is successfully loaded but empty)
+                // Custom Empty State
+                // (if flowchart is successfully loaded but empty)
                 return Center(
                   child: Padding(
                     padding: const EdgeInsets.all(30),
@@ -657,7 +659,8 @@ class NodeWidget extends StatelessWidget {
             // Node Text (Title)
             Text(nodeModel.text, style: titleStyle),
 
-            // Donation Info - Always show, but with different styling based on amount
+            // Donation Info
+            // - Always show, but with different styling based on amount
             const SizedBox(height: 10),
             Row(
               children: [

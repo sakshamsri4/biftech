@@ -92,7 +92,6 @@ class _PlaceholderGeneratorState extends State<PlaceholderGenerator> {
 }
 
 class PlaceholderCard extends StatelessWidget {
-
   const PlaceholderCard({
     required this.title,
     required this.icon,
@@ -111,7 +110,8 @@ class PlaceholderCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.grey[900],
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.5), width: 2),
+        border:
+            Border.all(color: color.withAlpha(128), width: 2), // 0.5 opacity
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

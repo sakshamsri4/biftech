@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:biftech/core/services/error_logging_service.dart';
 import 'package:biftech/features/video_feed/cubit/cubit.dart';
 import 'package:biftech/features/video_feed/model/models.dart';
@@ -5,6 +7,7 @@ import 'package:biftech/features/video_feed/view/widgets/placeholder_thumbnail.d
 import 'package:biftech/features/video_feed/view/widgets/shimmer_loading.dart';
 import 'package:biftech/shared/theme/dimens.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -269,7 +272,7 @@ class _VideoCardState extends State<VideoCard>
   }
 
   Future<void> _togglePlayPause() async {
-    HapticFeedback.selectionClick();
+    unawaited(HapticFeedback.selectionClick());
 
     if (_hasError) {
       await _retryVideoInitialization();
@@ -302,19 +305,22 @@ class _VideoCardState extends State<VideoCard>
             _showControls = true;
           });
           _controller!.addListener(_videoListener);
-          _controlsAnimationController.forward();
+          unawaited(_controlsAnimationController.forward());
 
           await cubit.pauseAllVideos();
           if (mounted && _controller != null) {
             await _controller!.play();
-            Future.delayed(const Duration(seconds: 3), () {
-              if (mounted && _isPlaying) {
-                setState(() {
-                  _showControls = false;
-                  _controlsAnimationController.reverse();
-                });
-              }
-            });
+            // Handle delayed future
+            unawaited(
+              Future.delayed(const Duration(seconds: 3), () {
+                if (mounted && _isPlaying) {
+                  setState(() {
+                    _showControls = false;
+                    _controlsAnimationController.reverse();
+                  });
+                }
+              }),
+            );
           }
         } else {
           setState(() {
@@ -355,22 +361,25 @@ class _VideoCardState extends State<VideoCard>
         _controller!.pause();
         _isPlaying = false;
         _showControls = true;
-        _controlsAnimationController.forward();
+        unawaited(_controlsAnimationController.forward());
       } else {
         context.read<VideoFeedCubit>().pauseAllVideos().then((_) {
           if (mounted && _controller != null) {
             _controller!.play();
             _isPlaying = true;
             _showControls = true;
-            _controlsAnimationController.forward();
-            Future.delayed(const Duration(seconds: 3), () {
-              if (mounted && _isPlaying) {
-                setState(() {
-                  _showControls = false;
-                  _controlsAnimationController.reverse();
-                });
-              }
-            });
+            unawaited(_controlsAnimationController.forward());
+            // Handle delayed future
+            unawaited(
+              Future.delayed(const Duration(seconds: 3), () {
+                if (mounted && _isPlaying) {
+                  setState(() {
+                    _showControls = false;
+                    _controlsAnimationController.reverse();
+                  });
+                }
+              }),
+            );
           }
         });
       }
@@ -385,19 +394,22 @@ class _VideoCardState extends State<VideoCard>
       setState(() {
         _showControls = !_showControls;
         if (_showControls) {
-          _controlsAnimationController.forward();
+          unawaited(_controlsAnimationController.forward());
           if (_isPlaying) {
-            Future.delayed(const Duration(seconds: 3), () {
-              if (mounted && _isPlaying && _showControls) {
-                setState(() {
-                  _showControls = false;
-                  _controlsAnimationController.reverse();
-                });
-              }
-            });
+            // Handle delayed future
+            unawaited(
+              Future.delayed(const Duration(seconds: 3), () {
+                if (mounted && _isPlaying && _showControls) {
+                  setState(() {
+                    _showControls = false;
+                    _controlsAnimationController.reverse();
+                  });
+                }
+              }),
+            );
           }
         } else {
-          _controlsAnimationController.reverse();
+          unawaited(_controlsAnimationController.reverse());
         }
       });
     }
@@ -567,7 +579,7 @@ class _VideoCardState extends State<VideoCard>
                           icon: const Icon(Icons.chat_bubble_outline, size: 18),
                           label: const Text('PARTICIPATE'),
                           onPressed: () {
-                            HapticFeedback.lightImpact();
+                            unawaited(HapticFeedback.lightImpact());
                             widget.onTap();
                           },
                           style: Theme.of(context)
@@ -599,7 +611,7 @@ class _VideoCardState extends State<VideoCard>
                         IconButton(
                           icon: const Icon(Icons.delete_outline),
                           onPressed: () {
-                            HapticFeedback.mediumImpact();
+                            unawaited(HapticFeedback.mediumImpact());
                             _showDeleteConfirmation(context, purpleAccent);
                           },
                           style: IconButton.styleFrom(
@@ -751,7 +763,8 @@ class _VideoCardState extends State<VideoCard>
           style: Theme.of(context).dialogTheme.titleTextStyle,
         ),
         content: Text(
-          'Are you sure you want to delete this video? This action cannot be undone.',
+          'Are you sure you want to delete this video? '
+          'This action cannot be undone.',
           style: Theme.of(context).dialogTheme.contentTextStyle,
         ),
         actionsPadding: const EdgeInsets.all(AppDimens.spaceM),
@@ -765,7 +778,7 @@ class _VideoCardState extends State<VideoCard>
           ),
           ElevatedButton(
             onPressed: () {
-              HapticFeedback.mediumImpact();
+              unawaited(HapticFeedback.mediumImpact());
               Navigator.of(dialogContext).pop(true);
             },
             style: ElevatedButton.styleFrom(

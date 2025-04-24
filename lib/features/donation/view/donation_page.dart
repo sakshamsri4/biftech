@@ -331,13 +331,12 @@ class _DonationPageState extends State<DonationPage> {
   Widget _buildDonationList(Map<String, NodeModel?> flowcharts) {
     final videosWithFlowcharts = _videos.where((video) {
       return flowcharts.containsKey(video.id) && flowcharts[video.id] != null;
-    }).toList();
-
-    videosWithFlowcharts.sort((a, b) {
-      final donationA = _calculateTotalDonations(flowcharts[a.id]!);
-      final donationB = _calculateTotalDonations(flowcharts[b.id]!);
-      return donationB.compareTo(donationA);
-    });
+    }).toList()
+      ..sort((a, b) {
+        final donationA = _calculateTotalDonations(flowcharts[a.id]!);
+        final donationB = _calculateTotalDonations(flowcharts[b.id]!);
+        return donationB.compareTo(donationA);
+      });
 
     if (videosWithFlowcharts.isEmpty) {
       return Center(
