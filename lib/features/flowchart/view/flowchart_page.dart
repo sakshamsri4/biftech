@@ -35,7 +35,7 @@ class FlowchartPage extends StatelessWidget {
 
             // Select it again after a delay to ensure it's still selected
             // after any state changes
-            Future<void>.delayed(const Duration(milliseconds: 500), () {
+            Future.delayed(const Duration(milliseconds: 500), () {
               if (cubit.state.rootNode != null) {
                 cubit.selectNode(cubit.state.rootNode!.id);
               }
@@ -89,16 +89,11 @@ class _FlowchartViewState extends State<FlowchartView> {
     // Add a listener to focus on the root node when the flowchart is loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        // Store the current context in the cubit for later use
-        if (context.mounted) {
-          context.read<FlowchartCubit>().context = context;
-        }
-        
         // Initial reset view when the widget is first built
         _resetView();
 
         // Apply a second reset after a delay to ensure the graph is fully built
-        Future<void>.delayed(const Duration(milliseconds: 500), () {
+        Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted) {
             _resetView();
           }
@@ -139,7 +134,7 @@ class _FlowchartViewState extends State<FlowchartView> {
                     _resetView();
 
                     // Apply a second reset after a delay as a backup
-                    Future<void>.delayed(const Duration(milliseconds: 500), () {
+                    Future.delayed(const Duration(milliseconds: 500), () {
                       if (mounted) {
                         _resetView();
                       }
@@ -149,13 +144,7 @@ class _FlowchartViewState extends State<FlowchartView> {
               );
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.emoji_events),
-            tooltip: 'Show winner dialog',
-            onPressed: () {
-              _showWinnerDialog(context);
-            },
-          ),
+
           IconButton(
             icon: const Icon(Icons.workspace_premium),
             tooltip: 'Declare winner',
@@ -256,12 +245,12 @@ class _FlowchartViewState extends State<FlowchartView> {
         if (mounted) {
           // Use a longer delay for the initial focus
           // to ensure the graph is fully built
-          Future<void>.delayed(const Duration(milliseconds: 800), () {
+          Future.delayed(const Duration(milliseconds: 800), () {
             if (mounted) {
               _resetView();
 
               // Apply a second reset after a short delay as a backup
-              Future<void>.delayed(const Duration(milliseconds: 500), () {
+              Future.delayed(const Duration(milliseconds: 500), () {
                 if (mounted) {
                   _resetView();
                 }
@@ -384,91 +373,6 @@ class _FlowchartViewState extends State<FlowchartView> {
     }
   }
 
-  void _showWinnerDialog(BuildContext context) {
-    final cubit = context.read<FlowchartCubit>();
-    final winningNode = cubit.findWinningNode();
-    final totalDonations = cubit.calculateTotalDonations();
-
-    if (winningNode == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No winner found'),
-        ),
-      );
-      return;
-    }
-
-    // Calculate distribution
-    final winnerShare = totalDonations * 0.6;
-    final appShare = totalDonations * 0.2;
-    final platformShare = totalDonations * 0.2;
-
-    showDialog<void>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Winning Argument'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  winningNode.text,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Score: ${winningNode.score} '
-                  '(${winningNode.donation.toInt()} donation + '
-                  '${winningNode.comments.length} comments)',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 16),
-                const Divider(),
-                const SizedBox(height: 8),
-                const Text('Donation Distribution:'),
-                const SizedBox(height: 8),
-                _buildDistributionRow(
-                  context,
-                  'Winner (60%)',
-                  winnerShare,
-                ),
-                _buildDistributionRow(
-                  context,
-                  'App Contribution (20%)',
-                  appShare,
-                ),
-                _buildDistributionRow(
-                  context,
-                  'Platform Margin (20%)',
-                  platformShare,
-                ),
-                const SizedBox(height: 8),
-                const Divider(),
-                const SizedBox(height: 8),
-                _buildDistributionRow(
-                  context,
-                  'Total',
-                  totalDonations,
-                  isBold: true,
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Close'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   /// Reset the view to focus on the root node
   void _resetView() {
     final state = context.read<FlowchartCubit>().state;
@@ -494,7 +398,7 @@ class _FlowchartViewState extends State<FlowchartView> {
 
     // Use a longer delay to ensure the graph is fully built and laid out
     // This is critical for reliable focusing on the first node
-    Future<void>.delayed(const Duration(milliseconds: 500), () {
+    Future.delayed(const Duration(milliseconds: 500), () {
       if (!mounted) return;
 
       try {
@@ -561,7 +465,7 @@ class _FlowchartViewState extends State<FlowchartView> {
         debugPrint('Error resetting view: $e');
         // Try again with a longer delay if there was an error
         if (mounted) {
-          Future<void>.delayed(const Duration(milliseconds: 500), () {
+          Future.delayed(const Duration(milliseconds: 500), () {
             if (mounted) {
               // Fallback to a simpler transformation
               // if the first attempt failed
@@ -572,30 +476,6 @@ class _FlowchartViewState extends State<FlowchartView> {
         }
       }
     });
-  }
-
-  Widget _buildDistributionRow(
-    BuildContext context,
-    String label,
-    double amount, {
-    bool isBold = false,
-  }) {
-    final textStyle = isBold
-        ? Theme.of(context).textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            )
-        : Theme.of(context).textTheme.bodyMedium;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: textStyle),
-          Text('₹${amount.toStringAsFixed(2)}', style: textStyle),
-        ],
-      ),
-    );
   }
 }
 
@@ -616,224 +496,269 @@ class NodeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Check if this node has challenges
-    final hasChallenges = nodeModel.challenges.isNotEmpty;
+    // CRED Design Principles
+    const signaturePurple = Color(0xFF6C63FF);
+    const borderRadius = BorderRadius.all(Radius.circular(16)); // 16px radius
+    final shadowColor = Colors.black.withOpacity(0.3); // 30% opacity shadow
+    const shadowBlurRadius = 8.0; // 8px blur
+    const shadowOffset = Offset(0, 4); // Offset for depth
+    final titleStyle = Theme.of(context).textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.w700, // Bold (700 weight)
+          fontSize: 18, // 18pt
+          color: Colors.white, // High contrast
+        );
+    final bodyStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: Colors.white.withOpacity(0.85), // High contrast
+        );
+    final smallTextStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: Colors.white.withOpacity(0.7), // High contrast
+        );
+    // Removed subtleBorderStyle as border is handled directly in BoxDecoration
 
-    // Determine the node color based on its position in the tree
+    // Determine node type and colors
     final isRoot = nodeModel.id.startsWith('root_');
     final isChallenge = nodeModel.id.startsWith('challenge_');
 
-    return Card(
-      margin: const EdgeInsets.all(4),
-      elevation: isSelected ? 8 : 2,
-      color: isSelected
-          ? Colors.blue.shade50
-          : isRoot
-              ? Colors.green.shade50
-              : isChallenge
-                  ? Colors.orange.shade50
-                  : Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: hasChallenges
-            ? BorderSide(color: Colors.orange.shade400, width: 2)
-            : isRoot
-                ? BorderSide(color: Colors.green.shade400, width: 2)
-                : BorderSide.none,
+    // Define gradient based on node type and selection
+    final Gradient nodeGradient;
+    if (isSelected) {
+      nodeGradient = LinearGradient(
+        colors: [signaturePurple.withOpacity(0.9), signaturePurple],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+    } else if (isRoot) {
+      nodeGradient = LinearGradient(
+        colors: [Colors.green.shade700, Colors.green.shade900],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+    } else if (isChallenge) {
+      nodeGradient = LinearGradient(
+        colors: [Colors.orange.shade700, Colors.orange.shade900],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+    } else {
+      // Default gradient for other nodes (if any)
+      nodeGradient = LinearGradient(
+        colors: [Colors.grey.shade700, Colors.grey.shade900],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.all(8), // Add margin for shadow visibility
+      constraints: const BoxConstraints(
+        minWidth: 150, // Adjusted min width
+        maxWidth: 220, // Adjusted max width
       ),
-      child: Container(
-        constraints: const BoxConstraints(
-          minWidth: 120,
-          maxWidth: 200,
+      decoration: BoxDecoration(
+        gradient: nodeGradient,
+        borderRadius: borderRadius,
+        border: Border.all(
+          color: isSelected
+              ? Colors.white.withOpacity(0.5) // Brighter border when selected
+              : Colors.white.withOpacity(0.1), // Subtle border
         ),
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+        boxShadow: [
+          BoxShadow(
+            color: shadowColor,
+            blurRadius: shadowBlurRadius,
+            offset: shadowOffset,
+          ),
+        ],
+      ),
+      child: Material(
+        // Use Material for InkWell effect if needed later
+        color: Colors.transparent,
+        borderRadius: borderRadius,
+        child: InkWell(
+          // Optional: Add InkWell for tap feedback
+          borderRadius: borderRadius,
+          onTap: () {
+            context.read<FlowchartCubit>().selectNode(nodeModel.id);
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16), // Increased padding
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (isRoot)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                    margin: const EdgeInsets.only(right: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.green.shade400,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: const Text(
-                      'ROOT',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 8,
-                        fontWeight: FontWeight.bold,
+                // Node Text (Title)
+                Text(
+                  nodeModel.text,
+                  style: titleStyle,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+
+                // Donation Info
+                if (nodeModel.donation > 0) ...[
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.monetization_on,
+                        color: Colors.amber.shade300,
+                        size: 18,
                       ),
-                    ),
-                  )
-                else if (isChallenge)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                    margin: const EdgeInsets.only(right: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.shade400,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: const Text(
-                      'CHALLENGE',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 8,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              nodeModel.text,
-              style: Theme.of(context).textTheme.titleMedium,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
-            if (nodeModel.donation > 0) ...[
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Icon(Icons.monetization_on, color: Colors.amber),
-                  const SizedBox(width: 4),
-                  Text(
-                    '₹${nodeModel.donation.toStringAsFixed(2)}',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      const SizedBox(width: 6),
+                      Text(
+                        '₹${nodeModel.donation.toStringAsFixed(2)}',
+                        // Add null check for bodyStyle
+                        style: bodyStyle?.copyWith(
                           fontWeight: FontWeight.bold,
+                          color: Colors.amber.shade300,
                         ),
+                      ),
+                    ],
                   ),
                 ],
-              ),
-            ],
-            if (nodeModel.comments.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () => _showCommentsPopup(context),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Comments:',
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.blue.shade200,
-                        ),
-                      ),
-                      child: Text(
-                        '${nodeModel.comments.length}',
-                        style: TextStyle(
-                          color: Colors.blue.shade700,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-              if (nodeModel.comments.isNotEmpty)
-                GestureDetector(
-                  onTap: () => _showCommentsPopup(context),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: Colors.grey.shade300,
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+
+                // Comments Section
+                if (nodeModel.comments.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Divider(color: Colors.white.withOpacity(0.15)),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: () => _showCommentsPopup(context),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          nodeModel.comments.first,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall,
+                          'Comments', // Simplified label
+                          // Add null check for smallTextStyle
+                          style: smallTextStyle?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                        if (nodeModel.comments.length > 1) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            'Tap to view all '
-                            '${nodeModel.comments.length} comments',
-                            style: TextStyle(
-                              color: Colors.blue.shade700,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.2),
                             ),
                           ),
-                        ],
+                          child: Text(
+                            '${nodeModel.comments.length}',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                ),
-            ],
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.comment, size: 16),
-                      onPressed: () => _showCommentModal(context),
-                      tooltip: 'Comment',
-                      constraints: const BoxConstraints(),
-                      padding: const EdgeInsets.all(4),
-                    ),
-                    Text(
-                      '${nodeModel.comments.length}',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(
-                        Icons.flash_on,
-                        size: 16,
-                        color: Colors.orange,
+                  const SizedBox(height: 8),
+                  // Display first comment preview
+                  GestureDetector(
+                    onTap: () => _showCommentsPopup(context),
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.1),
+                        ),
                       ),
-                      onPressed: () => _showChallengeModal(context),
-                      tooltip: 'Challenge',
-                      constraints: const BoxConstraints(),
-                      padding: const EdgeInsets.all(4),
-                    ),
-                    Text(
-                      '${nodeModel.challenges.length}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.orange,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            nodeModel.comments.first,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: smallTextStyle, // Keep original style here
                           ),
+                          if (nodeModel.comments.length > 1) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              'Tap to view all ${nodeModel.comments.length}',
+                              style: TextStyle(
+                                color: signaturePurple.withOpacity(0.9),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+
+                // Action Buttons (Comment/Challenge)
+                const SizedBox(height: 12),
+                Divider(color: Colors.white.withOpacity(0.15)),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Comment Button
+                    _buildActionButton(
+                      context: context,
+                      icon: Icons.comment_outlined, // Use outlined icon
+                      count: nodeModel.comments.length,
+                      tooltip: 'Comment',
+                      onPressed: () => _showCommentModal(context),
+                      color: Colors.white.withOpacity(0.8),
+                    ),
+                    // Challenge Button
+                    _buildActionButton(
+                      context: context,
+                      icon: Icons.flash_on_outlined, // Use outlined icon
+                      count: nodeModel.challenges.length,
+                      tooltip: 'Challenge',
+                      onPressed: () => _showChallengeModal(context),
+                      color: Colors.orange.shade300, // Accent color
                     ),
                   ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
+    );
+  }
+
+  // Helper widget for action buttons
+  Widget _buildActionButton({
+    required BuildContext context,
+    required IconData icon,
+    required int count,
+    required String tooltip,
+    required VoidCallback onPressed,
+    required Color color,
+  }) {
+    return TextButton.icon(
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        minimumSize: Size.zero, // Remove default min size
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap, // Reduce tap area
+        foregroundColor: color, // Icon and text color
+      ),
+      icon: Icon(icon, size: 18),
+      label: Text(
+        '$count',
+        // Add null check for textTheme.bodySmall
+        style: Theme.of(context)
+            .textTheme
+            .bodySmall
+            ?.copyWith(fontWeight: FontWeight.bold, color: color),
+      ),
+      onPressed: onPressed,
+      // tooltip: tooltip, // Tooltip might be redundant on mobile
     );
   }
 
@@ -844,6 +769,7 @@ class NodeWidget extends StatelessWidget {
     showDialog<void>(
       context: context,
       builder: (context) {
+        // TODO: Update CommentsPopup with CRED style
         return CommentsPopup(
           nodeModel: nodeModel,
           cubit: cubit,
@@ -859,7 +785,13 @@ class NodeWidget extends StatelessWidget {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.grey.shade900, // Dark background for modal
+      shape: const RoundedRectangleBorder(
+        // Consistent rounded corners
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
       builder: (context) {
+        // TODO: Update CommentModal with CRED style
         return CommentModal(
           nodeId: nodeModel.id,
           cubit: cubit,
@@ -875,7 +807,13 @@ class NodeWidget extends StatelessWidget {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.grey.shade900, // Dark background for modal
+      shape: const RoundedRectangleBorder(
+        // Consistent rounded corners
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
       builder: (context) {
+        // ChallengeModal already updated
         return ChallengeModal(
           parentNodeId: nodeModel.id,
           cubit: cubit,
