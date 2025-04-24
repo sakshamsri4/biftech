@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:biftech/features/auth/model/user_model.dart';
 import 'package:biftech/features/auth/service/auth_service.dart';
 import 'package:biftech/features/donation/view/donation_page.dart';
@@ -407,8 +408,19 @@ class _HomePageState extends State<HomePage> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(Colors.purpleAccent),
+                  ),
+                  SizedBox(height: 20),
+                  Text(
+                    'Loading Flowcharts...',
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+                ],
               ),
             );
           }
@@ -416,7 +428,7 @@ class _HomePageState extends State<HomePage> {
           if (snapshot.hasError) {
             return Center(
               child: Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(30),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -427,7 +439,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Error loading flowcharts',
+                      'Oops! Something went wrong.',
                       style: Theme.of(context)
                           .textTheme
                           .titleLarge
@@ -436,7 +448,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      snapshot.error.toString(),
+                      'Failed to load flowchart data. Please try again later.',
                       style: Theme.of(context)
                           .textTheme
                           .bodyMedium
@@ -454,27 +466,27 @@ class _HomePageState extends State<HomePage> {
           if (videos.isEmpty) {
             return Center(
               child: Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(30),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                      Icons.account_tree,
+                      Icons.account_tree_outlined,
                       size: 80,
-                      color: Colors.blue.shade200,
+                      color: Colors.purple.shade200,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
                     Text(
-                      'No Flowcharts Available',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleLarge
-                          ?.copyWith(color: Colors.white),
+                      'No Flowcharts Yet',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     Text(
-                      'Watch videos to participate in discussions',
+                      "Discussions haven't started for any videos. Watch a video and be the first!",
                       style: Theme.of(context)
                           .textTheme
                           .bodyMedium
@@ -505,12 +517,47 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  ({Color start, Color end}) _getDynamicCardColors(String videoId) {
+    final random = Random(videoId.hashCode);
+    final hue = random.nextDouble() * 360;
+    final saturation = 0.4 + random.nextDouble() * 0.2;
+    final lightness = 0.15 + random.nextDouble() * 0.1;
+
+    final startColor =
+        HSLColor.fromAHSL(1, hue, saturation, lightness).toColor();
+    final endColor = HSLColor.fromAHSL(
+      1,
+      (hue + 20) % 360,
+      saturation,
+      lightness + 0.05,
+    ).toColor();
+
+    return (start: startColor, end: endColor);
+  }
+
   Widget _buildFlowchartCard(VideoModel video) {
+    const cardInnerPadding = EdgeInsets.all(16);
+    const cardMargin = EdgeInsets.only(bottom: 20);
+    final cardBorderRadius = BorderRadius.circular(18);
+    final cardShape = RoundedRectangleBorder(borderRadius: cardBorderRadius);
+
+    final cardColors = _getDynamicCardColors(video.id);
+
+    final cardBackgroundGradient = LinearGradient(
+      colors: [cardColors.start, cardColors.end],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    );
+    const statusActiveGradient = LinearGradient(
+      colors: [Colors.purpleAccent, Colors.deepPurpleAccent],
+    );
+    const statusInactiveColor = Colors.white24;
+
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 4,
-      color: const Color(0xFF16213E).withOpacity(0.7),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: cardMargin,
+      elevation: 8,
+      shape: cardShape,
+      clipBehavior: Clip.antiAlias,
       shadowColor: Colors.black.withOpacity(0.5),
       child: InkWell(
         onTap: () {
@@ -518,67 +565,102 @@ class _HomePageState extends State<HomePage> {
           Navigator.pushNamed(
             context,
             '/flowchart/${video.id}',
+            arguments: video,
           );
         },
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: _buildThumbnail(video.thumbnailUrl),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          video.title,
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'by ${video.creator}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(color: Colors.white70),
-                        ),
-                      ],
+        borderRadius: cardBorderRadius,
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: cardBackgroundGradient,
+          ),
+          child: Padding(
+            padding: cardInnerPadding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: _buildThumbnail(video.thumbnailUrl),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 16,
-                runSpacing: 8,
-                children: [
-                  _buildMetaInfo(
-                    icon: Icons.account_tree,
-                    future: _hasFlowchart(video.id),
-                    trueText: 'Discussion Active',
-                    falseText: 'Start Discussion',
-                  ),
-                  _buildMetaInfo(
-                    icon: Icons.remove_red_eye,
-                    text: '${video.views} views',
-                  ),
-                ],
-              ),
-            ],
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            video.title,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              fontSize: 17,
+                              height: 1.3,
+                              shadows: [
+                                Shadow(
+                                  blurRadius: 2,
+                                  color: Colors.black.withOpacity(0.5),
+                                  offset: const Offset(1, 1),
+                                ),
+                              ],
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'by ${video.creator}',
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Colors.white.withOpacity(0.85),
+                              shadows: [
+                                Shadow(
+                                  blurRadius: 1,
+                                  color: Colors.black.withOpacity(0.5),
+                                  offset: const Offset(0.5, 0.5),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right,
+                      color: Colors.purpleAccent.withOpacity(0.8),
+                      size: 24,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 10,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    _buildMetaInfo(
+                      icon: Icons.account_tree_outlined,
+                      future: _hasFlowchart(video.id),
+                      trueText: 'Discussion Active',
+                      falseText: 'Start Discussion',
+                      activeGradient: statusActiveGradient,
+                      inactiveColor: statusInactiveColor,
+                      isStatusBadge: true,
+                    ),
+                    _buildMetaInfo(
+                      icon: Icons.remove_red_eye_outlined,
+                      iconColor: Colors.white.withOpacity(0.7),
+                      text: '${video.views} views',
+                      textColor: Colors.white.withOpacity(0.85),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -587,46 +669,81 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildMetaInfo({
     required IconData icon,
+    Color? iconColor,
     String? text,
+    Color? textColor,
     Future<bool>? future,
     String? trueText,
     String? falseText,
+    Gradient? activeGradient,
+    Color? inactiveColor,
+    bool isStatusBadge = false,
   }) {
-    Widget textWidget;
-    if (text != null) {
-      textWidget = Text(
-        text,
-        style: Theme.of(context)
-            .textTheme
-            .bodySmall
-            ?.copyWith(color: Colors.white70),
-      );
-    } else if (future != null && trueText != null && falseText != null) {
-      textWidget = FutureBuilder<bool>(
+    Widget contentWidget;
+    final defaultTextColor = Colors.white.withOpacity(0.85);
+
+    if (isStatusBadge &&
+        future != null &&
+        trueText != null &&
+        falseText != null) {
+      contentWidget = FutureBuilder<bool>(
         future: future,
         builder: (context, snapshot) {
-          final result = snapshot.data ?? false;
-          return Text(
-            result ? trueText : falseText,
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(color: Colors.white70),
+          final isActive = snapshot.data ?? false;
+          final statusText = isActive ? trueText : falseText;
+          final badgeColor = isActive ? null : inactiveColor;
+          final badgeGradient = isActive ? activeGradient : null;
+          final statusTextColor = isActive ? Colors.white : Colors.white70;
+
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: badgeColor,
+              gradient: badgeGradient,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 14, color: statusTextColor.withOpacity(0.8)),
+                const SizedBox(width: 5),
+                Text(
+                  statusText,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: statusTextColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 11,
+                      ),
+                ),
+              ],
+            ),
           );
         },
       );
+    } else if (text != null) {
+      contentWidget = Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 16,
+            color: iconColor ?? Colors.white.withOpacity(0.7),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            text,
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.copyWith(color: textColor ?? defaultTextColor),
+          ),
+        ],
+      );
     } else {
-      textWidget = const SizedBox.shrink();
+      contentWidget = const SizedBox.shrink();
     }
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 16, color: Colors.white54),
-        const SizedBox(width: 4),
-        textWidget,
-      ],
-    );
+    return contentWidget;
   }
 
   Future<bool> _hasFlowchart(String videoId) async {

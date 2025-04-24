@@ -3,7 +3,10 @@ import 'package:biftech/features/flowchart/model/models.dart';
 import 'package:biftech/features/flowchart/repository/flowchart_repository.dart';
 import 'package:biftech/features/flowchart/view/widgets/widgets.dart';
 import 'package:biftech/features/winner/winner.dart';
+import 'package:biftech/shared/animations/animations.dart';
+import 'package:biftech/shared/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:graphview/graphview.dart';
 
@@ -45,7 +48,11 @@ class FlowchartPage extends StatelessWidget {
 
         return cubit;
       },
-      child: const FlowchartView(),
+      // Apply dark background globally here
+      child: const ColoredBox(
+        color: Color(0xFF1A1A2E), // Base dark color
+        child: FlowchartView(),
+      ),
     );
   }
 }
@@ -105,64 +112,64 @@ class _FlowchartViewState extends State<FlowchartView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent, // Make scaffold transparent
       appBar: AppBar(
-        title: const Text('Discussion Flowchart'),
+        title: const Text(
+          'Discussion Flowchart',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.transparent, // Transparent AppBar
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white), // White back arrow
         actions: [
-          // Refresh button
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Reload flowchart and focus on root node',
-            onPressed: () {
-              // First reset the view to
-              // ensure we're starting from a clean state
-              // by resetting the transformation
-              _transformationController.value = Matrix4.identity();
-
-              // Then reload the flowchart
-              context.read<FlowchartCubit>().loadFlowchart();
-
-              // Reset view after a longer delay to ensure the flowchart
-              // is fully loaded and rendered
-              Future<void>.delayed(
-                const Duration(milliseconds: 800),
-                () {
-                  if (mounted) {
-                    // Force a rebuild of the graph
-                    setState(() {});
-
-                    // Then reset the view to focus on the root node
-                    _resetView();
-
-                    // Apply a second reset after a delay as a backup
-                    Future.delayed(const Duration(milliseconds: 500), () {
-                      if (mounted) {
-                        _resetView();
-                      }
-                    });
-                  }
-                },
-              );
-            },
+          // Refresh button with animation and haptics
+          PressableScale(
+            child: IconButton(
+              icon: const Icon(Icons.refresh, color: Colors.white70),
+              tooltip: 'Reload & Recenter',
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                _transformationController.value = Matrix4.identity();
+                context.read<FlowchartCubit>().loadFlowchart();
+                Future<void>.delayed(
+                  const Duration(milliseconds: 800),
+                  () {
+                    if (mounted) {
+                      setState(() {});
+                      _resetView();
+                      Future.delayed(const Duration(milliseconds: 500), () {
+                        if (mounted) {
+                          _resetView();
+                        }
+                      });
+                    }
+                  },
+                );
+              },
+            ),
           ),
-
-          IconButton(
-            icon: const Icon(Icons.workspace_premium),
-            tooltip: 'Declare winner',
-            onPressed: () {
-              // Get the FlowchartCubit and videoId
-              final flowchartCubit = context.read<FlowchartCubit>();
-              final videoId = flowchartCubit.videoId;
-
-              // Navigate to the WinnerPage with the FlowchartCubit
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (context) => WinnerPage(
-                    videoId: videoId,
-                    flowchartCubit: flowchartCubit,
+          // Declare winner button with animation and haptics
+          PressableScale(
+            child: IconButton(
+              icon: const Icon(
+                Icons.workspace_premium,
+                color: Colors.purpleAccent,
+              ), // Purple accent
+              tooltip: 'Declare winner',
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                final flowchartCubit = context.read<FlowchartCubit>();
+                final videoId = flowchartCubit.videoId;
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (context) => WinnerPage(
+                      videoId: videoId,
+                      flowchartCubit: flowchartCubit,
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -171,35 +178,103 @@ class _FlowchartViewState extends State<FlowchartView> {
           switch (state.status) {
             case FlowchartStatus.initial:
             case FlowchartStatus.loading:
+              // Custom Loading State
               return const Center(
-                child: CircularProgressIndicator(),
-              );
-            case FlowchartStatus.failure:
-              return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      'Failed to load flowchart',
-                      style: Theme.of(context).textTheme.titleLarge,
+                    CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Colors.purpleAccent,
+                      ),
                     ),
-                    const SizedBox(height: 16),
-                    // Don't show technical error details to users
-                    const Text('Something went wrong. Please try again.'),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        context.read<FlowchartCubit>().loadFlowchart();
-                      },
-                      child: const Text('Try Again'),
+                    SizedBox(height: 20),
+                    Text(
+                      'Loading Flowchart...',
+                      style: TextStyle(color: Colors.white70, fontSize: 16),
                     ),
                   ],
                 ),
               );
+            case FlowchartStatus.failure:
+              // Custom Error State
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(30),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 60,
+                        color: Colors.red.shade300,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Oops! Failed to load flowchart.',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleLarge
+                            ?.copyWith(color: Colors.white),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Something went wrong. Please check your connection and try again.',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(color: Colors.white70),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      // Use GradientButton for retry
+                      GradientButton(
+                        onPressed: () {
+                          context.read<FlowchartCubit>().loadFlowchart();
+                        },
+                        child: const Text('Try Again'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
             case FlowchartStatus.success:
               if (state.rootNode == null) {
-                return const Center(
-                  child: Text('No flowchart available'),
+                // Custom Empty State (if flowchart is successfully loaded but empty)
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(30),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.account_tree_outlined,
+                          size: 80,
+                          color: Colors.purple.shade200,
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          'Discussion Not Started',
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          "Be the first to add a point to this video's discussion!",
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(color: Colors.white70),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
                 );
               }
               return _buildFlowchart(context, state);
@@ -296,8 +371,8 @@ class _FlowchartViewState extends State<FlowchartView> {
             TreeEdgeRenderer(builder),
           ),
           paint: Paint()
-            ..color = Colors.orange.shade400
-            ..strokeWidth = 2
+            ..color = Colors.purpleAccent.withOpacity(0.5)
+            ..strokeWidth = 1.5
             ..style = PaintingStyle.stroke,
           builder: (Node node) {
             // Get the NodeModel from the node's key
@@ -312,6 +387,7 @@ class _FlowchartViewState extends State<FlowchartView> {
 
             return GestureDetector(
               onTap: () {
+                HapticFeedback.lightImpact();
                 context.read<FlowchartCubit>().selectNode(nodeModel.id);
               },
               child: NodeWidget(
@@ -448,9 +524,11 @@ class _FlowchartViewState extends State<FlowchartView> {
           // Show a snackbar to provide feedback to the user
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('View reset to root node'),
-                duration: Duration(seconds: 1),
+              SnackBar(
+                content: const Text('View recentered'),
+                duration: const Duration(seconds: 1),
+                backgroundColor: Colors.grey.shade800, // Dark snackbar
+                behavior: SnackBarBehavior.floating, // Optional: floating style
               ),
             );
           }
@@ -496,82 +574,45 @@ class NodeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // CRED Design Principles
-    const signaturePurple = Color(0xFF6C63FF);
-    const borderRadius = BorderRadius.all(Radius.circular(16)); // 16px radius
-    final shadowColor = Colors.black
-        .withAlpha((0.3 * 255).round()); // 30% opacity shadow using withAlpha
-    const shadowBlurRadius = 8.0; // 8px blur
-    const shadowOffset = Offset(0, 4); // Offset for depth
-    final titleStyle = Theme.of(context).textTheme.titleLarge?.copyWith(
-          fontWeight: FontWeight.w700, // Bold (700 weight)
-          fontSize: 18, // 18pt
-          color: Colors.white, // High contrast
+    // Theme elements
+    const signaturePurple = Colors.deepPurpleAccent; // Adjusted purple
+    const cardDarkBg = Color(0xFF2A2A3E); // Slightly lighter dark for card
+    const borderRadius = BorderRadius.all(Radius.circular(16));
+    final shadowColor = Colors.black.withOpacity(0.4);
+    const shadowBlurRadius = 12.0;
+    const shadowOffset = Offset(0, 6);
+    final titleStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+          height: 1.3,
         );
     final bodyStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
-          color: Colors.white
-              .withAlpha((0.85 * 255).round()), // High contrast using withAlpha
+          color: Colors.white.withOpacity(0.85),
+          height: 1.4,
         );
     final smallTextStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: Colors.white
-              .withAlpha((0.7 * 255).round()), // High contrast using withAlpha
+          color: Colors.white.withOpacity(0.7),
         );
-    // Removed subtleBorderStyle as border is handled directly in BoxDecoration
 
-    // Determine node type and colors
+    // Determine node type
     final isRoot = nodeModel.id.startsWith('root_');
-    final isChallenge = nodeModel.id.startsWith('challenge_');
+    // final isChallenge = nodeModel.id.startsWith('challenge_');
 
-    // Define gradient based on node type and selection
-    final Gradient nodeGradient;
-    if (isSelected) {
-      nodeGradient = LinearGradient(
-        colors: [
-          signaturePurple.withAlpha((0.9 * 255).round()),
-          signaturePurple,
-        ], // Use withAlpha
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      );
-    } else if (isRoot) {
-      nodeGradient = LinearGradient(
-        colors: [Colors.green.shade700, Colors.green.shade900],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      );
-    } else if (isChallenge) {
-      nodeGradient = LinearGradient(
-        colors: [Colors.orange.shade700, Colors.orange.shade900],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      );
-    } else {
-      // Default gradient for other nodes (if any)
-      nodeGradient = LinearGradient(
-        colors: [Colors.grey.shade700, Colors.grey.shade900],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      );
-    }
+    // Define border based on selection
+    final border = isSelected
+        ? Border.all(color: signaturePurple, width: 2.5)
+        : Border.all(color: Colors.white.withOpacity(0.15));
 
     return Container(
-      margin: const EdgeInsets.all(8), // Add margin for shadow visibility
+      margin: const EdgeInsets.all(10), // Margin for shadow
       constraints: const BoxConstraints(
-        minWidth: 150, // Adjusted min width
-        maxWidth: 220, // Adjusted max width
+        minWidth: 180,
+        maxWidth: 240,
       ),
       decoration: BoxDecoration(
-        gradient: nodeGradient,
+        color: cardDarkBg,
         borderRadius: borderRadius,
-        border: Border.all(
-          color: isSelected
-              ? Colors.white.withAlpha(
-                  (0.5 * 255).round(),
-                ) // Brighter border when selected using withAlpha
-              : Colors.white.withAlpha(
-                  (0.1 * 255).round(),
-                ), // Subtle border using withAlpha
-        ),
+        border: border,
         boxShadow: [
           BoxShadow(
             color: shadowColor,
@@ -580,221 +621,191 @@ class NodeWidget extends StatelessWidget {
           ),
         ],
       ),
-      child: Material(
-        // Use Material for InkWell effect if needed later
-        color: Colors.transparent,
-        borderRadius: borderRadius,
-        child: InkWell(
-          // Optional: Add InkWell for tap feedback
-          borderRadius: borderRadius,
-          onTap: () {
-            context.read<FlowchartCubit>().selectNode(nodeModel.id);
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(16), // Increased padding
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Node Text (Title)
-                Text(
-                  nodeModel.text,
-                  style: titleStyle,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-
-                // Donation Info
-                if (nodeModel.donation > 0) ...[
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.monetization_on,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Root node indicator
+            if (isRoot)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  children: [
+                    Icon(Icons.star, color: Colors.amber.shade300, size: 16),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Starting Point',
+                      style: smallTextStyle?.copyWith(
                         color: Colors.amber.shade300,
-                        size: 18,
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        '₹${nodeModel.donation.toStringAsFixed(2)}',
-                        // Add null check for bodyStyle
-                        style: bodyStyle?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.amber.shade300,
+                    ),
+                  ],
+                ),
+              ),
+
+            // Node Text (Title)
+            Text(nodeModel.text, style: titleStyle),
+
+            // Donation Info
+            if (nodeModel.donation > 0) ...[
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Icon(
+                    Icons.monetization_on,
+                    color:
+                        Colors.greenAccent.shade400, // Use a different accent
+                    size: 18,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    '₹${nodeModel.donation.toStringAsFixed(0)}', // No decimals for donation
+                    style: bodyStyle?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.greenAccent.shade400,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
+            // Comments Section (if any)
+            if (nodeModel.comments.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Divider(color: Colors.white.withOpacity(0.1)),
+              const SizedBox(height: 8),
+              InkWell(
+                // Make the whole comment section tappable
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  _showCommentsPopup(context);
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.comment_outlined,
+                          color: Colors.white70, size: 16),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          nodeModel.comments.first,
+                          style: smallTextStyle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: signaturePurple.withOpacity(0.8),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${nodeModel.comments.length}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                ],
+                ),
+              ),
+            ],
 
-                // Comments Section
-                if (nodeModel.comments.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  Divider(
-                    color: Colors.white.withAlpha((0.15 * 255).round()),
-                  ), // Use withAlpha
-                  const SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: () => _showCommentsPopup(context),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Comments', // Simplified label
-                          // Add null check for smallTextStyle
-                          style: smallTextStyle?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withAlpha(
-                              (0.2 * 255).round(),
-                            ), // Use withAlpha
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.white.withAlpha(
-                                (0.2 * 255).round(),
-                              ), // Use withAlpha
-                            ),
-                          ),
-                          child: Text(
-                            '${nodeModel.comments.length}',
-                            style: TextStyle(
-                              color: Colors.white.withAlpha(
-                                (0.9 * 255).round(),
-                              ), // Use withAlpha
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  // Display first comment preview
-                  GestureDetector(
-                    onTap: () => _showCommentsPopup(context),
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.black
-                            .withAlpha((0.15 * 255).round()), // Use withAlpha
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: Colors.white
-                              .withAlpha((0.1 * 255).round()), // Use withAlpha
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            nodeModel.comments.first,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: smallTextStyle, // Keep original style here
-                          ),
-                          if (nodeModel.comments.length > 1) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              'Tap to view all ${nodeModel.comments.length}',
-                              style: TextStyle(
-                                color: signaturePurple.withAlpha(
-                                  (0.9 * 255).round(),
-                                ), // Use withAlpha
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+            // Action Buttons Divider (always show for spacing)
+            const SizedBox(height: 8),
+            Divider(color: Colors.white.withOpacity(0.1)),
+            const SizedBox(height: 4),
 
-                // Action Buttons (Comment/Challenge)
-                const SizedBox(height: 12),
-                Divider(
-                  color: Colors.white.withAlpha((0.15 * 255).round()),
-                ), // Use withAlpha
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Comment Button
-                    _buildActionButton(
-                      context: context,
-                      icon: Icons.comment_outlined, // Use outlined icon
-                      count: nodeModel.comments.length,
-                      tooltip: 'Comment',
-                      onPressed: () => _showCommentModal(context),
-                      color: Colors.white
-                          .withAlpha((0.8 * 255).round()), // Use withAlpha
-                    ),
-                    // Challenge Button
-                    _buildActionButton(
-                      context: context,
-                      icon: Icons.flash_on_outlined, // Use outlined icon
-                      count: nodeModel.challenges.length,
-                      tooltip: 'Challenge',
-                      onPressed: () => _showChallengeModal(context),
-                      color: Colors.orange.shade300, // Accent color
-                    ),
-                  ],
+            // Action Buttons (Comment/Challenge)
+            Row(
+              // Use spaceBetween for better control and wrap buttons with Flexible
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Comment Button - Wrap with Flexible
+                Flexible(
+                  child: _buildActionButton(
+                    context: context,
+                    icon: Icons.add_comment_outlined,
+                    label: 'Comment',
+                    onPressed: () => _showCommentModal(context),
+                    color: Colors.white70,
+                  ),
+                ),
+                // Challenge Button - Wrap with Flexible
+                Flexible(
+                  child: _buildActionButton(
+                    context: context,
+                    icon: Icons.flash_on_outlined,
+                    label: 'Challenge',
+                    onPressed: () => _showChallengeModal(context),
+                    color: Colors.purpleAccent, // Use purple accent
+                  ),
                 ),
               ],
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 
-  // Helper widget for action buttons
+  // Helper widget for action buttons (redesigned)
   Widget _buildActionButton({
     required BuildContext context,
     required IconData icon,
-    required int count,
-    required String tooltip,
+    required String label,
     required VoidCallback onPressed,
     required Color color,
   }) {
     return TextButton.icon(
       style: TextButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        minimumSize: Size.zero, // Remove default min size
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap, // Reduce tap area
-        foregroundColor: color, // Icon and text color
+        // Reduce horizontal padding further
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+        foregroundColor: color,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        // Allow button to shrink
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
       icon: Icon(icon, size: 18),
       label: Text(
-        '$count',
-        // Add null check for textTheme.bodySmall
-        style: Theme.of(context)
-            .textTheme
-            .bodySmall
-            ?.copyWith(fontWeight: FontWeight.bold, color: color),
+        label,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+        // Prevent wrapping and use ellipsis if text is too long
+        softWrap: false,
+        overflow: TextOverflow.ellipsis,
       ),
-      onPressed: onPressed,
-      // tooltip: tooltip, // Tooltip might be redundant on mobile
+      onPressed: () {
+        HapticFeedback.lightImpact();
+        onPressed();
+      },
     );
   }
 
-  void _showCommentsPopup(BuildContext context) {
-    // Get the cubit from the parent context
-    final cubit = context.read<FlowchartCubit>();
+  // --- Modal Launchers --- (Add Haptic Feedback & Dark Theme Styling)
 
+  void _showCommentsPopup(BuildContext context) {
+    final cubit = context.read<FlowchartCubit>();
+    // TODO: Update CommentsPopup design for dark theme
     showDialog<void>(
       context: context,
-      builder: (context) {
-        // TODO: Update CommentsPopup with CRED style
+      // Use a custom barrier color for dark theme
+      barrierColor: Colors.black.withOpacity(0.6),
+      builder: (dialogContext) {
         return CommentsPopup(
           nodeModel: nodeModel,
           cubit: cubit,
@@ -804,44 +815,44 @@ class NodeWidget extends StatelessWidget {
   }
 
   void _showCommentModal(BuildContext context) {
-    // Get the cubit from the parent context
     final cubit = context.read<FlowchartCubit>();
-
+    // TODO: Update CommentModal design for dark theme
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.grey.shade900, // Dark background for modal
+      backgroundColor: const Color(0xFF1F1F2E), // Darker modal background
+      barrierColor: Colors.black.withOpacity(0.6),
       shape: const RoundedRectangleBorder(
-        // Consistent rounded corners
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) {
-        // TODO: Update CommentModal with CRED style
-        return CommentModal(
-          nodeId: nodeModel.id,
-          cubit: cubit,
+      builder: (modalContext) {
+        // Provide cubit to the modal
+        return BlocProvider.value(
+          value: cubit,
+          // Pass the cubit instance here
+          child: CommentModal(nodeId: nodeModel.id, cubit: cubit),
         );
       },
     );
   }
 
   void _showChallengeModal(BuildContext context) {
-    // Get the cubit from the parent context
     final cubit = context.read<FlowchartCubit>();
-
+    // TODO: Update ChallengeModal design for dark theme
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.grey.shade900, // Dark background for modal
+      backgroundColor: const Color(0xFF1F1F2E), // Darker modal background
+      barrierColor: Colors.black.withOpacity(0.6),
       shape: const RoundedRectangleBorder(
-        // Consistent rounded corners
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) {
-        // ChallengeModal already updated
-        return ChallengeModal(
-          parentNodeId: nodeModel.id,
-          cubit: cubit,
+      builder: (modalContext) {
+        // Provide cubit to the modal
+        return BlocProvider.value(
+          value: cubit,
+          // Pass the cubit instance here
+          child: ChallengeModal(parentNodeId: nodeModel.id, cubit: cubit),
         );
       },
     );
