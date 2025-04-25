@@ -218,12 +218,21 @@ class _ChallengeModalState extends State<ChallengeModal> {
         ),
       );
 
+      // Log the challenge submission
+      debugPrint(
+        'Submitting challenge to node ${widget.parentNodeId}: '
+        '"$challengeText" with donation: $donationAmount',
+      );
+
       // Call the cubit to add the challenge
-      await widget.cubit.addChallenge(
+      final newNodeId = await widget.cubit.addChallenge(
         widget.parentNodeId,
         challengeText,
         donationAmount,
       );
+
+      // Log the result
+      debugPrint('Challenge added successfully with ID: $newNodeId');
 
       if (!mounted) return;
 
@@ -240,6 +249,19 @@ class _ChallengeModalState extends State<ChallengeModal> {
           duration: const Duration(seconds: 2),
         ),
       );
+
+      // Force a reload of the flowchart to ensure the UI updates
+      // This is critical to see the new node
+      if (mounted) {
+        // Wait a moment for the state to update
+        await Future<void>.delayed(const Duration(milliseconds: 500));
+
+        // Force reload the flowchart
+        if (mounted) {
+          debugPrint('Forcing flowchart reload to show new node');
+          await widget.cubit.loadFlowchart();
+        }
+      }
     } catch (e, stackTrace) {
       // Log the error
       ErrorLoggingService.instance.logError(

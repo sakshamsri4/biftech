@@ -92,7 +92,8 @@ class _FlowchartViewState extends State<FlowchartView> {
     super.initState();
     // Configure the layout algorithm
     builder
-      ..siblingSeparation = 100
+      ..siblingSeparation =
+          120 // Increase spacing between siblings for better branching
       ..levelSeparation = 150
       ..subtreeSeparation = 150
       ..orientation = BuchheimWalkerConfiguration.ORIENTATION_TOP_BOTTOM;
@@ -149,6 +150,54 @@ class _FlowchartViewState extends State<FlowchartView> {
                     }
                   },
                 );
+              },
+            ),
+          ),
+          // Force Rebuild button for debugging
+          PressableScale(
+            child: IconButton(
+              icon: const Icon(Icons.sync, color: Colors.amber),
+              tooltip: 'Force Rebuild Graph',
+              onPressed: () {
+                HapticFeedback.lightImpact();
+
+                // Force a complete rebuild of the graph
+                setState(() {
+                  graph.nodes.clear();
+                  graph.edges.clear();
+
+                  // Get the current state
+                  final state = context.read<FlowchartCubit>().state;
+                  if (state.rootNode != null) {
+                    // Rebuild the graph from scratch
+                    _buildGraphFromTree(state.rootNode!, null);
+
+                    // Debug info
+                    debugPrint(
+                      'Forced rebuild of graph with '
+                      '${graph.nodes.length} nodes',
+                    );
+                    for (final node in graph.nodes) {
+                      debugPrint('Node: ${node.key?.value}');
+                    }
+                  }
+                });
+
+                // Show feedback to user
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Graph forcefully rebuilt'),
+                    duration: Duration(seconds: 1),
+                    backgroundColor: Colors.amber,
+                  ),
+                );
+
+                // Reset the view after rebuilding
+                Future.delayed(const Duration(milliseconds: 300), () {
+                  if (mounted) {
+                    _resetView();
+                  }
+                });
               },
             ),
           ),
@@ -343,6 +392,9 @@ class _FlowchartViewState extends State<FlowchartView> {
       });
     }
 
+    // Ensure the layout algorithm is properly configured
+    // (Configuration is already done in initState)
+
     return Container(
       width: MediaQuery.of(context).size.width,
       height: MediaQuery.of(context).size.height * 0.8,
@@ -354,7 +406,7 @@ class _FlowchartViewState extends State<FlowchartView> {
         key: _graphKey,
         transformationController: _transformationController,
         constrained: false,
-        boundaryMargin: const EdgeInsets.all(1000),
+        boundaryMargin: const EdgeInsets.all(2000), // Increased boundary margin
         minScale: 0.1,
         maxScale: 2,
         onInteractionEnd: (details) {

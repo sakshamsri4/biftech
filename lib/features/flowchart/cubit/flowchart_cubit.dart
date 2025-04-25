@@ -61,9 +61,9 @@ class FlowchartCubit extends Cubit<FlowchartState> {
           ],
         );
 
-        // Create a challenge node with comments
-        final challengeNode = NodeModel(
-          id: 'challenge_${DateTime.now().millisecondsSinceEpoch}',
+        // Create first challenge node with comments
+        final challenge1 = NodeModel(
+          id: 'challenge_${DateTime.now().millisecondsSinceEpoch}_1',
           text: 'I have a different perspective on this topic.',
           comments: const [
             'Good point!',
@@ -72,27 +72,78 @@ class FlowchartCubit extends Cubit<FlowchartState> {
           donation: 25,
         );
 
-        // Add the challenge to the root node
-        final rootWithChallenge = newRootNode.addChallenge(challengeNode);
+        // Create second challenge node with comments
+        final challenge2 = NodeModel(
+          id: 'challenge_${DateTime.now().millisecondsSinceEpoch}_2',
+          text: 'I think we should consider the environmental impact.',
+          comments: const [
+            'Absolutely!',
+            'The environment is a critical factor.',
+          ],
+          donation: 15,
+        );
+
+        // Create a sub-challenge under challenge1
+        final subChallenge1 = NodeModel(
+          id: 'challenge_${DateTime.now().millisecondsSinceEpoch}_1_1',
+          text: 'Research shows alternative approaches are more effective.',
+          comments: const [
+            'Can you share that research?',
+            'Interesting finding!',
+          ],
+          donation: 10,
+        );
+
+        // Add the sub-challenge to challenge1
+        final challenge1WithSubChallenge =
+            challenge1.addChallenge(subChallenge1);
+
+        // Add both challenges to the root node
+        var rootWithChallenges =
+            newRootNode.addChallenge(challenge1WithSubChallenge);
+        rootWithChallenges = rootWithChallenges.addChallenge(challenge2);
 
         // Save the flowchart with the root and challenge nodes
-        await repository.saveFlowchart(videoId, rootWithChallenge);
+        await repository.saveFlowchart(videoId, rootWithChallenges);
         if (isClosed) return;
 
         emit(
           state.copyWith(
             status: FlowchartStatus.success,
-            rootNode: rootWithChallenge,
-            expandedNodeIds: {rootWithChallenge.id, challengeNode.id},
+            rootNode: rootWithChallenges,
+            expandedNodeIds: {
+              rootWithChallenges.id,
+              challenge1WithSubChallenge.id,
+              challenge2.id,
+              subChallenge1.id,
+            },
           ),
         );
+
+        // Debug log to verify the initial flowchart structure
+        debugPrint(
+          'Created initial flowchart with '
+          '${_countNodesInTree(rootWithChallenges)} nodes',
+        );
+        _logFlowchartStructure(rootWithChallenges);
       } else {
         // Use existing root node
+        // Debug log to verify the loaded flowchart structure
+        debugPrint(
+          'Loaded existing flowchart with '
+          '${_countNodesInTree(rootNode)} nodes',
+        );
+        _logFlowchartStructure(rootNode);
+
+        // Expand all nodes for better visibility
+        final expandedNodeIds = <String>{rootNode.id};
+        _collectAllNodeIds(rootNode, expandedNodeIds);
+
         emit(
           state.copyWith(
             status: FlowchartStatus.success,
             rootNode: rootNode,
-            expandedNodeIds: {rootNode.id},
+            expandedNodeIds: expandedNodeIds,
           ),
         );
       }
@@ -109,6 +160,25 @@ class FlowchartCubit extends Cubit<FlowchartState> {
           error: 'Failed to load flowchart: $e',
         ),
       );
+    }
+  }
+
+  /// Helper method to collect all node IDs in the tree
+  void _collectAllNodeIds(NodeModel node, Set<String> nodeIds) {
+    nodeIds.add(node.id);
+    for (final challenge in node.challenges) {
+      _collectAllNodeIds(challenge, nodeIds);
+    }
+  }
+
+  /// Helper method to log the flowchart structure
+  void _logFlowchartStructure(NodeModel rootNode, [String indent = '']) {
+    debugPrint(
+      '$indent- ${rootNode.id}: "${rootNode.text}" '
+      '(${rootNode.challenges.length} challenges)',
+    );
+    for (final challenge in rootNode.challenges) {
+      _logFlowchartStructure(challenge, '$indent  ');
     }
   }
 
@@ -181,12 +251,24 @@ class FlowchartCubit extends Cubit<FlowchartState> {
         throw Exception('Root node is null');
       }
 
-      // Create a new challenge node
+      // Create a new challenge node with a unique timestamp-based ID
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
       final challengeNode = NodeModel(
-        id: 'challenge_${DateTime.now().millisecondsSinceEpoch}',
+        id: 'challenge_$timestamp',
         text: text,
         donation: donation,
       );
+
+      // Log the parent node before adding the challenge
+      final parentNode = findNodeById(parentNodeId);
+      if (parentNode != null) {
+        debugPrint(
+          'Parent node before adding challenge: '
+          '${parentNode.id} has ${parentNode.challenges.length} challenges',
+        );
+      } else {
+        debugPrint('Parent node not found: $parentNodeId');
+      }
 
       // Find the parent node and add the challenge
       final updatedRootNode = _updateNodeInTree(
@@ -196,20 +278,56 @@ class FlowchartCubit extends Cubit<FlowchartState> {
       );
 
       if (updatedRootNode != null) {
+        // Verify the challenge was added by finding the parent node again
+        final updatedParentNode =
+            _findNodeInTree(updatedRootNode, parentNodeId);
+        if (updatedParentNode != null) {
+          debugPrint(
+            'Parent node after adding challenge: '
+            '${updatedParentNode.id} has ${updatedParentNode.challenges.length} challenges',
+          );
+
+          // Check if the challenge is actually in the parent's challenges
+          final challengeExists = updatedParentNode.challenges.any(
+            (c) => c.id == challengeNode.id,
+          );
+
+          if (!challengeExists) {
+            debugPrint(
+              'WARNING: Challenge was not properly added to parent node!',
+            );
+          }
+        }
+
         // Save the updated flowchart
         await repository.saveFlowchart(videoId, updatedRootNode);
         if (isClosed) throw Exception('Cubit closed during save');
 
-        // Update the state and expand the parent node
-        final expandedNodeIds = Set<String>.from(state.expandedNodeIds)
-          ..add(parentNodeId);
+        // Update the state and expand all nodes for better visibility
+        final expandedNodeIds = <String>{};
+        _collectAllNodeIds(updatedRootNode, expandedNodeIds);
 
+        // Force a reload of the flowchart to ensure the UI updates
         emit(
           state.copyWith(
             rootNode: updatedRootNode,
             expandedNodeIds: expandedNodeIds,
+            // Select the new challenge node to highlight it
+            selectedNodeId: challengeNode.id,
           ),
         );
+
+        // Debug log to verify the challenge was added
+        debugPrint(
+          'Added challenge: ${challengeNode.id} to parent: $parentNodeId',
+        );
+        debugPrint(
+          'Updated root node has ${_countNodesInTree(updatedRootNode)} nodes',
+        );
+
+        // Log the full flowchart structure after adding the challenge
+        debugPrint('Flowchart structure after adding challenge:');
+        _logFlowchartStructure(updatedRootNode);
 
         // Return the ID of the new challenge node
         return challengeNode.id;
@@ -232,6 +350,18 @@ class FlowchartCubit extends Cubit<FlowchartState> {
       }
       throw Exception('Failed to add challenge: $e');
     }
+  }
+
+  /// Helper method to count the total number of nodes in the tree
+  int _countNodesInTree(NodeModel node) {
+    var count = 1; // Count this node
+
+    // Add count from all challenges
+    for (final challenge in node.challenges) {
+      count += _countNodesInTree(challenge);
+    }
+
+    return count;
   }
 
   /// Find the winning node based on score (donation + comments)
@@ -294,7 +424,13 @@ class FlowchartCubit extends Cubit<FlowchartState> {
   ) {
     // If this is the node to update, apply the update function
     if (node.id == nodeId) {
-      return updateFn(node);
+      final updatedNode = updateFn(node);
+      debugPrint(
+        'Node ${node.id} updated: challenges '
+        'before=${node.challenges.length}, '
+        'after=${updatedNode.challenges.length}',
+      );
+      return updatedNode;
     }
 
     // Otherwise, recursively search the challenges
@@ -319,7 +455,9 @@ class FlowchartCubit extends Cubit<FlowchartState> {
     // If a node was updated in the challenges,
     // return a new node with updated challenges
     if (found) {
-      return node.copyWith(challenges: updatedChallenges);
+      final updatedNode = node.copyWith(challenges: updatedChallenges);
+      debugPrint('Propagating update through node ${node.id}');
+      return updatedNode;
     }
 
     // If the node wasn't found in this branch, return null
