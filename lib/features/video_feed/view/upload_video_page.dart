@@ -308,6 +308,23 @@ class _UploadVideoViewState extends State<UploadVideoView> {
     return '$minutes:$seconds';
   }
 
+  // Get a shortened version of the filename to prevent overflow
+  String _getShortFileName(String path) {
+    final fileName = path.split('/').last;
+    // If filename is already short enough, return it as is
+    if (fileName.length <= 15) return fileName; // Even shorter threshold
+
+    // Otherwise, truncate it and add ellipsis
+    final extension =
+        fileName.contains('.') ? '.${fileName.split('.').last}' : '';
+    final nameWithoutExtension = fileName.contains('.')
+        ? fileName.substring(0, fileName.lastIndexOf('.'))
+        : fileName;
+
+    // Keep first 6 chars + ... + extension (shorter for better display)
+    return '${nameWithoutExtension.substring(0, 6)}...$extension';
+  }
+
   Future<void> _submitForm() async {
     if (_formKey.currentState?.validate() != true) {
       return;
@@ -657,7 +674,7 @@ class _UploadVideoViewState extends State<UploadVideoView> {
                   _pickVideo();
                 },
                 child: Container(
-                  height: 120,
+                  height: 150, // Increased height for more space
                   width: double.infinity,
                   decoration: BoxDecoration(
                     color: const Color(0xFF1E1E1E),
@@ -672,67 +689,97 @@ class _UploadVideoViewState extends State<UploadVideoView> {
                     ],
                   ),
                   child: _videoFile != null
-                      ? Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.check_circle,
-                              size: 48,
-                              color:
-                                  Color(0xFF00BFA6), // Teal color for success
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'VIDEO SELECTED',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.check_circle,
+                                size: 40, // Slightly smaller icon
+                                color:
+                                    Color(0xFF00BFA6), // Teal color for success
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              kIsWeb
-                                  ? 'Video selected from web'
-                                  : (_videoFile as File).path.split('/').last,
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            if (_videoDuration != null)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 4),
-                                child: Text(
-                                  // Format duration as MM:SS
-                                  'Duration: ${_formatDuration()}',
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 12,
-                                  ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'VIDEO SELECTED',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight:
+                                      FontWeight.w600, // Semi-bold per CRED
+                                  letterSpacing: 0.5,
+                                  fontSize: 14, // Slightly smaller text
                                 ),
                               ),
-                          ],
-                        )
-                      : const Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.video_library,
-                              size: 48,
-                              color: Color(0xFF6C63FF),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'TAP TO SELECT VIDEO',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
+                              const SizedBox(height: 8), // More spacing
+                              // Improved container with better constraints
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth:
+                                      240, // Limit width to prevent overflow
+                                ),
+                                child: Text(
+                                  kIsWeb
+                                      ? 'Video selected from web'
+                                      : _getShortFileName(
+                                          (_videoFile as File).path,
+                                        ),
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 11, // Smaller font size
+                                    height: 1.2, // Tighter line height
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
-                            ),
-                          ],
+                              if (_videoDuration != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    top: 8,
+                                  ), // More spacing
+                                  child: Text(
+                                    // Format duration as MM:SS
+                                    'Duration: ${_formatDuration()}',
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 11, // Smaller font size
+                                      fontWeight:
+                                          FontWeight.w500, // Medium weight
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        )
+                      : const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.video_library,
+                                size: 40, // Slightly smaller icon
+                                color: Color(0xFF6C63FF),
+                              ),
+                              SizedBox(height: 12), // More spacing
+                              Text(
+                                'TAP TO SELECT VIDEO',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight:
+                                      FontWeight.w600, // Semi-bold per CRED
+                                  letterSpacing: 0.5,
+                                  fontSize: 14, // Slightly smaller text
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                 ),
               ),
