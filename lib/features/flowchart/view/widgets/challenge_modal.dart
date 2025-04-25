@@ -177,7 +177,6 @@ class _ChallengeModalState extends State<ChallengeModal> {
             builder: (providerContext) {
               // Use the new context that has access to both providers
               return DonationModal(
-                nodeId: widget.parentNodeId,
                 nodeText: 'Support your challenge with a donation',
                 onDonationComplete: (double amount) async {
                   // Now submit the challenge with the donation amount
