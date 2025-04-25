@@ -944,6 +944,18 @@ class NodeWidget extends StatelessWidget {
     // Store the FlowchartCubit before showing the modal
     final flowchartCubit = context.read<FlowchartCubit>();
 
+    // Debug log to track challenge creation
+    debugPrint('==== CHALLENGE CREATION START ====');
+    debugPrint('Opening challenge modal for parent node: ${nodeModel.id}');
+    debugPrint('Current node challenges: ${nodeModel.challenges.length}');
+
+    // Get the current state of the flowchart before adding the challenge
+    final beforeNodeCount = countNodes(flowchartCubit.state.rootNode!);
+    debugPrint('Before adding challenge: Flowchart has $beforeNodeCount nodes');
+
+    // Log the current flowchart structure
+    logFlowchartStructure(flowchartCubit.state.rootNode!);
+
     // Update ChallengeModal design for dark theme
     showModalBottomSheet<void>(
       context: context,
@@ -969,7 +981,35 @@ class NodeWidget extends StatelessWidget {
           ),
         );
       },
-    );
+    ).then((_) {
+      // After the modal is closed, check if a new node was added
+      if (!context.mounted) return;
+
+      // Get the current state of the flowchart after the modal is closed
+      final afterNodeCount = countNodes(flowchartCubit.state.rootNode!);
+      debugPrint(
+        'After challenge modal closed: Flowchart has $afterNodeCount nodes',
+      );
+
+      // Log the updated flowchart structure
+      logFlowchartStructure(flowchartCubit.state.rootNode!);
+
+      // Check if a new node was added
+      final nodeAdded = afterNodeCount > beforeNodeCount;
+      debugPrint('Node count increased: $nodeAdded');
+
+      // Force a rebuild of the graph to ensure the new node is displayed
+      if (nodeAdded) {
+        debugPrint('Forcing graph rebuild to show new node');
+        // Force a rebuild of the graph
+        if (context.mounted) {
+          // Force a reload of the flowchart
+          flowchartCubit.loadFlowchart();
+        }
+      }
+
+      debugPrint('==== CHALLENGE CREATION END ====');
+    });
   }
 
   void _showDonationModal(BuildContext context) {
@@ -1029,5 +1069,28 @@ class NodeWidget extends StatelessWidget {
         );
       },
     );
+  }
+
+  /// Helper method to count the total number of nodes in the tree
+  int countNodes(NodeModel node) {
+    var count = 1; // Count this node
+
+    // Add count from all challenges
+    for (final challenge in node.challenges) {
+      count += countNodes(challenge);
+    }
+
+    return count;
+  }
+
+  /// Helper method to log the flowchart structure
+  void logFlowchartStructure(NodeModel rootNode, [String indent = '']) {
+    debugPrint(
+      '$indent- ${rootNode.id}: "${rootNode.text}" '
+      '(${rootNode.challenges.length} challenges)',
+    );
+    for (final challenge in rootNode.challenges) {
+      logFlowchartStructure(challenge, '$indent  ');
+    }
   }
 }
