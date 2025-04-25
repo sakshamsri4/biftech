@@ -956,6 +956,12 @@ class NodeWidget extends StatelessWidget {
     // Log the current flowchart structure
     logFlowchartStructure(flowchartCubit.state.rootNode!);
 
+    // Uncomment this block to test direct challenge creation
+    // if (true) {
+    //   _testDirectChallengeCreation(flowchartCubit, context);
+    //   return;
+    // }
+
     // Update ChallengeModal design for dark theme
     showModalBottomSheet<void>(
       context: context,
@@ -981,9 +987,12 @@ class NodeWidget extends StatelessWidget {
           ),
         );
       },
-    ).then((_) {
+    ).then((_) async {
       // After the modal is closed, check if a new node was added
       if (!context.mounted) return;
+
+      // Wait a moment for any async operations to complete
+      await Future<void>.delayed(const Duration(milliseconds: 500));
 
       // Get the current state of the flowchart after the modal is closed
       final afterNodeCount = countNodes(flowchartCubit.state.rootNode!);
@@ -1004,12 +1013,77 @@ class NodeWidget extends StatelessWidget {
         // Force a rebuild of the graph
         if (context.mounted) {
           // Force a reload of the flowchart
-          flowchartCubit.loadFlowchart();
+          await flowchartCubit.loadFlowchart();
+
+          // Force a second reload after a delay to ensure the UI updates
+          await Future<void>.delayed(const Duration(milliseconds: 300));
+          if (context.mounted) {
+            await flowchartCubit.loadFlowchart();
+
+            // Force a rebuild of the widget tree
+            if (context.mounted) {
+              // This will trigger a rebuild of the entire widget tree
+              (context as Element).markNeedsBuild();
+            }
+          }
+        }
+      } else {
+        // If no node was added, try forcing a reload anyway
+        debugPrint('No node added, forcing reload anyway');
+        if (context.mounted) {
+          await flowchartCubit.loadFlowchart();
         }
       }
 
       debugPrint('==== CHALLENGE CREATION END ====');
     });
+  }
+
+  // Test method to directly create a challenge without going through the modal
+  Future<void> _testDirectChallengeCreation(
+    FlowchartCubit flowchartCubit,
+    BuildContext context,
+  ) async {
+    try {
+      debugPrint('Testing direct challenge creation');
+
+      // Create a test challenge
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final testChallengeText = 'Test challenge $timestamp';
+      const testDonation = 50.0;
+
+      // Add the challenge directly
+      final newNodeId = await flowchartCubit.addChallenge(
+        nodeModel.id,
+        testChallengeText,
+        testDonation,
+      );
+
+      debugPrint('Test challenge created with ID: $newNodeId');
+
+      // Force a reload of the flowchart
+      await flowchartCubit.loadFlowchart();
+
+      // Show a success message
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Test challenge created: $testChallengeText'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error creating test challenge: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error creating test challenge: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _showDonationModal(BuildContext context) {

@@ -177,8 +177,11 @@ class _ChallengeModalState extends State<ChallengeModal> {
             builder: (providerContext) {
               // Use the new context that has access to both providers
               return DonationModal(
+                // IMPORTANT: We're NOT passing a nodeId here because we want to
+                // create a new node rather than update an existing one
                 nodeText: 'Support your challenge with a donation',
                 onDonationComplete: (double amount) async {
+                  debugPrint('Donation completed with amount: $amount');
                   // Now submit the challenge with the donation amount
                   await _submitChallenge(challengeText, amount);
                 },
