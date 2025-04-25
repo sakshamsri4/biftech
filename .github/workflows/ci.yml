@@ -11,24 +11,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.19.3'
           channel: 'stable'
-      
+
       - name: Install dependencies
         run: |
           flutter pub get
-          # Explicitly install graphview package to ensure it's available
-          flutter pub add graphview@1.2.0 --no-precompile
-      
+          # No need to explicitly add graphview as it's already in pubspec.yaml
+
       - name: Verify formatting
         run: dart format --line-length 80 --set-exit-if-changed lib test
-      
+
       - name: Analyze project source
         run: flutter analyze lib test
-      
+
       - name: Run tests
         run: flutter test --coverage
