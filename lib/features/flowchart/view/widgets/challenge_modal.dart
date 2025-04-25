@@ -221,12 +221,31 @@ class _ChallengeModalState extends State<ChallengeModal> {
         ),
       );
 
-      // Log the challenge submission with detailed info
-      debugPrint('==== CHALLENGE SUBMISSION START ====');
-      debugPrint(
-        'Submitting challenge to node ${widget.parentNodeId}: '
-        '"$challengeText" with donation: $donationAmount',
-      );
+      // DETAILED LOGGING: Start of challenge submission
+      debugPrint('\n\n==== CHALLENGE SUBMISSION START ====');
+      debugPrint('🔍 DETAILED CHALLENGE CREATION LOGS:');
+      debugPrint('📌 Parent Node ID: ${widget.parentNodeId}');
+      debugPrint('📌 Challenge Text: "$challengeText"');
+      debugPrint('📌 Donation Amount: ₹$donationAmount');
+
+      // Log the parent node details
+      final parentNode = widget.cubit.findNodeById(widget.parentNodeId);
+      if (parentNode != null) {
+        debugPrint('📌 Parent Node Details:');
+        debugPrint('   - Text: "${parentNode.text}"');
+        debugPrint('   - Current Challenges: ${parentNode.challenges.length}');
+        debugPrint('   - Current Donation: ₹${parentNode.donation}');
+      } else {
+        debugPrint('⚠️ WARNING: Parent node not found in state!');
+      }
+
+      // Log the current state of the flowchart
+      debugPrint('📊 FLOWCHART STATE BEFORE:');
+      if (widget.cubit.state.rootNode != null) {
+        _logFlowchartStructure(widget.cubit.state.rootNode!);
+      } else {
+        debugPrint('⚠️ WARNING: Root node is null!');
+      }
 
       // Get the current state of the flowchart before adding the challenge
       var beforeNodeCount = 0;
@@ -234,34 +253,89 @@ class _ChallengeModalState extends State<ChallengeModal> {
         beforeNodeCount = countNodes(widget.cubit.state.rootNode!);
       }
       debugPrint(
-        'Before adding challenge: Flowchart has $beforeNodeCount nodes',
+        '📊 Before adding challenge: Flowchart has $beforeNodeCount nodes',
+      );
+
+      // Log the cubit state
+      debugPrint('📊 FlowchartCubit State:');
+      debugPrint('   - Status: ${widget.cubit.state.status}');
+      debugPrint('   - Selected Node ID: ${widget.cubit.state.selectedNodeId}');
+      debugPrint(
+        '   - Expanded Node IDs: ${widget.cubit.state.expandedNodeIds}',
       );
 
       // Call the cubit to add the challenge
+      debugPrint('🔄 Calling FlowchartCubit.addChallenge...');
       final newNodeId = await widget.cubit.addChallenge(
         widget.parentNodeId,
         challengeText,
         donationAmount,
       );
+      debugPrint('✅ addChallenge returned node ID: $newNodeId');
 
-      // Log the result with detailed info
-      debugPrint('Challenge added successfully with ID: $newNodeId');
+      // Verify the node was created
+      final newNode = widget.cubit.findNodeById(newNodeId);
+      if (newNode != null) {
+        debugPrint('✅ New node found in state:');
+        debugPrint('   - ID: ${newNode.id}');
+        debugPrint('   - Text: "${newNode.text}"');
+        debugPrint('   - Donation: ₹${newNode.donation}');
+      } else {
+        debugPrint('⚠️ WARNING: New node not found in state after creation!');
+      }
+
+      // Get the updated parent node
+      final updatedParentNode = widget.cubit.findNodeById(widget.parentNodeId);
+      if (updatedParentNode != null) {
+        debugPrint('📌 Updated Parent Node:');
+        debugPrint(
+          '   - Challenges Count: ${updatedParentNode.challenges.length}',
+        );
+
+        // Check if the new node is in the parent's challenges
+        final challengeExists =
+            updatedParentNode.challenges.any((c) => c.id == newNodeId);
+        debugPrint('   - Contains new challenge: $challengeExists');
+
+        if (challengeExists) {
+          debugPrint('   - Challenge IDs in parent:');
+          for (final challenge in updatedParentNode.challenges) {
+            debugPrint('     * ${challenge.id}');
+          }
+        }
+      }
+
+      // Log the current state of the flowchart after adding the challenge
+      debugPrint('📊 FLOWCHART STATE AFTER:');
+      if (widget.cubit.state.rootNode != null) {
+        _logFlowchartStructure(widget.cubit.state.rootNode!);
+      }
 
       // Get the current state of the flowchart after adding the challenge
       var afterNodeCount = 0;
       if (widget.cubit.state.rootNode != null) {
         afterNodeCount = countNodes(widget.cubit.state.rootNode!);
       }
-      debugPrint('After adding challenge: Flowchart has $afterNodeCount nodes');
+      debugPrint(
+        '📊 After adding challenge: Flowchart has $afterNodeCount nodes',
+      );
 
       // Verify the node was actually added
       final nodeAdded = beforeNodeCount < afterNodeCount;
-      debugPrint('Node count increased: $nodeAdded');
+      debugPrint('📊 Node count increased: $nodeAdded');
 
       // Check if the new node exists in the tree
       final newNodeExists = widget.cubit.findNodeById(newNodeId) != null;
-      debugPrint('New node exists in tree: $newNodeExists');
-      debugPrint('==== CHALLENGE SUBMISSION END ====');
+      debugPrint('📊 New node exists in tree: $newNodeExists');
+
+      if (!nodeAdded || !newNodeExists) {
+        debugPrint('⚠️ WARNING: Node creation verification failed!');
+        debugPrint(
+          '⚠️ This indicates the node was not properly added to the tree',
+        );
+      }
+
+      debugPrint('==== CHALLENGE SUBMISSION END ====\n\n');
 
       if (!mounted) return;
 
@@ -286,28 +360,36 @@ class _ChallengeModalState extends State<ChallengeModal> {
 
         // Force reload the flowchart
         if (mounted) {
-          debugPrint('Forcing complete flowchart reload to show new node');
+          debugPrint('🔄 Forcing complete flowchart reload to show new node');
 
           // First clear the graph
           if (context.mounted) {
-            // Find the FlowchartPage and call its rebuild method
-            // This is a temporary solution to force a complete rebuild
-
+            debugPrint('🔄 First flowchart reload...');
             // Force a reload by calling loadFlowchart twice
             // First to clear the state, then to reload it
             await widget.cubit.loadFlowchart();
 
             // Wait a moment
-            await Future<void>.delayed(const Duration(milliseconds: 100));
+            await Future<void>.delayed(const Duration(milliseconds: 300));
 
-            // Now reload the flowchart
+            // Now reload the flowchart again
+            debugPrint('🔄 Second flowchart reload...');
             await widget.cubit.loadFlowchart();
 
             // Wait a moment
-            await Future<void>.delayed(const Duration(milliseconds: 100));
+            await Future<void>.delayed(const Duration(milliseconds: 300));
 
             // Select the new node to highlight it
+            debugPrint('🔄 Selecting new node: $newNodeId');
             widget.cubit.selectNode(newNodeId);
+
+            // Log the final state
+            debugPrint('📊 FINAL FLOWCHART STATE:');
+            if (widget.cubit.state.rootNode != null) {
+              _logFlowchartStructure(widget.cubit.state.rootNode!);
+              final finalNodeCount = countNodes(widget.cubit.state.rootNode!);
+              debugPrint('📊 Final node count: $finalNodeCount');
+            }
           }
         }
       }
@@ -346,5 +428,16 @@ class _ChallengeModalState extends State<ChallengeModal> {
     }
 
     return count;
+  }
+
+  /// Helper method to log the flowchart structure
+  void _logFlowchartStructure(NodeModel rootNode, [String indent = '']) {
+    debugPrint(
+      '$indent- ${rootNode.id}: "${rootNode.text}" '
+      '(${rootNode.challenges.length} challenges)',
+    );
+    for (final challenge in rootNode.challenges) {
+      _logFlowchartStructure(challenge, '$indent  ');
+    }
   }
 }

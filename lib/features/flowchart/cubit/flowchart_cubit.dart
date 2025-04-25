@@ -246,68 +246,142 @@ class FlowchartCubit extends Cubit<FlowchartState> {
     double donation,
   ) async {
     try {
-      if (isClosed) throw Exception('Cubit is closed');
+      debugPrint('\n\n🔍 FLOWCHART CUBIT - ADD CHALLENGE START 🔍');
+      debugPrint('📌 Parent Node ID: $parentNodeId');
+      debugPrint('📌 Challenge Text: "$text"');
+      debugPrint('📌 Donation Amount: ₹$donation');
+
+      if (isClosed) {
+        debugPrint('⚠️ ERROR: Cubit is closed');
+        throw Exception('Cubit is closed');
+      }
+
       if (state.rootNode == null) {
+        debugPrint('⚠️ ERROR: Root node is null');
         throw Exception('Root node is null');
       }
 
+      // Log the current state
+      debugPrint('📊 Current FlowchartState:');
+      debugPrint('   - Status: ${state.status}');
+      debugPrint('   - Selected Node ID: ${state.selectedNodeId}');
+      debugPrint('   - Root Node ID: ${state.rootNode!.id}');
+      debugPrint('   - Total Nodes: ${_countNodesInTree(state.rootNode!)}');
+
       // Create a new challenge node with a unique timestamp-based ID
       final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final challengeNodeId = 'challenge_$timestamp';
+      debugPrint('📌 Generated new challenge ID: $challengeNodeId');
+
       final challengeNode = NodeModel(
-        id: 'challenge_$timestamp',
+        id: challengeNodeId,
         text: text,
         donation: donation,
       );
 
+      debugPrint('📌 Created new NodeModel:');
+      debugPrint('   - ID: ${challengeNode.id}');
+      debugPrint('   - Text: "${challengeNode.text}"');
+      debugPrint('   - Donation: ₹${challengeNode.donation}');
+      debugPrint('   - Created At: ${challengeNode.createdAt}');
+
       // Log the parent node before adding the challenge
       final parentNode = findNodeById(parentNodeId);
       if (parentNode != null) {
-        debugPrint(
-          'Parent node before adding challenge: '
-          '${parentNode.id} has ${parentNode.challenges.length} challenges',
-        );
+        debugPrint('📌 Found parent node:');
+        debugPrint('   - ID: ${parentNode.id}');
+        debugPrint('   - Text: "${parentNode.text}"');
+        debugPrint('   - Current Challenges: ${parentNode.challenges.length}');
+        if (parentNode.challenges.isNotEmpty) {
+          debugPrint('   - Existing Challenge IDs:');
+          for (final challenge in parentNode.challenges) {
+            debugPrint('     * ${challenge.id}');
+          }
+        }
       } else {
-        debugPrint('Parent node not found: $parentNodeId');
+        debugPrint('⚠️ ERROR: Parent node not found: $parentNodeId');
+        throw Exception('Parent node not found: $parentNodeId');
       }
 
+      // Log the flowchart structure before the update
+      debugPrint('📊 FLOWCHART STRUCTURE BEFORE:');
+      _logFlowchartStructure(state.rootNode!);
+
       // Find the parent node and add the challenge
+      debugPrint('🔄 Calling _updateNodeInTree to add challenge...');
       final updatedRootNode = _updateNodeInTree(
         state.rootNode!,
         parentNodeId,
-        (node) => node.addChallenge(challengeNode),
+        (node) {
+          debugPrint('🔄 Adding challenge to node ${node.id}');
+          final updatedNode = node.addChallenge(challengeNode);
+          debugPrint(
+              '🔄 Node updated, now has ${updatedNode.challenges.length} challenges');
+          return updatedNode;
+        },
       );
 
       if (updatedRootNode != null) {
+        debugPrint('✅ Root node updated successfully');
+
         // Verify the challenge was added by finding the parent node again
         final updatedParentNode =
             _findNodeInTree(updatedRootNode, parentNodeId);
         if (updatedParentNode != null) {
+          debugPrint('📌 Updated parent node:');
+          debugPrint('   - ID: ${updatedParentNode.id}');
           debugPrint(
-            'Parent node after adding challenge: '
-            '${updatedParentNode.id} has ${updatedParentNode.challenges.length} challenges',
-          );
+              '   - Challenges Count: ${updatedParentNode.challenges.length}');
 
           // Check if the challenge is actually in the parent's challenges
           final challengeExists = updatedParentNode.challenges.any(
             (c) => c.id == challengeNode.id,
           );
 
-          if (!challengeExists) {
+          if (challengeExists) {
+            debugPrint('✅ Challenge successfully added to parent node');
+            debugPrint('   - Challenge IDs in parent:');
+            for (final challenge in updatedParentNode.challenges) {
+              debugPrint('     * ${challenge.id}');
+            }
+          } else {
             debugPrint(
-              'WARNING: Challenge was not properly added to parent node!',
-            );
+                '⚠️ ERROR: Challenge was not properly added to parent node!');
+            debugPrint('   - Challenge ID: ${challengeNode.id}');
+            debugPrint('   - Parent Node ID: ${updatedParentNode.id}');
+            debugPrint('   - Parent Node Challenges:');
+            for (final challenge in updatedParentNode.challenges) {
+              debugPrint('     * ${challenge.id}');
+            }
+            throw Exception('Challenge was not properly added to parent node');
           }
+        } else {
+          debugPrint('⚠️ ERROR: Updated parent node not found after update!');
+          throw Exception('Updated parent node not found after update');
         }
 
+        // Log the flowchart structure after the update
+        debugPrint('📊 FLOWCHART STRUCTURE AFTER UPDATE:');
+        _logFlowchartStructure(updatedRootNode);
+
         // Save the updated flowchart
+        debugPrint('🔄 Saving updated flowchart to repository...');
         await repository.saveFlowchart(videoId, updatedRootNode);
-        if (isClosed) throw Exception('Cubit closed during save');
+        debugPrint('✅ Flowchart saved to repository');
+
+        if (isClosed) {
+          debugPrint('⚠️ ERROR: Cubit closed during save');
+          throw Exception('Cubit closed during save');
+        }
 
         // Update the state and expand all nodes for better visibility
         final expandedNodeIds = <String>{};
         _collectAllNodeIds(updatedRootNode, expandedNodeIds);
+        debugPrint(
+            '📌 Collected ${expandedNodeIds.length} node IDs for expansion');
 
         // Force a reload of the flowchart to ensure the UI updates
+        debugPrint('🔄 Emitting updated state with new challenge...');
         emit(
           state.copyWith(
             rootNode: updatedRootNode,
@@ -316,25 +390,29 @@ class FlowchartCubit extends Cubit<FlowchartState> {
             selectedNodeId: challengeNode.id,
           ),
         );
+        debugPrint('✅ State updated with new challenge');
 
         // Debug log to verify the challenge was added
+        debugPrint('📊 SUMMARY:');
+        debugPrint('   - Added challenge: ${challengeNode.id}');
+        debugPrint('   - To parent: $parentNodeId');
         debugPrint(
-          'Added challenge: ${challengeNode.id} to parent: $parentNodeId',
-        );
-        debugPrint(
-          'Updated root node has ${_countNodesInTree(updatedRootNode)} nodes',
-        );
+            '   - Updated root node has ${_countNodesInTree(updatedRootNode)} nodes');
 
         // Log the full flowchart structure after adding the challenge
-        debugPrint('Flowchart structure after adding challenge:');
+        debugPrint('📊 FINAL FLOWCHART STRUCTURE:');
         _logFlowchartStructure(updatedRootNode);
+
+        debugPrint('🔍 FLOWCHART CUBIT - ADD CHALLENGE END 🔍\n\n');
 
         // Return the ID of the new challenge node
         return challengeNode.id;
       } else {
+        debugPrint('⚠️ ERROR: Failed to update root node');
         throw Exception('Failed to update root node');
       }
     } catch (e, stackTrace) {
+      debugPrint('⚠️ ERROR in addChallenge: $e');
       ErrorLoggingService.instance.logError(
         e,
         stackTrace: stackTrace,
@@ -348,6 +426,7 @@ class FlowchartCubit extends Cubit<FlowchartState> {
           ),
         );
       }
+      debugPrint('🔍 FLOWCHART CUBIT - ADD CHALLENGE END (WITH ERROR) 🔍\n\n');
       throw Exception('Failed to add challenge: $e');
     }
   }

@@ -55,36 +55,98 @@ class FlowchartRepository {
   /// Save a flowchart for a video
   Future<void> saveFlowchart(String videoId, NodeModel rootNode) async {
     try {
+      debugPrint('\n\n🔍 FLOWCHART REPOSITORY - SAVE FLOWCHART START 🔍');
+      debugPrint('📌 Video ID: $videoId');
+      debugPrint('📌 Root Node ID: ${rootNode.id}');
+      debugPrint('📌 Total Nodes: ${_countNodes(rootNode)}');
+
       if (_flowchartsBox == null) {
+        debugPrint('⚠️ ERROR: Flowcharts box is not initialized');
         throw Exception('Flowcharts box is not initialized');
       }
 
       // Debug log to verify the flowchart structure before saving
-      debugPrint('Saving flowchart for video $videoId:');
+      debugPrint('📊 FLOWCHART STRUCTURE BEFORE SAVING:');
       _logFlowchartStructure(rootNode);
 
+      // Check if there's an existing flowchart
+      final existingRootNode = _flowchartsBox!.get(videoId);
+      if (existingRootNode != null) {
+        debugPrint('📌 Found existing flowchart:');
+        debugPrint('   - Root Node ID: ${existingRootNode.id}');
+        debugPrint('   - Total Nodes: ${_countNodes(existingRootNode)}');
+
+        // Compare node counts
+        final existingNodeCount = _countNodes(existingRootNode);
+        final newNodeCount = _countNodes(rootNode);
+        debugPrint('📊 Node count comparison:');
+        debugPrint('   - Existing: $existingNodeCount');
+        debugPrint('   - New: $newNodeCount');
+        debugPrint('   - Difference: ${newNodeCount - existingNodeCount}');
+      } else {
+        debugPrint('📌 No existing flowchart found for video $videoId');
+      }
+
       // First, delete any existing flowchart to ensure clean state
+      debugPrint('🔄 Deleting existing flowchart...');
       await _flowchartsBox!.delete(videoId);
+      debugPrint('✅ Existing flowchart deleted');
 
       // Then save the new flowchart
+      debugPrint('🔄 Saving new flowchart...');
       await _flowchartsBox!.put(videoId, rootNode);
+      debugPrint('✅ New flowchart saved');
 
       // Verify the saved flowchart by reading it back
       final savedRootNode = _flowchartsBox!.get(videoId); // get is not async
       if (savedRootNode != null) {
-        debugPrint('Verified saved flowchart:');
+        debugPrint('✅ Verified saved flowchart:');
+        debugPrint('   - Root Node ID: ${savedRootNode.id}');
+        debugPrint('   - Total Nodes: ${_countNodes(savedRootNode)}');
+
+        // Verify all nodes are present
+        final expectedNodeCount = _countNodes(rootNode);
+        final actualNodeCount = _countNodes(savedRootNode);
+
+        if (expectedNodeCount == actualNodeCount) {
+          debugPrint('✅ Node count matches: $actualNodeCount');
+        } else {
+          debugPrint('⚠️ WARNING: Node count mismatch!');
+          debugPrint('   - Expected: $expectedNodeCount');
+          debugPrint('   - Actual: $actualNodeCount');
+        }
+
+        debugPrint('📊 SAVED FLOWCHART STRUCTURE:');
         _logFlowchartStructure(savedRootNode);
       } else {
-        debugPrint('WARNING: Failed to verify saved flowchart!');
+        debugPrint('⚠️ WARNING: Failed to verify saved flowchart!');
+        debugPrint('   - The flowchart was not found after saving');
       }
+
+      debugPrint('🔍 FLOWCHART REPOSITORY - SAVE FLOWCHART END 🔍\n\n');
     } catch (e, stackTrace) {
+      debugPrint('⚠️ ERROR in saveFlowchart: $e');
       ErrorLoggingService.instance.logError(
         e,
         stackTrace: stackTrace,
         context: 'FlowchartRepository.saveFlowchart',
       );
+      debugPrint(
+          '🔍 FLOWCHART REPOSITORY - SAVE FLOWCHART END (WITH ERROR) 🔍\n\n');
       rethrow;
     }
+  }
+
+  /// Helper method to count the total number of nodes in the tree
+  int _countNodes(NodeModel node) {
+    var count = 1; // Count this node
+
+    // Add count from all challenges
+    for (final challenge in node.challenges) {
+      count += _countNodes(challenge);
+    }
+
+    return count;
   }
 
   /// Helper method to log the flowchart structure
