@@ -1,5 +1,6 @@
 import 'package:biftech/core/services/error_logging_service.dart';
 import 'package:biftech/features/flowchart/model/models.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 
 /// Repository for managing flowchart data
@@ -58,7 +59,24 @@ class FlowchartRepository {
         throw Exception('Flowcharts box is not initialized');
       }
 
+      // Debug log to verify the flowchart structure before saving
+      debugPrint('Saving flowchart for video $videoId:');
+      _logFlowchartStructure(rootNode);
+
+      // First, delete any existing flowchart to ensure clean state
+      await _flowchartsBox!.delete(videoId);
+
+      // Then save the new flowchart
       await _flowchartsBox!.put(videoId, rootNode);
+
+      // Verify the saved flowchart by reading it back
+      final savedRootNode = _flowchartsBox!.get(videoId); // get is not async
+      if (savedRootNode != null) {
+        debugPrint('Verified saved flowchart:');
+        _logFlowchartStructure(savedRootNode);
+      } else {
+        debugPrint('WARNING: Failed to verify saved flowchart!');
+      }
     } catch (e, stackTrace) {
       ErrorLoggingService.instance.logError(
         e,
@@ -66,6 +84,17 @@ class FlowchartRepository {
         context: 'FlowchartRepository.saveFlowchart',
       );
       rethrow;
+    }
+  }
+
+  /// Helper method to log the flowchart structure
+  void _logFlowchartStructure(NodeModel rootNode, [String indent = '']) {
+    debugPrint(
+      '$indent- ${rootNode.id}: "${rootNode.text}" '
+      '(${rootNode.challenges.length} challenges)',
+    );
+    for (final challenge in rootNode.challenges) {
+      _logFlowchartStructure(challenge, '$indent  ');
     }
   }
 

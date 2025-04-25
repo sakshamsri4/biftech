@@ -2,6 +2,7 @@ import 'package:biftech/core/services/error_logging_service.dart';
 import 'package:biftech/features/donation/cubit/donation_cubit.dart';
 import 'package:biftech/features/donation/view/donation_modal.dart';
 import 'package:biftech/features/flowchart/cubit/cubit.dart';
+import 'package:biftech/features/flowchart/model/models.dart';
 import 'package:biftech/shared/theme/colors.dart';
 import 'package:biftech/shared/theme/dimens.dart';
 import 'package:biftech/shared/widgets/buttons/primary_button.dart';
@@ -176,7 +177,6 @@ class _ChallengeModalState extends State<ChallengeModal> {
             builder: (providerContext) {
               // Use the new context that has access to both providers
               return DonationModal(
-                nodeId: widget.parentNodeId,
                 nodeText: 'Support your challenge with a donation',
                 onDonationComplete: (double amount) async {
                   // Now submit the challenge with the donation amount
@@ -218,12 +218,47 @@ class _ChallengeModalState extends State<ChallengeModal> {
         ),
       );
 
+      // Log the challenge submission with detailed info
+      debugPrint('==== CHALLENGE SUBMISSION START ====');
+      debugPrint(
+        'Submitting challenge to node ${widget.parentNodeId}: '
+        '"$challengeText" with donation: $donationAmount',
+      );
+
+      // Get the current state of the flowchart before adding the challenge
+      var beforeNodeCount = 0;
+      if (widget.cubit.state.rootNode != null) {
+        beforeNodeCount = countNodes(widget.cubit.state.rootNode!);
+      }
+      debugPrint(
+        'Before adding challenge: Flowchart has $beforeNodeCount nodes',
+      );
+
       // Call the cubit to add the challenge
-      await widget.cubit.addChallenge(
+      final newNodeId = await widget.cubit.addChallenge(
         widget.parentNodeId,
         challengeText,
         donationAmount,
       );
+
+      // Log the result with detailed info
+      debugPrint('Challenge added successfully with ID: $newNodeId');
+
+      // Get the current state of the flowchart after adding the challenge
+      var afterNodeCount = 0;
+      if (widget.cubit.state.rootNode != null) {
+        afterNodeCount = countNodes(widget.cubit.state.rootNode!);
+      }
+      debugPrint('After adding challenge: Flowchart has $afterNodeCount nodes');
+
+      // Verify the node was actually added
+      final nodeAdded = beforeNodeCount < afterNodeCount;
+      debugPrint('Node count increased: $nodeAdded');
+
+      // Check if the new node exists in the tree
+      final newNodeExists = widget.cubit.findNodeById(newNodeId) != null;
+      debugPrint('New node exists in tree: $newNodeExists');
+      debugPrint('==== CHALLENGE SUBMISSION END ====');
 
       if (!mounted) return;
 
@@ -240,6 +275,39 @@ class _ChallengeModalState extends State<ChallengeModal> {
           duration: const Duration(seconds: 2),
         ),
       );
+
+      // Force a complete rebuild of the flowchart
+      if (mounted) {
+        // Wait a moment for the state to update
+        await Future<void>.delayed(const Duration(milliseconds: 500));
+
+        // Force reload the flowchart
+        if (mounted) {
+          debugPrint('Forcing complete flowchart reload to show new node');
+
+          // First clear the graph
+          if (context.mounted) {
+            // Find the FlowchartPage and call its rebuild method
+            // This is a temporary solution to force a complete rebuild
+
+            // Force a reload by calling loadFlowchart twice
+            // First to clear the state, then to reload it
+            await widget.cubit.loadFlowchart();
+
+            // Wait a moment
+            await Future<void>.delayed(const Duration(milliseconds: 100));
+
+            // Now reload the flowchart
+            await widget.cubit.loadFlowchart();
+
+            // Wait a moment
+            await Future<void>.delayed(const Duration(milliseconds: 100));
+
+            // Select the new node to highlight it
+            widget.cubit.selectNode(newNodeId);
+          }
+        }
+      }
     } catch (e, stackTrace) {
       // Log the error
       ErrorLoggingService.instance.logError(
@@ -263,5 +331,17 @@ class _ChallengeModalState extends State<ChallengeModal> {
         ),
       );
     }
+  }
+
+  /// Helper method to count the total number of nodes in the tree
+  int countNodes(NodeModel node) {
+    var count = 1; // Count this node
+
+    // Add count from all challenges
+    for (final challenge in node.challenges) {
+      count += countNodes(challenge);
+    }
+
+    return count;
   }
 }
